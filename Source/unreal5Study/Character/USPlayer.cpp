@@ -16,13 +16,14 @@ AUSPlayer::AUSPlayer()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	bUseControllerRotationYaw = true;
 }
 
 void AUSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetCameraData(CameraTypeMap[ECameraType::ThirdPerson]);
+	CameraChange();
 	SetInputControll();
 }
 
@@ -33,11 +34,13 @@ void AUSPlayer::SetCameraData(const UUSCameraData* CameraData)
 
 	CameraBoom->TargetArmLength = CameraData->TargetArmLength;
 	CameraBoom->SetRelativeRotation(CameraData->RelativeRotation);
+	CameraBoom->SetRelativeLocation(CameraData->RelativeLocation);
 	CameraBoom->bUsePawnControlRotation = CameraData->bUsePawnControlRotation;
 	CameraBoom->bInheritPitch = CameraData->bInheritPitch;
 	CameraBoom->bInheritYaw = CameraData->bInheritYaw;
 	CameraBoom->bInheritRoll = CameraData->bInheritRoll;
 	CameraBoom->bDoCollisionTest = CameraData->bDoCollisionTest;
+	
 }
 
 void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -46,8 +49,12 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Move], ETriggerEvent::Triggered, this, &ThisClass::Move);
-	EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Look], ETriggerEvent::Triggered, this, &ThisClass::Look);
+	if(InputActionMap[EInputKey::Move])
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Move], ETriggerEvent::Triggered, this, &ThisClass::Move);
+	if (InputActionMap[EInputKey::Look])
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Look], ETriggerEvent::Triggered, this, &ThisClass::Look);
+	if (InputActionMap[EInputKey::CameraChange])
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::CameraChange], ETriggerEvent::Triggered, this, &ThisClass::CameraChange);
 }
 
 void AUSPlayer::SetInputControll()
@@ -84,4 +91,29 @@ void AUSPlayer::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
+
+	//UE_LOG(LogTemp, Warning, TEXT("Look %s"), *LookAxisVector.ToString());
+}
+
+void AUSPlayer::CameraChange()
+{
+	// 현재 시점을 다음 시점으로 업데이트
+	CurrentViewType = GetNextViewType(CurrentViewType);
+
+	// 새로운 시점에 맞게 카메라 데이터 설정
+	if (CameraTypeMap[CurrentViewType])
+		SetCameraData(CameraTypeMap[CurrentViewType]);
+}
+
+
+EViewType AUSPlayer::GetNextViewType(EViewType CurrentView)
+{
+	switch (CurrentView)
+	{
+	case EViewType::None: return EViewType::FirstPerson;
+	case EViewType::FirstPerson: return EViewType::ThirdPerson;
+	case EViewType::ThirdPerson: return EViewType::TopDown;
+	case EViewType::TopDown: return EViewType::FirstPerson;
+	default: return EViewType::None; // 기본값 처리
+	}
 }

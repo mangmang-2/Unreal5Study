@@ -8,17 +8,21 @@
 #include "USPlayer.generated.h"
 
 UENUM(BlueprintType)
-enum class ECameraType : uint8
+enum class EViewType : uint8
 {
+	None UMETA(DisplayName = "None"),
 	FirstPerson UMETA(DisplayName = "FirstPerson"),
 	ThirdPerson UMETA(DisplayName = "ThirdPerson"),
+	TopDown UMETA(DisplayName = "TopDown"),
 };
 
 UENUM(BlueprintType)
 enum class EInputKey : uint8
 {
+	None UMETA(DisplayName = "None"),
 	Look UMETA(DisplayName = "Look"),
 	Move UMETA(DisplayName = "Move"),
+	CameraChange UMETA(DisplayName = "CameraChange"),
 };
 
 /**
@@ -44,6 +48,8 @@ public:
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+	void CameraChange();
+	EViewType GetNextViewType(EViewType CurrentView);
 
 protected:
 	// 카메라, 추후 다른 클래스로 묶자..
@@ -54,11 +60,16 @@ protected:
 	TObjectPtr<class UCameraComponent> FollowCamera;
 
 	UPROPERTY(EditAnywhere, Category = CameraTypeMap, Meta = (AllowPrivateAccess = "true"))
-	TMap<ECameraType, class UUSCameraData*> CameraTypeMap;
+	TMap<EViewType, class UUSCameraData*> CameraTypeMap;
 
+	EViewType CurrentViewType = EViewType::None;
+
+	// 인풋
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TMap<EInputKey, TObjectPtr<class UInputAction>> InputActionMap;
+
+	
 };
