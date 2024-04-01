@@ -6,6 +6,15 @@
 #include "Engine/DataAsset.h"
 #include "USCameraData.generated.h"
 
+UENUM(BlueprintType)
+enum class EViewType : uint8
+{
+	None UMETA(DisplayName = "None"),
+	FirstPerson UMETA(DisplayName = "FirstPerson"),
+	ThirdPerson UMETA(DisplayName = "ThirdPerson"),
+	TopDown UMETA(DisplayName = "TopDown"),
+};
+
 /**
  * 
  */
@@ -38,4 +47,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = SpringArm)
 	uint32 bDoCollisionTest : 1;
+
+	UPROPERTY(EditAnywhere, Category = SpringArm)
+	bool bUseControllerRotationYaw;
+
+	UPROPERTY(EditAnywhere, Category = InputContext)
+	TObjectPtr<class UInputMappingContext> InputMappingContext;
 };

@@ -5,16 +5,11 @@
 #include "CoreMinimal.h"
 #include "Character/USCharacterBase.h"
 #include "InputActionValue.h"
+#include "Character/Input/USInputContextData.h"
+#include "Character/Camera/USCameraData.h"
 #include "USPlayer.generated.h"
 
-UENUM(BlueprintType)
-enum class EViewType : uint8
-{
-	None UMETA(DisplayName = "None"),
-	FirstPerson UMETA(DisplayName = "FirstPerson"),
-	ThirdPerson UMETA(DisplayName = "ThirdPerson"),
-	TopDown UMETA(DisplayName = "TopDown"),
-};
+
 
 UENUM(BlueprintType)
 enum class EInputKey : uint8
@@ -38,17 +33,17 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void SetCameraData(const class UUSCameraData* CameraData);
-
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
 	// 특별히 인풋 매핑을 바꿀일이 있다면 여기서 변경 할 것
-	void SetInputControll();
+	void SetInputContextChange(class UInputMappingContext* InputMappingContext);
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void CameraChange();
+
+	virtual void SetCameraData(const class UUSCameraData* CameraData);
 	EViewType GetNextViewType(EViewType CurrentView);
 
 protected:
@@ -62,14 +57,25 @@ protected:
 	UPROPERTY(EditAnywhere, Category = CameraTypeMap, Meta = (AllowPrivateAccess = "true"))
 	TMap<EViewType, class UUSCameraData*> CameraTypeMap;
 
-	EViewType CurrentViewType = EViewType::None;
+	EViewType CurrentViewType = EViewType::FirstPerson;
 
 	// 인풋
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
-	TObjectPtr<class UInputMappingContext> InputMappingContext;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TMap<EInputKey, TObjectPtr<class UInputAction>> InputActionMap;
 
 	
+	// UI
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
+	TSubclassOf<class UUserWidget> HUDWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = HUD)
+	TObjectPtr<class UUserWidget> HUDWidget;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
+	TObjectPtr<class USceneCaptureComponent2D> sceneCapture;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
+	TObjectPtr<class UTextureRenderTarget2D> renderTarget;
+
 };

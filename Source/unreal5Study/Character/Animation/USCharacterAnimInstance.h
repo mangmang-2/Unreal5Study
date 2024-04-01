@@ -14,6 +14,9 @@ class UNREAL5STUDY_API UUSCharacterAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 
+public:
+	UUSCharacterAnimInstance();
+
 private:
 	virtual void NativeInitializeAnimation() override;
 

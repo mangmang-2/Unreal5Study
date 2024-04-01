@@ -7,6 +7,11 @@
 #include "Camera/USCameraData.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "UMG/Public/Blueprint/UserWidget.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Components/SceneCaptureComponent2D.h"
+
 
 AUSPlayer::AUSPlayer()
 {
@@ -17,14 +22,34 @@ AUSPlayer::AUSPlayer()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 	bUseControllerRotationYaw = true;
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> HUDWidgetRef(TEXT("/Game/Study/Character/UI/WBP_HUD.WBP_HUD_C"));
+	if (HUDWidgetRef.Succeeded())
+	{
+		HUDWidgetClass = HUDWidgetRef.Class;
+	}
+
+	sceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
+	sceneCapture->SetupAttachment(FollowCamera);
+	static ConstructorHelpers::FObjectFinder<UTextureRenderTarget2D> RenderTargetRef(TEXT("/Game/Study/RenderTarget/RenderTarget.RenderTarget"));
+	if (RenderTargetRef.Succeeded())
+	{
+		renderTarget = RenderTargetRef.Object;
+	}
+	sceneCapture->TextureTarget = renderTarget;
+
 }
 
 void AUSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
+		HUDWidget->AddToViewport();
+	}
 	CameraChange();
-	SetInputControll();
 }
 
 void AUSPlayer::SetCameraData(const UUSCameraData* CameraData)
@@ -40,7 +65,13 @@ void AUSPlayer::SetCameraData(const UUSCameraData* CameraData)
 	CameraBoom->bInheritYaw = CameraData->bInheritYaw;
 	CameraBoom->bInheritRoll = CameraData->bInheritRoll;
 	CameraBoom->bDoCollisionTest = CameraData->bDoCollisionTest;
+	bUseControllerRotationYaw = CameraData->bUseControllerRotationYaw;
+	if (bUseControllerRotationYaw == false)
+	{
+		Controller->SetControlRotation(FRotator::ZeroRotator);
+	}
 	
+	SetInputContextChange(CameraData->InputMappingContext);
 }
 
 void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -57,12 +88,15 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::CameraChange], ETriggerEvent::Triggered, this, &ThisClass::CameraChange);
 }
 
-void AUSPlayer::SetInputControll()
+void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
 {
 	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 	{
 		Subsystem->ClearAllMappings();
+		if (InputMappingContext == nullptr)
+			return;
+
 		UInputMappingContext* NewMappingContext = InputMappingContext;
 		if (NewMappingContext)
 		{
@@ -102,7 +136,11 @@ void AUSPlayer::CameraChange()
 
 	// 새로운 시점에 맞게 카메라 데이터 설정
 	if (CameraTypeMap[CurrentViewType])
+	{
 		SetCameraData(CameraTypeMap[CurrentViewType]);
+		
+	}
+		
 }
 
 

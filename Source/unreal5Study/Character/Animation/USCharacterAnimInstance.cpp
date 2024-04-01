@@ -5,6 +5,11 @@
 #include "GameFramework/Character.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+UUSCharacterAnimInstance::UUSCharacterAnimInstance()
+{
+	MovingThreshould = 3.0f;
+}
+
 void UUSCharacterAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
