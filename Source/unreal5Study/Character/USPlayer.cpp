@@ -10,7 +10,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UMG/Public/Blueprint/UserWidget.h"
 #include "Components/SceneCaptureComponent2D.h"
-
+#include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "NiagaraFunctionLibrary.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -27,11 +28,6 @@ AUSPlayer::AUSPlayer()
 	{
 		HUDWidgetClass = HUDWidgetRef.Class;
 	}
-
-
-	//sceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
-	
-
 }
 
 void AUSPlayer::BeginPlay()
@@ -47,10 +43,12 @@ void AUSPlayer::BeginPlay()
 	CameraChange();
 }
 
+// 값 변경이 아니라 세팅값을 둔 여러게의 스프링암을 만들고 교체하는 형식으로 바껴야할듯
 void AUSPlayer::SetCameraData(const UUSCameraData* CameraData)
 {
 	if (CameraData == nullptr)
 		return;
+
 
 	CameraBoom->TargetArmLength = CameraData->TargetArmLength;
 	CameraBoom->SetRelativeRotation(CameraData->RelativeRotation);
@@ -77,10 +75,19 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if(InputActionMap[EInputKey::Move])
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Move], ETriggerEvent::Triggered, this, &ThisClass::Move);
+
 	if (InputActionMap[EInputKey::Look])
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Look], ETriggerEvent::Triggered, this, &ThisClass::Look);
+
 	if (InputActionMap[EInputKey::CameraChange])
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::CameraChange], ETriggerEvent::Triggered, this, &ThisClass::CameraChange);
+
+	if (InputActionMap[EInputKey::ClickMove])
+	{
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::ClickMove], ETriggerEvent::Triggered, this, &ThisClass::ClickMove);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::ClickMove], ETriggerEvent::Completed, this, &ThisClass::ClickMove);
+	}
+	
 }
 
 void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
@@ -136,6 +143,22 @@ void AUSPlayer::CameraChange()
 		
 	}
 		
+}
+
+void AUSPlayer::ClickMove()
+{
+	APlayerController* pController = Cast<APlayerController>(GetController());
+	if (pController == nullptr)
+		return;
+
+	FHitResult Hit;
+	bool bHitSuccessful = pController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
+
+	if (bHitSuccessful)
+	{
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(pController, Hit.Location);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(pController, nullptr, Hit.Location, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
+	}
 }
 
 
