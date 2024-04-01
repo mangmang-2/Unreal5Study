@@ -45,7 +45,8 @@ public:
 
 	virtual void SetCameraData(const class UUSCameraData* CameraData);
 	EViewType GetNextViewType(EViewType CurrentView);
-
+	
+	class UCameraComponent* GetCameraComponent() { return FollowCamera; }
 protected:
 	// 카메라, 추후 다른 클래스로 묶자..
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -74,8 +75,4 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
 	TObjectPtr<class USceneCaptureComponent2D> sceneCapture;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
-	TObjectPtr<class UTextureRenderTarget2D> renderTarget;
-
 };

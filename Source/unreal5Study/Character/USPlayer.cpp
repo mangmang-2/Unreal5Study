@@ -9,7 +9,6 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UMG/Public/Blueprint/UserWidget.h"
-#include "Engine/TextureRenderTarget2D.h"
 #include "Components/SceneCaptureComponent2D.h"
 
 
@@ -29,20 +28,16 @@ AUSPlayer::AUSPlayer()
 		HUDWidgetClass = HUDWidgetRef.Class;
 	}
 
-	sceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
-	sceneCapture->SetupAttachment(FollowCamera);
-	static ConstructorHelpers::FObjectFinder<UTextureRenderTarget2D> RenderTargetRef(TEXT("/Game/Study/RenderTarget/RenderTarget.RenderTarget"));
-	if (RenderTargetRef.Succeeded())
-	{
-		renderTarget = RenderTargetRef.Object;
-	}
-	sceneCapture->TextureTarget = renderTarget;
+
+	//sceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
+	
 
 }
 
 void AUSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
 
 	if (HUDWidgetClass)
 	{
