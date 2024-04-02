@@ -15,11 +15,8 @@
 
 AUSPlayer::AUSPlayer()
 {
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 	bUseControllerRotationYaw = true;
 
@@ -34,30 +31,21 @@ void AUSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+	SetupCemeraSprigArm();
+	CameraChange();
 	if (HUDWidgetClass)
 	{
 		HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
 		HUDWidget->AddToViewport();
 	}
-	CameraChange();
 }
 
 // 값 변경이 아니라 세팅값을 둔 여러게의 스프링암을 만들고 교체하는 형식으로 바껴야할듯
-void AUSPlayer::SetCameraData(const UUSCameraData* CameraData)
+void AUSPlayer::SetViewData(const UUSCameraData* CameraData)
 {
 	if (CameraData == nullptr)
 		return;
 
-
-	CameraBoom->TargetArmLength = CameraData->TargetArmLength;
-	CameraBoom->SetRelativeRotation(CameraData->RelativeRotation);
-	CameraBoom->SetRelativeLocation(CameraData->RelativeLocation);
-	CameraBoom->bUsePawnControlRotation = CameraData->bUsePawnControlRotation;
-	CameraBoom->bInheritPitch = CameraData->bInheritPitch;
-	CameraBoom->bInheritYaw = CameraData->bInheritYaw;
-	CameraBoom->bInheritRoll = CameraData->bInheritRoll;
-	CameraBoom->bDoCollisionTest = CameraData->bDoCollisionTest;
 	bUseControllerRotationYaw = CameraData->bUseControllerRotationYaw;
 	if (bUseControllerRotationYaw == false)
 	{
@@ -65,6 +53,8 @@ void AUSPlayer::SetCameraData(const UUSCameraData* CameraData)
 	}
 	
 	SetInputContextChange(CameraData->InputMappingContext);
+
+	
 }
 
 void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -139,8 +129,13 @@ void AUSPlayer::CameraChange()
 	// 새로운 시점에 맞게 카메라 데이터 설정
 	if (CameraTypeMap[CurrentViewType])
 	{
-		SetCameraData(CameraTypeMap[CurrentViewType]);
-		
+		SetViewData(CameraTypeMap[CurrentViewType]); // 이걸 카메라 변경이라고 봐야하나...하는일
+	}
+	
+	// 스프링암에 붙임
+	if (CemeraSprigArm[CurrentViewType])
+	{
+		FollowCamera->AttachToComponent(CemeraSprigArm[CurrentViewType], FAttachmentTransformRules::KeepRelativeTransform, USpringArmComponent::SocketName);
 	}
 		
 }
@@ -172,4 +167,39 @@ EViewType AUSPlayer::GetNextViewType(EViewType CurrentView)
 	case EViewType::TopDown: return EViewType::FirstPerson;
 	default: return EViewType::None; // 기본값 처리
 	}
+}
+
+void AUSPlayer::SetupCemeraSprigArm()
+{
+	for (uint8 viewtype = (uint8)EViewType::None; viewtype < (uint8)EViewType::Max; ++viewtype)
+	{
+		SetCameraSprigArm( static_cast<EViewType>(viewtype));
+	}
+}
+
+void AUSPlayer::SetCameraSprigArm(EViewType ViewType)
+{
+	if (CameraTypeMap.Contains(ViewType) == false)
+		return;
+
+	const UUSCameraData* CameraData = CameraTypeMap[ViewType];
+	if (CameraData == nullptr)
+		return;
+
+	//TObjectPtr<USpringArmComponent> SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName(*FString::Printf(TEXT("CameraBoom%d"), static_cast<int32>(ViewType))));
+	TObjectPtr<USpringArmComponent> SpringArm = NewObject<USpringArmComponent>(this, FName(*FString::Printf(TEXT("CameraBoom%d"), static_cast<int32>(ViewType))));
+	SpringArm->RegisterComponent();
+
+	SpringArm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+	SpringArm->TargetArmLength = CameraData->TargetArmLength;
+	SpringArm->SetRelativeRotation(CameraData->RelativeRotation);
+	SpringArm->SetRelativeLocation(CameraData->RelativeLocation);
+	SpringArm->bUsePawnControlRotation = CameraData->bUsePawnControlRotation;
+	SpringArm->bInheritPitch = CameraData->bInheritPitch;
+	SpringArm->bInheritYaw = CameraData->bInheritYaw;
+	SpringArm->bInheritRoll = CameraData->bInheritRoll;
+	SpringArm->bDoCollisionTest = CameraData->bDoCollisionTest;
+
+	CemeraSprigArm.Add(ViewType, SpringArm);
 }

@@ -13,6 +13,7 @@ enum class EViewType : uint8
 	FirstPerson UMETA(DisplayName = "FirstPerson"),
 	ThirdPerson UMETA(DisplayName = "ThirdPerson"),
 	TopDown UMETA(DisplayName = "TopDown"),
+	Max,
 };
 
 /**

@@ -45,14 +45,17 @@ public:
 	void CameraChange();
 	void ClickMove();
 
-	virtual void SetCameraData(const class UUSCameraData* CameraData);
+	virtual void SetViewData(const class UUSCameraData* CameraData);
 	EViewType GetNextViewType(EViewType CurrentView);
 	
-	class USpringArmComponent* GetSpringArmComponent() { return CameraBoom; }
+	class USpringArmComponent* GetSpringArmComponent(EViewType ViewType) { return CemeraSprigArm[ViewType]; }
+
+
+	void SetupCemeraSprigArm();
+	void SetCameraSprigArm(EViewType ViewType);
 protected:
 	// 카메라, 추후 다른 클래스로 묶자..
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USpringArmComponent> CameraBoom;
+	TMap<EViewType, TObjectPtr<class USpringArmComponent>> CemeraSprigArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> FollowCamera;
