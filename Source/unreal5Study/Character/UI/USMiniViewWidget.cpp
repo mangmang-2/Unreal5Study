@@ -5,7 +5,7 @@
 #include "UMG/Public/Components/Image.h"
 #include "../USPlayer.h"
 #include "../../MiniView/MiniViewComponent.h"
-#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Components/SceneCaptureComponent2D.h"
 
@@ -24,7 +24,7 @@ void UUSMiniViewWidget::NativeConstruct()
 	{
 		// 카메라를 붙였지만 스프링암에 붙은 소켓을 기준으로 해도 동일함
 		// 스프링 암을 여러게 만들고 카메라만 이동하는 형태라면 그 스프링암을 이용해서 동일한 뷰를 볼수있음
-		MiniView->SetComponent(Player->GetCameraComponent());
+		MiniView->SetComponent(Player->GetSpringArmComponent());
 	}
 }
 
