@@ -13,6 +13,7 @@ UMiniViewComponent::UMiniViewComponent()
 	{
 		renderTarget = RenderTargetRef.Object;
 	}
+
 }
 
 void UMiniViewComponent::SetComponent(USceneComponent* InParent)
@@ -23,6 +24,10 @@ void UMiniViewComponent::SetComponent(USceneComponent* InParent)
 	if (sceneCapture)
 		sceneCapture->AttachToComponent(InParent, FAttachmentTransformRules::KeepRelativeTransform);
 
+	//renderTarget = NewObject<UTextureRenderTarget2D>(this, UTextureRenderTarget2D::StaticClass());
+	//renderTarget->InitAutoFormat(256, 256); // 예시 해상도
+
 	sceneCapture->TextureTarget = renderTarget;
+
 }
 

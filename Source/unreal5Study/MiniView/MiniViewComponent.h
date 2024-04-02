@@ -18,9 +18,14 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
 	TObjectPtr<class USceneCaptureComponent2D> sceneCapture;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
 	TObjectPtr<class UTextureRenderTarget2D> renderTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
+	TObjectPtr<class UMaterial> Material;
+
 
 public:
 	void SetComponent(class USceneComponent* InParent);

@@ -15,7 +15,6 @@
 
 AUSPlayer::AUSPlayer()
 {
-
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->bUsePawnControlRotation = false;
 	bUseControllerRotationYaw = true;
