@@ -15,23 +15,23 @@ class UNREAL5STUDY_API UUSMiniViewWidget : public UUSUserWidget
 {
 	GENERATED_BODY()
 
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
+	TObjectPtr<class UTextureRenderTarget2D> RenderTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
+	TObjectPtr<class UMaterial> Material;
+
+
 public:
 	UUSMiniViewWidget(const FObjectInitializer& ObjectInitializer);
 	virtual void NativeConstruct() override;
-	
-	void SetComponent(class USceneComponent* InParent);
+
+	void SetSceneCaptureComponent(class USceneCaptureComponent2D* SceneCaptureComponent);
 
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
-	EViewType ViewType = EViewType::None;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Capture)
-	TObjectPtr<class USceneCaptureComponent2D> sceneCapture;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
-	TObjectPtr<class UTextureRenderTarget2D> renderTarget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
-	TObjectPtr<class UMaterial> Material;
+	EViewType ViewType = EViewType::None;	
 };

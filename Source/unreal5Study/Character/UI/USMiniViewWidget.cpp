@@ -17,12 +17,11 @@ void UUSMiniViewWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	
 	AUSPlayer* Player = Cast<AUSPlayer>(GetOwningPlayerPawn());
 
 	if (Player && ViewType != EViewType::None)
 	{
-		SetComponent(Player->GetSpringArmComponent(ViewType));
+		SetSceneCaptureComponent(Player->GetSceneCaptureComponent(ViewType));
 	}
 		
 	UImage* Image = Cast<UImage>(GetWidgetFromName(TEXT("Image")));
@@ -32,13 +31,21 @@ void UUSMiniViewWidget::NativeConstruct()
 	}
 }
 
-void UUSMiniViewWidget::SetComponent(USceneComponent* InParent)
+//void UUSMiniViewWidget::SetComponent(USceneComponent* InParent)
+//{
+//	sceneCapture = NewObject<USceneCaptureComponent2D>(InParent, USceneCaptureComponent2D::StaticClass());
+//	sceneCapture->RegisterComponent();
+//
+//	if (sceneCapture)
+//		sceneCapture->AttachToComponent(InParent, FAttachmentTransformRules::KeepRelativeTransform);
+//
+//	sceneCapture->TextureTarget = RenderTarget;
+//}
+
+void UUSMiniViewWidget::SetSceneCaptureComponent(USceneCaptureComponent2D* SceneCaptureComponent)
 {
-	sceneCapture = NewObject<USceneCaptureComponent2D>(InParent, USceneCaptureComponent2D::StaticClass());
-	sceneCapture->RegisterComponent();
-
-	if (sceneCapture)
-		sceneCapture->AttachToComponent(InParent, FAttachmentTransformRules::KeepRelativeTransform);
-
-	sceneCapture->TextureTarget = renderTarget;
+	if (SceneCaptureComponent == nullptr)
+		return;
+	
+	SceneCaptureComponent->TextureTarget = RenderTarget;
 }

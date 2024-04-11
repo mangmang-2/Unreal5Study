@@ -49,17 +49,18 @@ public:
 	EViewType GetNextViewType(EViewType CurrentView);
 	
 	class USpringArmComponent* GetSpringArmComponent(EViewType ViewType) { return CemeraSprigArm[ViewType]; }
-
+	class USceneCaptureComponent2D* GetSceneCaptureComponent(EViewType ViewType) { return SceneCapture[ViewType]; }
 
 	void SetupCemeraSprigArm();
 	void SetCameraSprigArm(EViewType ViewType);
+
 protected:
-	// 카메라, 추후 다른 클래스로 묶자..
 	TMap<EViewType, TObjectPtr<class USpringArmComponent>> CemeraSprigArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> FollowCamera;
 
+	// 1인칭, 3인칭, 탑뷰 카메라 데이터......인데 input도 있어서 이 이름이면 안될것 같다...
 	UPROPERTY(EditAnywhere, Category = CameraTypeMap, Meta = (AllowPrivateAccess = "true"))
 	TMap<EViewType, class UUSCameraData*> CameraTypeMap;
 
@@ -69,7 +70,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TMap<EInputKey, TObjectPtr<class UInputAction>> InputActionMap;
 
-	
 	// UI
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
 	TSubclassOf<class UUserWidget> HUDWidgetClass;
@@ -77,4 +77,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = HUD)
 	TObjectPtr<class UUserWidget> HUDWidget;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
+	TMap< EViewType, TObjectPtr<class USceneCaptureComponent2D>> SceneCapture;
+
+	
 };

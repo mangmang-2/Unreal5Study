@@ -12,6 +12,7 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "NiagaraFunctionLibrary.h"
+#include "../MiniView/MiniViewComponent.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -23,6 +24,13 @@ AUSPlayer::AUSPlayer()
 	if (HUDWidgetRef.Succeeded())
 	{
 		HUDWidgetClass = HUDWidgetRef.Class;
+	}
+
+	for (uint32 ViewType = (uint8)EViewType::None + 1; ViewType < (uint8)EViewType::Max; ++ViewType)
+	{
+		// 이름에 ViewType 값을 포함시켜 각 SceneCapture 컴포넌트에 고유한 이름을 생성합니다.
+		FName ComponentName = *FString::Printf(TEXT("MiniViewSceneCapture_%d"), ViewType);
+		SceneCapture.Add(static_cast<EViewType>(ViewType), CreateDefaultSubobject<USceneCaptureComponent2D>(ComponentName));
 	}
 }
 
@@ -201,4 +209,6 @@ void AUSPlayer::SetCameraSprigArm(EViewType ViewType)
 	SpringArm->bDoCollisionTest = CameraData->bDoCollisionTest;
 
 	CemeraSprigArm.Add(ViewType, SpringArm);
+
+	SceneCapture[ViewType]->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform);
 }
