@@ -19,6 +19,7 @@ enum class EInputKey : uint8
 	Move UMETA(DisplayName = "Move"),
 	CameraChange UMETA(DisplayName = "CameraChange"),
 	ClickMove UMETA(DisplayName = "ClickMove"),
+	MouseWheel UMETA(DisplayName = "MouseWheel"),
 };
 
 /**
@@ -44,6 +45,8 @@ public:
 	void Look(const FInputActionValue& Value);
 	void CameraChange();
 	void ClickMove();
+
+	void ClickInputClear();
 
 	virtual void SetViewData(const class UUSCameraData* CameraData);
 	EViewType GetNextViewType(EViewType CurrentView);

@@ -106,6 +106,8 @@ void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingCo
 
 void AUSPlayer::Move(const FInputActionValue& Value)
 {
+	ClickInputClear();
+
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	const FRotator Rotation = Controller->GetControlRotation();
@@ -160,6 +162,15 @@ void AUSPlayer::ClickMove()
 	{
 		UAIBlueprintHelperLibrary::SimpleMoveToLocation(pController, Hit.Location);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(pController, nullptr, Hit.Location, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
+	}
+}
+
+void AUSPlayer::ClickInputClear()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		PlayerController->StopMovement();
 	}
 }
 

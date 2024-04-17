@@ -33,5 +33,5 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
-	EViewType ViewType = EViewType::None;	
+	EViewType ViewType = EViewType::None;
 };
