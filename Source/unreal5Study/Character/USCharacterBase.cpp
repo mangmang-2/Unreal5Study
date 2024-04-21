@@ -22,7 +22,7 @@ AUSCharacterBase::AUSCharacterBase()
 	{
 		MoveComp->bOrientRotationToMovement = true;
 		MoveComp->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-		MoveComp->JumpZVelocity = 700.f;
+		MoveComp->JumpZVelocity = 500.f;
 		MoveComp->AirControl = 0.35f;
 		MoveComp->MaxWalkSpeed = 500.f;
 		MoveComp->MinAnalogWalkSpeed = 20.f;

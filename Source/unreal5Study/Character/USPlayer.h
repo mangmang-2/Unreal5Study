@@ -17,6 +17,7 @@ enum class EInputKey : uint8
 	None UMETA(DisplayName = "None"),
 	Look UMETA(DisplayName = "Look"),
 	Move UMETA(DisplayName = "Move"),
+	Jump UMETA(DisplayName = "Jump"),
 	CameraChange UMETA(DisplayName = "CameraChange"),
 	ClickMove UMETA(DisplayName = "ClickMove"),
 	MouseWheel UMETA(DisplayName = "MouseWheel"),

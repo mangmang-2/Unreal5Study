@@ -8,6 +8,7 @@
 UUSCharacterAnimInstance::UUSCharacterAnimInstance()
 {
 	MovingThreshould = 3.0f;
+	JumpingThreshould = 100.0f;
 }
 
 void UUSCharacterAnimInstance::NativeInitializeAnimation()
@@ -30,5 +31,7 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Velocity = Movement->Velocity;
 		GroundSpeed = Velocity.Size2D();
 		bIsIdle = GroundSpeed < MovingThreshould;
+		bIsFalling = Movement->IsFalling();
+		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
 	}
 }

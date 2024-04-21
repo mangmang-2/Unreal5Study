@@ -70,21 +70,33 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	if(InputActionMap[EInputKey::Move])
+	if (InputActionMap.Contains(EInputKey::Move))
+	{
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Move], ETriggerEvent::Triggered, this, &ThisClass::Move);
+	}
 
-	if (InputActionMap[EInputKey::Look])
+	if (InputActionMap.Contains(EInputKey::Look))
+	{
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Look], ETriggerEvent::Triggered, this, &ThisClass::Look);
+	}
 
-	if (InputActionMap[EInputKey::CameraChange])
+	if (InputActionMap.Contains(EInputKey::CameraChange))
+	{
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::CameraChange], ETriggerEvent::Triggered, this, &ThisClass::CameraChange);
+	}
 
-	if (InputActionMap[EInputKey::ClickMove])
+	if (InputActionMap.Contains(EInputKey::ClickMove))
 	{
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::ClickMove], ETriggerEvent::Triggered, this, &ThisClass::ClickMove);
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::ClickMove], ETriggerEvent::Completed, this, &ThisClass::ClickMove);
 	}
-	
+
+	if (InputActionMap.Contains(EInputKey::Jump))
+	{
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+	}
+
 }
 
 void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
