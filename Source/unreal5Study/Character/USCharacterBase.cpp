@@ -4,6 +4,7 @@
 #include "Character/USCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
 {

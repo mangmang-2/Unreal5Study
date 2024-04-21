@@ -38,6 +38,8 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void Tick(float DeltaTime) override;
+
 public:
 	// 특별히 인풋 매핑을 바꿀일이 있다면 여기서 변경 할 것
 	void SetInputContextChange(class UInputMappingContext* InputMappingContext);
@@ -46,6 +48,8 @@ public:
 	void Look(const FInputActionValue& Value);
 	void CameraChange();
 	void ClickMove();
+
+	virtual void Jump() override;
 
 	void ClickInputClear();
 

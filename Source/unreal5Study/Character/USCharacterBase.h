@@ -26,10 +26,20 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
-
-
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USkeletalMeshComponent> Weapon;
+
+
+public:
+	// 추후에 애님 인스턴스로 이동하거나 데이터를 줘야할듯
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 bIsClimbing : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 bIsClimbingEdge : 1;
+
+	uint8 bIsClimbingUp : 1;
+
+
 };

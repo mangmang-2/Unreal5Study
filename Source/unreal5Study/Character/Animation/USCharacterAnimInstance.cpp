@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "../USCharacterBase.h"
 UUSCharacterAnimInstance::UUSCharacterAnimInstance()
 {
 	MovingThreshould = 3.0f;
@@ -20,6 +21,8 @@ void UUSCharacterAnimInstance::NativeInitializeAnimation()
 	{
 		Movement = Owner->GetCharacterMovement();
 	}
+
+	OwnerChracterBase = Cast<AUSCharacterBase>(GetOwningActor());
 }
 
 void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -33,5 +36,14 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsIdle = GroundSpeed < MovingThreshould;
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
+
+		bIsClimbing = OwnerChracterBase->bIsClimbing;
+		ClimbingUP = Velocity.X * 100.0;
+		ClimbingRight = Velocity.Y * 100.0;
+		if (OwnerChracterBase->bIsClimbingEdge) // 가장 자리에 도달한 순간 모션은 종료되어야함
+		{
+			ClimbingUP = 0;
+			ClimbingRight = 0;
+		}
 	}
 }

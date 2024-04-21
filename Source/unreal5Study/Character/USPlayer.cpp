@@ -13,6 +13,7 @@
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "NiagaraFunctionLibrary.h"
 #include "../MiniView/MiniViewComponent.h"
+#include "Components/CapsuleComponent.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -93,10 +94,121 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (InputActionMap.Contains(EInputKey::Jump))
 	{
-		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Triggered, this, &ThisClass::Jump);
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	}
 
+}
+
+void AUSPlayer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+
+	if (bIsClimbingUp)
+		return;
+	// 이게맞는가??
+	FVector StartPoint = GetCapsuleComponent()->GetComponentLocation();
+
+	FVector ForwardVector = GetCapsuleComponent()->GetForwardVector() * 45;
+	FVector EndPoint = StartPoint + ForwardVector;
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = true;
+	QueryParams.AddIgnoredActor(this); // 이 액터는 트레이스에서 제외
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		StartPoint,
+		EndPoint,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	// 라인 트레이스 경로를 디버그용으로 그리기
+	DrawDebugLine(
+		GetWorld(),
+		StartPoint,
+		EndPoint,
+		FColor::Red,
+		false,  // 지속적으로 그릴 것인지 여부
+		1.0f,   // 지속 시간
+		0,      // DepthPriority
+		1.0f    // 선의 두께
+	);
+
+	GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::Printf(TEXT("Hit: %s"), bHit ? *FString("true") : *FString("false")));
+
+	if (bHit)
+	{
+		// 머리 부분이 벽의 끝지점에 있는지 확인
+		FHitResult HitResult2;
+		FVector HeadPoint = StartPoint + FVector(0, 0, 110) + ForwardVector;
+		bIsClimbingEdge = !GetWorld()->LineTraceSingleByChannel(
+			HitResult2,
+			StartPoint,
+			HeadPoint,
+			ECC_Visibility,
+			QueryParams
+		);
+
+		if (bIsClimbingEdge)
+		{
+			bIsClimbingUp = true;
+			// 올라가는 몽타주 실행
+			// 몽타주 실행중엔 여기 안타도록 필요
+
+
+			// 올라가는 행동 종료
+			bIsClimbing = false;
+			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+			CharMoveComp->bOrientRotationToMovement = true;
+		}
+		DrawDebugLine(
+			GetWorld(),
+			StartPoint,
+			HeadPoint,
+			FColor::Blue,
+			false,  // 지속적으로 그릴 것인지 여부
+			1.0f,   // 지속 시간
+			0,      // DepthPriority
+			1.0f    // 선의 두께
+		);
+
+
+		FVector Normal = HitResult.Normal; // 충돌 지점의 법선 벡터
+		FRotator Rotation = FRotationMatrix::MakeFromX(Normal).Rotator();
+
+		double NewYawValue = Rotation.Yaw + 180;
+		FRotator CurrentRotation = GetActorRotation();
+		FRotator NewRotation = FRotator(CurrentRotation.Pitch, NewYawValue, CurrentRotation.Roll);
+
+		SetActorRotation(NewRotation);
+
+		// 여기서 부터 한번만
+		if (bIsClimbing == false)
+		{
+			bIsClimbing = true;
+
+			GetMovementComponent()->Velocity = FVector(0, 0, 0);
+
+			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
+			CharMoveComp->bOrientRotationToMovement = false;
+		}
+		
+	}
+	else
+	{
+		if (bIsClimbing)
+		{
+			bIsClimbing = false;
+			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+			CharMoveComp->bOrientRotationToMovement = true;;
+		}	
+	}
 }
 
 void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
@@ -128,8 +240,24 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	AddMovementInput(ForwardDirection, MovementVector.X);
-	AddMovementInput(RightDirection, MovementVector.Y);
+	if (bIsClimbing)
+	{
+		if (bIsClimbingEdge == false)
+		{
+			AddMovementInput(GetActorUpVector(), MovementVector.X);
+			AddMovementInput(GetActorRightVector(), MovementVector.Y);
+		}
+		else // 이떄 한번 크게 올려줘야하는데.. 일단 모션이 생기면...
+		{
+		}
+	}
+	else
+	{
+		AddMovementInput(ForwardDirection, MovementVector.X);
+		AddMovementInput(RightDirection, MovementVector.Y);
+	}
+
+	
 }
 
 void AUSPlayer::Look(const FInputActionValue& Value)
@@ -175,6 +303,21 @@ void AUSPlayer::ClickMove()
 		UAIBlueprintHelperLibrary::SimpleMoveToLocation(pController, Hit.Location);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(pController, nullptr, Hit.Location, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
 	}
+}
+
+void AUSPlayer::Jump()
+{
+	if (bIsClimbing)
+	{
+		// 등반 반대 방향
+		FVector ForwardVector = GetCapsuleComponent()->GetForwardVector();
+		ForwardVector.Z = 0;
+		ForwardVector *= -50;
+
+		LaunchCharacter(ForwardVector, false, false);
+		return;
+	}
+	Super::Jump();
 }
 
 void AUSPlayer::ClickInputClear()
