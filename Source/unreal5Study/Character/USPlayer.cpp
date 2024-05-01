@@ -105,12 +105,12 @@ void AUSPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 
-	if (bIsClimbingUp)
-		return;
+	//if (bIsClimbingUp)
+	//	return;
 	// 이게맞는가??
 	FVector StartPoint = GetCapsuleComponent()->GetComponentLocation();
 
-	FVector ForwardVector = GetCapsuleComponent()->GetForwardVector() * 45;
+	FVector ForwardVector = GetCapsuleComponent()->GetForwardVector() * 100;
 	FVector EndPoint = StartPoint + ForwardVector;
 
 	FHitResult HitResult;
@@ -125,6 +125,14 @@ void AUSPlayer::Tick(float DeltaTime)
 		QueryParams
 	);
 
+	
+	//TArray<FHitResult> OutHits;
+	//bool bHit = GetWorld()->LineTraceMultiByChannel(OutHits, StartPoint, EndPoint, ECC_Visibility, QueryParams);
+	//if (OutHits.Num() > 0)
+	//{
+	//	HitResult = OutHits[0];
+	//}
+
 	// 라인 트레이스 경로를 디버그용으로 그리기
 	DrawDebugLine(
 		GetWorld(),
@@ -137,45 +145,67 @@ void AUSPlayer::Tick(float DeltaTime)
 		1.0f    // 선의 두께
 	);
 
-	GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::Printf(TEXT("Hit: %s"), bHit ? *FString("true") : *FString("false")));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::Printf(TEXT("Hit: %s"), bHit ? *FString("true") : *FString("false")));
 
 	if (bHit)
 	{
-		// 머리 부분이 벽의 끝지점에 있는지 확인
-		FHitResult HitResult2;
-		FVector HeadPoint = StartPoint + FVector(0, 0, 110) + ForwardVector;
-		bIsClimbingEdge = !GetWorld()->LineTraceSingleByChannel(
-			HitResult2,
-			StartPoint,
-			HeadPoint,
-			ECC_Visibility,
-			QueryParams
-		);
+		
+		//// 머리 부분이 벽의 끝지점에 있는지 확인
+		//FHitResult HitResult2;
+		//FVector HeadStartPoint = StartPoint + FVector(0, 0, 110);
+		//FVector HeadEndPoint = HeadStartPoint + ForwardVector;
+		//
+		//bIsClimbingEdge = !GetWorld()->LineTraceSingleByChannel(
+		//	HitResult2,
+		//	HeadStartPoint,
+		//	HeadEndPoint,
+		//	ECC_Visibility,
+		//	QueryParams
+		//);
 
-		if (bIsClimbingEdge)
-		{
-			bIsClimbingUp = true;
-			// 올라가는 몽타주 실행
-			// 몽타주 실행중엔 여기 안타도록 필요
+		//DrawDebugLine(
+		//	GetWorld(),
+		//	HeadStartPoint,
+		//	HeadEndPoint,
+		//	FColor::Blue,
+		//	false,  // 지속적으로 그릴 것인지 여부
+		//	1.0f,   // 지속 시간
+		//	0,      // DepthPriority
+		//	1.0f    // 선의 두께
+		//);
 
+		//if (bIsClimbingEdge)
+		//{
+		//	//return;
+		//	bIsClimbingUp = true;
 
-			// 올라가는 행동 종료
-			bIsClimbing = false;
-			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
-			CharMoveComp->bOrientRotationToMovement = true;
-		}
-		DrawDebugLine(
-			GetWorld(),
-			StartPoint,
-			HeadPoint,
-			FColor::Blue,
-			false,  // 지속적으로 그릴 것인지 여부
-			1.0f,   // 지속 시간
-			0,      // DepthPriority
-			1.0f    // 선의 두께
-		);
+		//	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		//	if (AnimInstance && ClimbingTopMontage)
+		//	{
+		//		AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
 
+		//		float MontageLength = ClimbingTopMontage->GetPlayLength();
+		//		 
+		//		FTimerHandle TimerHandle;
+		//		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
+		//				///bIsClimbing = false;
+		//				//bIsClimbingEdge = false;
+		//				bIsClimbingUp = false;
+
+		//				/*UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+		//				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+		//				CharMoveComp->bOrientRotationToMovement = true;*/
+		//			})
+		//			, MontageLength, false);
+		//	}
+		//		
+
+		////	//// 올라가는 행동 종료
+		////	bIsClimbing = false;
+
+		//}
+		
+		
 
 		FVector Normal = HitResult.Normal; // 충돌 지점의 법선 벡터
 		FRotator Rotation = FRotationMatrix::MakeFromX(Normal).Rotator();
@@ -185,17 +215,25 @@ void AUSPlayer::Tick(float DeltaTime)
 		FRotator NewRotation = FRotator(CurrentRotation.Pitch, NewYawValue, CurrentRotation.Roll);
 
 		SetActorRotation(NewRotation);
-
+		
+		
 		// 여기서 부터 한번만
 		if (bIsClimbing == false)
 		{
-			bIsClimbing = true;
+			FVector CurrentLocation = GetActorLocation();
+			CurrentLocation += (GetCapsuleComponent()->GetForwardVector() * 2);
+			SetActorLocation(CurrentLocation);
 
+			bIsClimbing = true;
+			//ClimbingSearch = 100;
 			GetMovementComponent()->Velocity = FVector(0, 0, 0);
 
 			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
-			CharMoveComp->bOrientRotationToMovement = false;
+			if(CharMoveComp)
+			{
+				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
+				CharMoveComp->bOrientRotationToMovement = false;
+			}
 		}
 		
 	}
@@ -206,7 +244,7 @@ void AUSPlayer::Tick(float DeltaTime)
 			bIsClimbing = false;
 			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
 			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
-			CharMoveComp->bOrientRotationToMovement = true;;
+			CharMoveComp->bOrientRotationToMovement = true;
 		}	
 	}
 }
@@ -230,6 +268,7 @@ void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingCo
 
 void AUSPlayer::Move(const FInputActionValue& Value)
 {
+
 	ClickInputClear();
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -242,14 +281,9 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 
 	if (bIsClimbing)
 	{
-		if (bIsClimbingEdge == false)
-		{
-			AddMovementInput(GetActorUpVector(), MovementVector.X);
-			AddMovementInput(GetActorRightVector(), MovementVector.Y);
-		}
-		else // 이떄 한번 크게 올려줘야하는데.. 일단 모션이 생기면...
-		{
-		}
+		AddMovementInput(GetActorUpVector(), MovementVector.X);
+
+		AddMovementInput(GetActorRightVector(), MovementVector.Y);
 	}
 	else
 	{
@@ -315,6 +349,12 @@ void AUSPlayer::Jump()
 		ForwardVector *= -50;
 
 		LaunchCharacter(ForwardVector, false, false);
+
+		bIsClimbing = false;
+		bIsClimbingUp = false;
+		UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+		CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+		CharMoveComp->bOrientRotationToMovement = true;
 		return;
 	}
 	Super::Jump();

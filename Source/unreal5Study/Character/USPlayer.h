@@ -90,4 +90,6 @@ protected:
 	TMap< EViewType, TObjectPtr<class USceneCaptureComponent2D>> SceneCapture;
 
 	
+	int32 ClimbingSearch = 45;
+	int32 ClimbingLength = 45;
 };
