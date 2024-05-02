@@ -2,7 +2,7 @@
 
 
 #include "Character/UI/USMiniViewWidget.h"
-#include "UMG/Public/Components/Image.h"
+#include "Components/Image.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/TextureRenderTarget2D.h"

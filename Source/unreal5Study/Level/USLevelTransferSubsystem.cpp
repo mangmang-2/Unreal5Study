@@ -49,7 +49,7 @@ void UUSLevelTransferSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UUSLevelTransferSubsystem::SetTransferSequenceFrameTime(int32 TransferSequenceFrameTime, float DelayTime)
 {
 	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([=]() {
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
 		if (LevelSequencePlayer)
 		{
 			LevelSequencePlayer->SetPlaybackPosition(FMovieSceneSequencePlaybackParams(FFrameTime(TransferSequenceFrameTime), EUpdatePositionMethod::Play));

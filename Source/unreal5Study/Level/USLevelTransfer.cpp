@@ -2,7 +2,7 @@
 
 
 #include "Level/USLevelTransfer.h"
-#include "Engine/Classes/Components/BoxComponent.h"
+#include "Components/BoxComponent.h"
 #include "../Character/USPlayer.h"
 #include "Kismet/GameplayStatics.h"
 
