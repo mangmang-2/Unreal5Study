@@ -44,6 +44,7 @@ AUSCharacterBase::AUSCharacterBase()
 	Weapon->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
 
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+	ClimbingClear();
 }
 
 // Called when the game starts or when spawned
@@ -89,7 +90,7 @@ bool AUSCharacterBase::HitCheck(FVector StartPoint, FVector EndPoint, FHitResult
 			EndPoint,
 			FColor::Blue,
 			false,  // 지속적으로 그릴 것인지 여부
-			-1.0f,   // 지속 시간
+			1.0f,   // 지속 시간
 			0,      // DepthPriority
 			1.0f    // 선의 두께
 		);
@@ -144,6 +145,16 @@ bool AUSCharacterBase::CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadiu
 
 void AUSCharacterBase::ClimbingClear()
 {
+	if (GetWorld())
+	{
+		bIsClimbingFalling = true;
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
+			bIsClimbingFalling = false;
+			})
+			, 1.0, false);
+	}
+
 	bIsClimbing = false;
 	bIsClimbingUp = false;
 	UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());

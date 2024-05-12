@@ -105,6 +105,9 @@ void AUSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bIsClimbingFalling || bIsClimbingUp)
+		return;
+
 	FVector UpVector = GetCapsuleComponent()->GetUpVector() * 60;
 	FVector ForwardVector = GetCapsuleComponent()->GetForwardVector() * 80;
 
@@ -114,6 +117,11 @@ void AUSPlayer::Tick(float DeltaTime)
 	FHitResult HitResultMiddle;
 	bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, false);
 
+	if (bHitMiddle == false && bIsClimbing)
+	{
+		ClimbingClear();
+	}
+
 	if (GetCharacterMovement()->IsFalling())
 	{
 		if (bHitMiddle && bIsClimbing == false)
@@ -121,8 +129,6 @@ void AUSPlayer::Tick(float DeltaTime)
 			bIsClimbing = true;
 			GetMovementComponent()->Velocity = FVector(0, 0, 0);
 			
-			SetActorLocation(HitResultMiddle.ImpactPoint + HitResultMiddle.Normal * 40);
-
 			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
 			if (CharMoveComp)
 			{
@@ -130,14 +136,18 @@ void AUSPlayer::Tick(float DeltaTime)
 				CharMoveComp->bOrientRotationToMovement = false;
 			}
 		}
+		
 	}
 
 	if (bIsClimbing)
 	{
 		if (bHitMiddle)
 		{
-			FVector Normal = HitResultMiddle.Normal; // 충돌 지점의 법선 벡터
-			FRotator Rotation = FRotationMatrix::MakeFromX(Normal).Rotator();
+			float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+
+			SetActorLocation(HitResultMiddle.Normal * CapsuleRadius + HitResultMiddle.Location);
+
+			FRotator Rotation = FRotationMatrix::MakeFromX(HitResultMiddle.Normal).Rotator();
 
 			double NewYawValue = Rotation.Yaw + 180;
 			FRotator CurrentRotation = GetActorRotation();
@@ -160,7 +170,7 @@ void AUSPlayer::Tick(float DeltaTime)
 		for (int i = 0; i < 9; ++i)
 		{
 			FVector SPoint = OffsetStart + Offset * i;
-			FVector EPoint = SPoint + UpVector * 2;
+			FVector EPoint = SPoint + UpVector * 3;
 
 			if (HitCheck(EPoint, SPoint,  HitResultHead, false))
 				break;
@@ -392,6 +402,8 @@ void AUSPlayer::Jump()
 		LaunchCharacter(ForwardVector, false, false);
 
 		ClimbingClear();
+
+
 		return;
 	}
 	Super::Jump();

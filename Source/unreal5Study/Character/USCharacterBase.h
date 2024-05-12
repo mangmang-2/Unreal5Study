@@ -42,6 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	uint8 bIsClimbingUp : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 bIsClimbingFalling : 1;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ClimbingTopMontage;
 
