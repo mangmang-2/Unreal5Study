@@ -44,4 +44,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ClimbingTopMontage;
+
+public:
+	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DebugMessage);
+	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
+	void ClimbingClear();
 };

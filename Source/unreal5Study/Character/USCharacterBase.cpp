@@ -3,7 +3,7 @@
 
 #include "Character/USCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -14,8 +14,8 @@ AUSCharacterBase::AUSCharacterBase()
 	bUseControllerRotationRoll = false;
 
 	//// Capsule
-	//GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-	//GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_ABCAPSULE);
+	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
 
 	// Movement
 	auto MoveComp = GetCharacterMovement();
@@ -64,3 +64,89 @@ void AUSCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 }
 
+bool AUSCharacterBase::HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DebugMessage)
+{
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = true;
+	QueryParams.AddIgnoredActor(this); // 이 액터는 트레이스에서 제외
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		StartPoint,
+		EndPoint,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	// 라인 트레이스 경로를 디버그용으로 그리기
+	if (bHit)
+	{
+		DrawDebugLine(
+			GetWorld(),
+			StartPoint,
+			EndPoint,
+			FColor::Blue,
+			false,  // 지속적으로 그릴 것인지 여부
+			-1.0f,   // 지속 시간
+			0,      // DepthPriority
+			1.0f    // 선의 두께
+		);
+	}
+	else
+	{
+		DrawDebugLine(
+			GetWorld(),
+			StartPoint,
+			EndPoint,
+			FColor::Red,
+			false,  // 지속적으로 그릴 것인지 여부
+			-1.0f,   // 지속 시간
+			0,      // DepthPriority
+			1.0f    // 선의 두께
+		);
+	}
+
+	if (DebugMessage)
+		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::Printf(TEXT("Hit: %s"), bHit ? *FString("true") : *FString("false")));
+
+	return bHit;
+}
+
+bool AUSCharacterBase::CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult)
+{
+	const FVector StartPoint = CapsuleOrigin;
+	const FVector EndPoint = StartPoint;
+	FCollisionShape Capsule = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);  // 캡슐 크기 설정: 반지름, 높이
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = true;
+	QueryParams.AddIgnoredActor(this); // 이 액터는 트레이스에서 제외
+
+	bool bHit = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		StartPoint,
+		EndPoint,
+		FQuat::Identity,  // 회전 없음
+		ECC_PhysicsBody,  // 충돌 채널
+		Capsule,
+		QueryParams
+	);
+
+	//FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+	FColor DrawColor = bHit == true ? FColor::Green : FColor::Red;
+
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(GetActorUpVector()).ToQuat(), DrawColor, false);
+
+	return bHit;
+}
+
+void AUSCharacterBase::ClimbingClear()
+{
+	bIsClimbing = false;
+	bIsClimbingUp = false;
+	UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	if (CharMoveComp)
+	{
+		CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
+		CharMoveComp->bOrientRotationToMovement = true;
+	}
+}

@@ -57,6 +57,9 @@ protected:
 	uint8 bIsClimbing : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsClimbingUpMontage : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float ClimbingUP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)

@@ -104,149 +104,187 @@ void AUSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	FVector UpVector = GetCapsuleComponent()->GetUpVector() * 60;
+	FVector ForwardVector = GetCapsuleComponent()->GetForwardVector() * 80;
 
-	//if (bIsClimbingUp)
-	//	return;
-	// 이게맞는가??
 	FVector StartPoint = GetCapsuleComponent()->GetComponentLocation();
+	FVector MiddleEndPoint = StartPoint + ForwardVector;
 
-	FVector ForwardVector = GetCapsuleComponent()->GetForwardVector() * 100;
-	FVector EndPoint = StartPoint + ForwardVector;
+	FHitResult HitResultMiddle;
+	bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, false);
 
-	FHitResult HitResult;
-	FCollisionQueryParams QueryParams;
-	QueryParams.bTraceComplex = true;
-	QueryParams.AddIgnoredActor(this); // 이 액터는 트레이스에서 제외
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
-		HitResult,
-		StartPoint,
-		EndPoint,
-		ECC_Visibility,
-		QueryParams
-	);
-
-	
-	//TArray<FHitResult> OutHits;
-	//bool bHit = GetWorld()->LineTraceMultiByChannel(OutHits, StartPoint, EndPoint, ECC_Visibility, QueryParams);
-	//if (OutHits.Num() > 0)
-	//{
-	//	HitResult = OutHits[0];
-	//}
-
-	// 라인 트레이스 경로를 디버그용으로 그리기
-	DrawDebugLine(
-		GetWorld(),
-		StartPoint,
-		EndPoint,
-		FColor::Red,
-		false,  // 지속적으로 그릴 것인지 여부
-		1.0f,   // 지속 시간
-		0,      // DepthPriority
-		1.0f    // 선의 두께
-	);
-
-	//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::Printf(TEXT("Hit: %s"), bHit ? *FString("true") : *FString("false")));
-
-	if (bHit)
+	if (GetCharacterMovement()->IsFalling())
 	{
-		
-		//// 머리 부분이 벽의 끝지점에 있는지 확인
-		//FHitResult HitResult2;
-		//FVector HeadStartPoint = StartPoint + FVector(0, 0, 110);
-		//FVector HeadEndPoint = HeadStartPoint + ForwardVector;
-		//
-		//bIsClimbingEdge = !GetWorld()->LineTraceSingleByChannel(
-		//	HitResult2,
-		//	HeadStartPoint,
-		//	HeadEndPoint,
-		//	ECC_Visibility,
-		//	QueryParams
-		//);
-
-		//DrawDebugLine(
-		//	GetWorld(),
-		//	HeadStartPoint,
-		//	HeadEndPoint,
-		//	FColor::Blue,
-		//	false,  // 지속적으로 그릴 것인지 여부
-		//	1.0f,   // 지속 시간
-		//	0,      // DepthPriority
-		//	1.0f    // 선의 두께
-		//);
-
-		//if (bIsClimbingEdge)
-		//{
-		//	//return;
-		//	bIsClimbingUp = true;
-
-		//	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		//	if (AnimInstance && ClimbingTopMontage)
-		//	{
-		//		AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
-
-		//		float MontageLength = ClimbingTopMontage->GetPlayLength();
-		//		 
-		//		FTimerHandle TimerHandle;
-		//		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
-		//				///bIsClimbing = false;
-		//				//bIsClimbingEdge = false;
-		//				bIsClimbingUp = false;
-
-		//				/*UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-		//				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
-		//				CharMoveComp->bOrientRotationToMovement = true;*/
-		//			})
-		//			, MontageLength, false);
-		//	}
-		//		
-
-		////	//// 올라가는 행동 종료
-		////	bIsClimbing = false;
-
-		//}
-		
-		
-
-		FVector Normal = HitResult.Normal; // 충돌 지점의 법선 벡터
-		FRotator Rotation = FRotationMatrix::MakeFromX(Normal).Rotator();
-
-		double NewYawValue = Rotation.Yaw + 180;
-		FRotator CurrentRotation = GetActorRotation();
-		FRotator NewRotation = FRotator(CurrentRotation.Pitch, NewYawValue, CurrentRotation.Roll);
-
-		SetActorRotation(NewRotation);
-		
-		
-		// 여기서 부터 한번만
-		if (bIsClimbing == false)
+		if (bHitMiddle && bIsClimbing == false)
 		{
-			FVector CurrentLocation = GetActorLocation();
-			CurrentLocation += (GetCapsuleComponent()->GetForwardVector() * 2);
-			SetActorLocation(CurrentLocation);
-
 			bIsClimbing = true;
-			//ClimbingSearch = 100;
 			GetMovementComponent()->Velocity = FVector(0, 0, 0);
+			
+			SetActorLocation(HitResultMiddle.ImpactPoint + HitResultMiddle.Normal * 40);
 
 			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-			if(CharMoveComp)
+			if (CharMoveComp)
 			{
 				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
 				CharMoveComp->bOrientRotationToMovement = false;
 			}
 		}
-		
 	}
-	else
+
+	if (bIsClimbing)
 	{
-		if (bIsClimbing)
+		if (bHitMiddle)
 		{
-			bIsClimbing = false;
-			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
-			CharMoveComp->bOrientRotationToMovement = true;
-		}	
+			FVector Normal = HitResultMiddle.Normal; // 충돌 지점의 법선 벡터
+			FRotator Rotation = FRotationMatrix::MakeFromX(Normal).Rotator();
+
+			double NewYawValue = Rotation.Yaw + 180;
+			FRotator CurrentRotation = GetActorRotation();
+			FRotator NewRotation = FRotator(CurrentRotation.Pitch, NewYawValue, CurrentRotation.Roll);
+
+			SetActorRotation(NewRotation);
+		}
 	}
+	
+	// 머리 확인
+	FVector HeadStartPoint = StartPoint + UpVector;
+	FVector HeadEndPoint = StartPoint + ForwardVector + UpVector;
+	FHitResult HitResultHead;
+	bool bHitHead = HitCheck(HeadStartPoint, HeadEndPoint, HitResultHead, false);
+
+	if(bIsClimbing && bHitHead == false)
+	{
+		FVector Offset = GetCapsuleComponent()->GetForwardVector() * 10;
+		FVector OffsetStart = HeadStartPoint - UpVector;
+		for (int i = 0; i < 9; ++i)
+		{
+			FVector SPoint = OffsetStart + Offset * i;
+			FVector EPoint = SPoint + UpVector * 2;
+
+			if (HitCheck(EPoint, SPoint,  HitResultHead, false))
+				break;
+		}
+
+		// 캐릭터가 들어갈 수 있는 곳인지 확인
+		float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+		float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+		FVector CapsuleOrigin = HitResultHead.ImpactPoint + GetCapsuleComponent()->GetUpVector() * (CapsuleHalfHeight +1);
+		FHitResult CapsuleRadiusHitResult;
+		if (CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult) == false)
+		{
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			if (AnimInstance && ClimbingTopMontage && bIsClimbingUp == false)
+			{
+				bIsClimbingUp = true;
+				AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
+
+				float MontageLength = ClimbingTopMontage->GetPlayLength();
+		 
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
+						ClimbingClear();
+					})
+					, MontageLength, false);
+			}
+		}
+	}
+
+	/*FVector Offset = GetCapsuleComponent()->GetRightVector() * 10;
+	FVector OffsetStart = StartPoint -(Offset * 4) + GetCapsuleComponent()->GetUpVector() * 20;
+	for (int i = 0; i < 9; ++i)
+	{
+		FVector SPoint = OffsetStart + Offset * i;
+		FVector EPoint = SPoint + ForwardVector;
+
+		HitCheck(SPoint, EPoint, HitResultHead, false);
+	}*/
+
+	
+
+	//{
+	//	// 캐릭터 캡슐
+	//	float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+	//	float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	//	FVector CapsuleOrigin = StartPoint;
+	//	FHitResult CapsuleRadiusHitResult;
+	//	CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult);
+	//}
+
+
+
+
+	//FHitResult HitResult2;
+	//static int aa = 100;
+	//FVector StartPoint2 = GetCapsuleComponent()->GetComponentLocation() + GetCapsuleComponent()->GetForwardVector() * 35 + GetCapsuleComponent()->GetUpVector() * aa;
+	//FVector EndPoint2 = StartPoint2 - GetCapsuleComponent()->GetUpVector() * 35;
+	//bool bHit2 = HitCheck(StartPoint2, EndPoint2, HitResult2, true);
+
+	//if (bHit)
+	//{		
+	//	if (bHit2) // 충분히 위로 올라왔다면 오르는 애니메이션
+	//	{
+	//		UAnimInstance * AnimInstance = GetMesh()->GetAnimInstance();
+	//		if (AnimInstance && ClimbingTopMontage)
+	//		{
+	//			AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
+	//			bIsClimbingUp = true;
+
+	//			return;
+	//		}
+	//	}
+
+	//	FVector Normal = HitResult.Normal; // 충돌 지점의 법선 벡터
+	//	FRotator Rotation = FRotationMatrix::MakeFromX(Normal).Rotator();
+
+	//	double NewYawValue = Rotation.Yaw + 180;
+	//	FRotator CurrentRotation = GetActorRotation();
+	//	FRotator NewRotation = FRotator(CurrentRotation.Pitch, NewYawValue, CurrentRotation.Roll);
+
+	//	SetActorRotation(NewRotation);
+	//		
+	//	// 여기서 부터 한번만
+	//	if (bIsClimbing == false)
+	//	{
+	//		//FVector CurrentLocation = GetActorLocation();
+	//		//CurrentLocation += (GetCapsuleComponent()->GetForwardVector() * 2);
+	//		//SetActorLocation(CurrentLocation);
+
+	//		bIsClimbing = true;
+	//		//ClimbingSearch = 100;
+	//		GetMovementComponent()->Velocity = FVector(0, 0, 0);
+
+	//		UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	//		if(CharMoveComp)
+	//		{
+	//			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
+	//			CharMoveComp->bOrientRotationToMovement = false;
+	//		}
+	//	}
+	//	
+	//}
+	//else
+	//{
+	//	if (bHit2) // 충분히 위로 올라왔다면 오르는 애니메이션
+	//	{
+	//		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	//		if (AnimInstance && ClimbingTopMontage)
+	//		{
+	//			AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
+	//			bIsClimbingUp = true;
+
+	//			return;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if (bIsClimbing)
+	//		{
+	//			ClimbingClear();
+	//		}
+	//	}
+	//}
 }
 
 void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
@@ -350,11 +388,7 @@ void AUSPlayer::Jump()
 
 		LaunchCharacter(ForwardVector, false, false);
 
-		bIsClimbing = false;
-		bIsClimbingUp = false;
-		UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-		CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
-		CharMoveComp->bOrientRotationToMovement = true;
+		ClimbingClear();
 		return;
 	}
 	Super::Jump();
@@ -418,3 +452,4 @@ void AUSPlayer::SetCameraSprigArm(EViewType ViewType)
 
 	SceneCapture[ViewType]->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform);
 }
+
