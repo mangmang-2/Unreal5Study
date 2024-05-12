@@ -10,7 +10,7 @@ public class unreal5Study : ModuleRules
 
         PublicIncludePaths.AddRange(new string[] { "unreal5Study" });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Slate", "SlateCore", "NavigationSystem", "Niagara", "AIModule", "LevelSequence" , "MovieScene" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Slate", "SlateCore", "NavigationSystem", "Niagara", "AIModule", "LevelSequence" , "MovieScene", "MotionWarping" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

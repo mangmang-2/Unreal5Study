@@ -14,6 +14,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "../MiniView/MiniViewComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "MotionWarpingComponent.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -176,6 +177,8 @@ void AUSPlayer::Tick(float DeltaTime)
 			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 			if (AnimInstance && ClimbingTopMontage && bIsClimbingUp == false)
 			{
+				MotionWarping->AddOrUpdateWarpTargetFromLocation(TEXT("Warp1"), HitResultHead.ImpactPoint);
+
 				bIsClimbingUp = true;
 				AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
 

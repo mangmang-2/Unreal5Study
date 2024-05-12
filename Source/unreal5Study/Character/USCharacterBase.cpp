@@ -4,6 +4,7 @@
 #include "Character/USCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "MotionWarpingComponent.h"
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -41,6 +42,8 @@ AUSCharacterBase::AUSCharacterBase()
 	
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
 	Weapon->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
+
+	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 }
 
 // Called when the game starts or when spawned

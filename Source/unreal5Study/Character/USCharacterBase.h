@@ -49,4 +49,9 @@ public:
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
 	void ClimbingClear();
+
+protected:
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UMotionWarpingComponent> MotionWarping;
 };
