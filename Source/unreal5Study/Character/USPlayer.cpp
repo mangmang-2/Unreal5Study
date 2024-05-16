@@ -105,7 +105,7 @@ void AUSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsClimbingFalling || bIsClimbingUp)
+	if (bIsClimbingFalling || bIsClimbingUp || bIsClimbingCorner )
 		return;
 
 	FVector UpVector = GetCapsuleComponent()->GetUpVector() * 60;
@@ -203,101 +203,14 @@ void AUSPlayer::Tick(float DeltaTime)
 		}
 	}
 
-	/*FVector Offset = GetCapsuleComponent()->GetRightVector() * 10;
-	FVector OffsetStart = StartPoint -(Offset * 4) + GetCapsuleComponent()->GetUpVector() * 20;
-	for (int i = 0; i < 9; ++i)
-	{
-		FVector SPoint = OffsetStart + Offset * i;
-		FVector EPoint = SPoint + ForwardVector;
+	FVector LeftVector = GetCapsuleComponent()->GetRightVector() * -60;
 
-		HitCheck(SPoint, EPoint, HitResultHead, false);
-	}*/
+	ClimbingCorner(StartPoint, StartPoint + LeftVector * 2, ClimbingTurnCornerLMontage);
+	ClimbingCorner(StartPoint, StartPoint - LeftVector * 2, ClimbingTurnCornerRMontage);
 
-	
+	ClimbingOutSideCorner(StartPoint, StartPoint + LeftVector * 2, GetCapsuleComponent()->GetForwardVector() * 100, ClimbingOutSideTurnCornerLMontage);
+	ClimbingOutSideCorner(StartPoint, StartPoint - LeftVector * 2, GetCapsuleComponent()->GetForwardVector() * 100, ClimbingOutSideTurnCornerRMontage);
 
-	//{
-	//	// 캐릭터 캡슐
-	//	float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
-	//	float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-
-	//	FVector CapsuleOrigin = StartPoint;
-	//	FHitResult CapsuleRadiusHitResult;
-	//	CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult);
-	//}
-
-
-
-
-	//FHitResult HitResult2;
-	//static int aa = 100;
-	//FVector StartPoint2 = GetCapsuleComponent()->GetComponentLocation() + GetCapsuleComponent()->GetForwardVector() * 35 + GetCapsuleComponent()->GetUpVector() * aa;
-	//FVector EndPoint2 = StartPoint2 - GetCapsuleComponent()->GetUpVector() * 35;
-	//bool bHit2 = HitCheck(StartPoint2, EndPoint2, HitResult2, true);
-
-	//if (bHit)
-	//{		
-	//	if (bHit2) // 충분히 위로 올라왔다면 오르는 애니메이션
-	//	{
-	//		UAnimInstance * AnimInstance = GetMesh()->GetAnimInstance();
-	//		if (AnimInstance && ClimbingTopMontage)
-	//		{
-	//			AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
-	//			bIsClimbingUp = true;
-
-	//			return;
-	//		}
-	//	}
-
-	//	FVector Normal = HitResult.Normal; // 충돌 지점의 법선 벡터
-	//	FRotator Rotation = FRotationMatrix::MakeFromX(Normal).Rotator();
-
-	//	double NewYawValue = Rotation.Yaw + 180;
-	//	FRotator CurrentRotation = GetActorRotation();
-	//	FRotator NewRotation = FRotator(CurrentRotation.Pitch, NewYawValue, CurrentRotation.Roll);
-
-	//	SetActorRotation(NewRotation);
-	//		
-	//	// 여기서 부터 한번만
-	//	if (bIsClimbing == false)
-	//	{
-	//		//FVector CurrentLocation = GetActorLocation();
-	//		//CurrentLocation += (GetCapsuleComponent()->GetForwardVector() * 2);
-	//		//SetActorLocation(CurrentLocation);
-
-	//		bIsClimbing = true;
-	//		//ClimbingSearch = 100;
-	//		GetMovementComponent()->Velocity = FVector(0, 0, 0);
-
-	//		UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-	//		if(CharMoveComp)
-	//		{
-	//			CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
-	//			CharMoveComp->bOrientRotationToMovement = false;
-	//		}
-	//	}
-	//	
-	//}
-	//else
-	//{
-	//	if (bHit2) // 충분히 위로 올라왔다면 오르는 애니메이션
-	//	{
-	//		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	//		if (AnimInstance && ClimbingTopMontage)
-	//		{
-	//			AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
-	//			bIsClimbingUp = true;
-
-	//			return;
-	//		}
-	//	}
-	//	else
-	//	{
-	//		if (bIsClimbing)
-	//		{
-	//			ClimbingClear();
-	//		}
-	//	}
-	//}
 }
 
 void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
@@ -466,5 +379,73 @@ void AUSPlayer::SetCameraSprigArm(EViewType ViewType)
 	CemeraSprigArm.Add(ViewType, SpringArm);
 
 	SceneCapture[ViewType]->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform);
+}
+
+void AUSPlayer::ClimbingCorner(FVector StartPoint, FVector EndPoint, UAnimMontage* Montage)
+{
+	FHitResult HitResult;
+	bool bHit = HitCheck(StartPoint, EndPoint, HitResult, false);
+	if (bHit)
+	{
+		float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+		float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		FVector CapsuleOrigin = HitResult.ImpactPoint + HitResult.ImpactNormal * (CapsuleRadius + 1);
+		FHitResult CapsuleRadiusHitResult;
+		if (CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult) == false)
+		{
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			if (AnimInstance && Montage && bIsClimbing && bIsClimbingUp == false)
+			{
+				bIsClimbingCorner = true;
+				FVector LookDirection = -HitResult.Normal;
+				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("TurnCorner"), HitResult.ImpactPoint + HitResult.ImpactNormal * (1), LookDirection.Rotation());
+
+				AnimInstance->Montage_Play(Montage, 0.1);
+				float MontageLength = Montage->GetPlayLength();
+
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
+					bIsClimbingCorner = false;
+					})
+					, MontageLength * 10.0, false);
+			}
+		}
+	}
+}
+
+void AUSPlayer::ClimbingOutSideCorner(FVector StartPoint, FVector EndPoint, FVector OffSet, UAnimMontage* Montage)
+{
+	FVector SPoint = StartPoint + OffSet;
+	FVector EPoint = EndPoint + OffSet;
+
+	FHitResult HitResult;
+	if (HitCheck(EPoint, SPoint, HitResult, false))
+	{
+		float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+		float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		FVector CapsuleOrigin = HitResult.ImpactPoint + HitResult.ImpactNormal * (CapsuleRadius + 1);
+		FHitResult CapsuleRadiusHitResult;
+		if (CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult) == false)
+		{
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			if (AnimInstance && Montage && bIsClimbing && bIsClimbingUp == false)
+			{
+				bIsClimbingCorner = true;
+				FVector LookDirection = -HitResult.Normal;
+				MotionWarping->AddOrUpdateWarpTargetFromLocation(TEXT("OutSide1"), EndPoint);
+				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("OutSide2"), HitResult.ImpactPoint, LookDirection.Rotation());
+
+				AnimInstance->Montage_Play(Montage, 1.0);
+				float MontageLength = Montage->GetPlayLength();
+				//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
+					bIsClimbingCorner = false;
+					//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+					})
+					, MontageLength, false);
+			}
+		}
+	}
 }
 

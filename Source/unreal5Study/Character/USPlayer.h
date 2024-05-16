@@ -62,6 +62,9 @@ public:
 	void SetupCemeraSprigArm();
 	void SetCameraSprigArm(EViewType ViewType);
 
+	void ClimbingCorner(FVector StartPoint, FVector EndPoint, UAnimMontage* Montage);
+	void ClimbingOutSideCorner(FVector StartPoint, FVector EndPoint, FVector OffSet, UAnimMontage* Montage);
+
 protected:
 	TMap<EViewType, TObjectPtr<class USpringArmComponent>> CemeraSprigArm;
 

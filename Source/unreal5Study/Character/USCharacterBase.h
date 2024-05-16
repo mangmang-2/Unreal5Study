@@ -48,6 +48,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ClimbingTopMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 bIsClimbingCorner : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> ClimbingTurnCornerLMontage; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> ClimbingTurnCornerRMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> ClimbingOutSideTurnCornerLMontage; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> ClimbingOutSideTurnCornerRMontage;
+
 public:
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
