@@ -389,7 +389,7 @@ void AUSPlayer::ClimbingCorner(FVector StartPoint, FVector EndPoint, UAnimMontag
 	{
 		float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
 		float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-		FVector CapsuleOrigin = HitResult.ImpactPoint + HitResult.ImpactNormal * (CapsuleRadius + 1);
+		FVector CapsuleOrigin = HitResult.ImpactPoint + HitResult.Normal * (CapsuleRadius + 1);
 		FHitResult CapsuleRadiusHitResult;
 		if (CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult) == false)
 		{
@@ -398,7 +398,7 @@ void AUSPlayer::ClimbingCorner(FVector StartPoint, FVector EndPoint, UAnimMontag
 			{
 				bIsClimbingCorner = true;
 				FVector LookDirection = -HitResult.Normal;
-				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("TurnCorner"), HitResult.ImpactPoint + HitResult.ImpactNormal * (1), LookDirection.Rotation());
+				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("TurnCorner"), HitResult.ImpactPoint + HitResult.Normal * (CapsuleRadius + 10), FRotationMatrix::MakeFromX(LookDirection).Rotator());
 
 				AnimInstance->Montage_Play(Montage, 0.1);
 				float MontageLength = Montage->GetPlayLength();
