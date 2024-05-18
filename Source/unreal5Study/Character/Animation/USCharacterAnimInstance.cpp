@@ -6,6 +6,7 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../USCharacterBase.h"
+#include "Kismet/KismetMathLibrary.h"
 UUSCharacterAnimInstance::UUSCharacterAnimInstance()
 {
 	MovingThreshould = 3.0f;
@@ -33,6 +34,7 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		Velocity = Movement->Velocity;
 		GroundSpeed = Velocity.Size2D();
+		
 		bIsIdle = GroundSpeed < MovingThreshould;
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
@@ -41,7 +43,13 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsClimbingUpMontage = OwnerChracterBase->bIsClimbingUp;
 
 		ClimbingUP = Velocity.Z * 100.0;
-		ClimbingRight = Velocity.Y * 100.0;
+
+		FVector ForwardVector = Owner->GetActorForwardVector();
+		FVector RightVector = Owner->GetActorRightVector();
+
+		float RightwardVelocity = FVector::DotProduct(Velocity, RightVector);
+
+		ClimbingRight = RightwardVelocity * 100.0;
 		
 		//UE_LOG(LogTemp, Warning, TEXT("Climbing%s"), *Velocity.ToString());
 		if (OwnerChracterBase->bIsClimbingEdge) // 가장 자리에 도달한 순간 모션은 종료되어야함
