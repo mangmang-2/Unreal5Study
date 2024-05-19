@@ -82,32 +82,32 @@ bool AUSCharacterBase::HitCheck(FVector StartPoint, FVector EndPoint, FHitResult
 	);
 
 	// 라인 트레이스 경로를 디버그용으로 그리기
-	if (bHit)
-	{
-		DrawDebugLine(
-			GetWorld(),
-			StartPoint,
-			EndPoint,
-			FColor::Blue,
-			false,  // 지속적으로 그릴 것인지 여부
-			1.0f,   // 지속 시간
-			0,      // DepthPriority
-			1.0f    // 선의 두께
-		);
-	}
-	else
-	{
-		DrawDebugLine(
-			GetWorld(),
-			StartPoint,
-			EndPoint,
-			FColor::Red,
-			false,  // 지속적으로 그릴 것인지 여부
-			-1.0f,   // 지속 시간
-			0,      // DepthPriority
-			1.0f    // 선의 두께
-		);
-	}
+	//if (bHit)
+	//{
+	//	DrawDebugLine(
+	//		GetWorld(),
+	//		StartPoint,
+	//		EndPoint,
+	//		FColor::Blue,
+	//		false,  // 지속적으로 그릴 것인지 여부
+	//		1.0f,   // 지속 시간
+	//		0,      // DepthPriority
+	//		1.0f    // 선의 두께
+	//	);
+	//}
+	//else
+	//{
+	//	DrawDebugLine(
+	//		GetWorld(),
+	//		StartPoint,
+	//		EndPoint,
+	//		FColor::Red,
+	//		false,  // 지속적으로 그릴 것인지 여부
+	//		-1.0f,   // 지속 시간
+	//		0,      // DepthPriority
+	//		1.0f    // 선의 두께
+	//	);
+	//}
 
 	if (DebugMessage)
 		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::Printf(TEXT("Hit: %s"), bHit ? *FString("true") : *FString("false")));

@@ -132,8 +132,9 @@ void AUSPlayer::Tick(float DeltaTime)
 			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
 			if (CharMoveComp)
 			{
-				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
 				CharMoveComp->bOrientRotationToMovement = false;
+				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
+				
 			}
 		}
 		
@@ -398,16 +399,16 @@ void AUSPlayer::ClimbingCorner(FVector StartPoint, FVector EndPoint, UAnimMontag
 			{
 				bIsClimbingCorner = true;
 				FVector LookDirection = -HitResult.Normal;
-				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("TurnCorner"), HitResult.ImpactPoint + HitResult.Normal * (CapsuleRadius + 10), FRotationMatrix::MakeFromX(LookDirection).Rotator());
+				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("TurnCorner"), HitResult.ImpactPoint + HitResult.Normal * (CapsuleRadius), FRotationMatrix::MakeFromX(LookDirection).Rotator());
 
-				AnimInstance->Montage_Play(Montage, 0.1);
+				AnimInstance->Montage_Play(Montage, 1.0);
 				float MontageLength = Montage->GetPlayLength();
 
 				FTimerHandle TimerHandle;
 				GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
 					bIsClimbingCorner = false;
 					})
-					, MontageLength * 10.0, false);
+					, MontageLength, false);
 			}
 		}
 	}
