@@ -47,9 +47,10 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		FVector ForwardVector = Owner->GetActorForwardVector();
 		FVector RightVector = Owner->GetActorRightVector();
 
-		float RightwardVelocity = FVector::DotProduct(Velocity, RightVector);
+		RightVelocity = FVector::DotProduct(Velocity, RightVector);
+		ForwardVelocity = FVector::DotProduct(Velocity, ForwardVector);
 
-		ClimbingRight = RightwardVelocity * 100.0;
+		ClimbingRight = RightVelocity * 100.0;
 		
 		//UE_LOG(LogTemp, Warning, TEXT("Climbing%s"), *Velocity.ToString());
 		if (OwnerChracterBase->bIsClimbingEdge) // 가장 자리에 도달한 순간 모션은 종료되어야함

@@ -15,6 +15,8 @@
 #include "../MiniView/MiniViewComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
+#include "Target/USTargetableInterface.h"
+#include "Kismet/GameplayStatics.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -99,11 +101,25 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	}
 
+	if (InputActionMap.Contains(EInputKey::MouseLClick))
+	{
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseLClick], ETriggerEvent::Triggered, this, &ThisClass::NormalAttack);
+	}
+
+	if (InputActionMap.Contains(EInputKey::LockOn))
+	{
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::LockOn], ETriggerEvent::Triggered, this, &ThisClass::ToggleLockOn);
+	}
 }
 
 void AUSPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (CurrentTarget)
+	{
+		UpdateCameraLockOn(DeltaTime);
+	}
 
 	if (bIsClimbingFalling || bIsClimbingUp || bIsClimbingCorner )
 		return;
@@ -115,7 +131,7 @@ void AUSPlayer::Tick(float DeltaTime)
 	FVector MiddleEndPoint = StartPoint + ForwardVector;
 
 	FHitResult HitResultMiddle;
-	bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, false);
+	bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, false, -1.0f, false);
 
 	if (bHitMiddle == false && bIsClimbing)
 	{
@@ -162,7 +178,7 @@ void AUSPlayer::Tick(float DeltaTime)
 	FVector HeadStartPoint = StartPoint + UpVector;
 	FVector HeadEndPoint = StartPoint + ForwardVector + UpVector;
 	FHitResult HitResultHead;
-	bool bHitHead = HitCheck(HeadStartPoint, HeadEndPoint, HitResultHead, false);
+	bool bHitHead = HitCheck(HeadStartPoint, HeadEndPoint, HitResultHead, false, -1.0f, false);
 
 	if(bIsClimbing && bHitHead == false)
 	{
@@ -173,7 +189,7 @@ void AUSPlayer::Tick(float DeltaTime)
 			FVector SPoint = OffsetStart + Offset * i;
 			FVector EPoint = SPoint + UpVector * 3;
 
-			if (HitCheck(EPoint, SPoint,  HitResultHead, false))
+			if (HitCheck(EPoint, SPoint,  HitResultHead, false, -1.0f, false))
 				break;
 		}
 
@@ -385,7 +401,7 @@ void AUSPlayer::SetCameraSprigArm(EViewType ViewType)
 void AUSPlayer::ClimbingCorner(FVector StartPoint, FVector EndPoint, UAnimMontage* Montage)
 {
 	FHitResult HitResult;
-	bool bHit = HitCheck(StartPoint, EndPoint, HitResult, false);
+	bool bHit = HitCheck(StartPoint, EndPoint, HitResult, false, -1.0f, false);
 	if (bHit)
 	{
 		float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
@@ -420,7 +436,7 @@ void AUSPlayer::ClimbingOutSideCorner(FVector StartPoint, FVector EndPoint, FVec
 	FVector EPoint = EndPoint + OffSet;
 
 	FHitResult HitResult;
-	if (HitCheck(EPoint, SPoint, HitResult, false))
+	if (HitCheck(EPoint, SPoint, HitResult, false, -1.0f, false))
 	{
 		float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
 		float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -448,5 +464,68 @@ void AUSPlayer::ClimbingOutSideCorner(FVector StartPoint, FVector EndPoint, FVec
 			}
 		}
 	}
+}
+
+void AUSPlayer::LockOnTarget()
+{
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = Start + (FollowCamera->GetForwardVector() * 10000.0f); // 10,000 유닛 앞까지 라인 트레이스
+	
+	FHitResult HitResult;
+	if (HitCheck(Start, End, HitResult, true, 5.0f, false))
+	{
+		// 히트된 액터가 캐릭터인지 확인합니다.
+		AActor* NearestTarget = HitResult.GetActor();
+		if (NearestTarget && NearestTarget->IsA<ACharacter>())
+		{
+			CurrentTarget = NearestTarget;
+			bUseControllerRotationYaw = true;
+		}
+	}
+}
+
+void AUSPlayer::UnlockTarget()
+{
+	CurrentTarget = nullptr;
+	bUseControllerRotationYaw = false;
+}
+
+void AUSPlayer::ToggleLockOn()
+{
+	if (CurrentTarget)
+	{
+		UnlockTarget();
+	}
+	else
+	{
+		LockOnTarget();
+	}
+}
+
+void AUSPlayer::UpdateCameraLockOn(float DeltaTime)
+{
+	if (!CurrentTarget)
+	{
+		return;
+	}
+
+
+	// 타겟 위치와 현재 위치를 기반으로 방향 벡터 계산
+	FVector TargetLocation = CurrentTarget->GetActorLocation();
+	FVector Direction = (TargetLocation - GetActorLocation()).GetSafeNormal();
+	FRotator TargetRotation = Direction.Rotation(); // 방향 벡터를 회전값으로 변환
+
+	// 현재 제어 회전 값을 가져오기
+	FRotator CurrentRotation = GetControlRotation();
+
+	// TargetRotation에서 Pitch 값만 사용하고, Yaw와 Roll 값은 유지
+	FRotator NewRotation(CurrentRotation.Pitch, TargetRotation.Yaw, CurrentRotation.Roll);
+
+	// 부드럽게 회전하기 위해 보간
+	FRotator SmoothRotation = FMath::RInterpTo(CurrentRotation, NewRotation, DeltaTime, 5.0f);
+
+	// 컨트롤러의 회전값 설정
+	GetController()->SetControlRotation(SmoothRotation);
+
 }
 

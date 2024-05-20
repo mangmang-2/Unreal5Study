@@ -21,6 +21,8 @@ enum class EInputKey : uint8
 	CameraChange UMETA(DisplayName = "CameraChange"),
 	ClickMove UMETA(DisplayName = "ClickMove"),
 	MouseWheel UMETA(DisplayName = "MouseWheel"),
+	MouseLClick UMETA(DisplayName = "MouseLClick"),
+	LockOn UMETA(DisplayName = "LockOn"),
 };
 
 /**
@@ -91,4 +93,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Capture)
 	TMap< EViewType, TObjectPtr<class USceneCaptureComponent2D>> SceneCapture;
+
+public:
+	void LockOnTarget();
+	void UnlockTarget();
+	void ToggleLockOn();
+	void UpdateCameraLockOn(float DeltaTime);
+
+private:
+	AActor* CurrentTarget;
+
 };

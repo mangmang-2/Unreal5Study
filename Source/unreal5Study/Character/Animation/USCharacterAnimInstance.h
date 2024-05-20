@@ -39,6 +39,12 @@ protected:
 	float GroundSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	float RightVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	float ForwardVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsIdle : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)

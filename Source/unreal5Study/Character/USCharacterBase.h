@@ -63,8 +63,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ClimbingOutSideTurnCornerRMontage;
 
+
 public:
-	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DebugMessage);
+	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
 	void ClimbingClear();
 
@@ -72,4 +73,21 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UMotionWarpingComponent> MotionWarping;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 bIsAttack : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> NormalAttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> ImpactMontage;
+
+public:
+	void NormalAttack();
+	bool WeaponAttackCheck(TSet<AActor*>& HitActors);
+	bool AttackCheck(TSet<AActor*>& HitActors);
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 };
