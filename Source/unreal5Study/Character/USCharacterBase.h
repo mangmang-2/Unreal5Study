@@ -85,9 +85,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ImpactMontage;
 
+	int32 CurrentCombo = 0;
+	FTimerHandle ComboTimerHandle;
+	bool HasNextComboCommand = false;
+
 public:
 	void NormalAttack();
 	bool WeaponAttackCheck(TSet<AActor*>& HitActors);
 	bool AttackCheck(TSet<AActor*>& HitActors);
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	void ComboActionBegin();
+	void ComboActionEnd();
+	void SetComboCheckTimer();
+	void ComboCheck();
 };

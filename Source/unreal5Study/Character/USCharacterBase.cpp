@@ -183,30 +183,19 @@ void AUSCharacterBase::NormalAttack()
 	if (bIsClimbingFalling || bIsClimbingUp || bIsClimbingCorner || bIsAttack)
 		return;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && NormalAttackMontage)
+	if (CurrentCombo == 0)
 	{
-		bIsAttack = true;
-		AnimInstance->Montage_Play(NormalAttackMontage, 1.0);
+		ComboActionBegin();
+		return;
+	}
 
-		UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-		if (CharMoveComp)
-		{
-			CharMoveComp->SetMovementMode(EMovementMode::MOVE_None);
-		}
-
-		// 이건 나중에 쓸떄가 있으니.. 뼈대만 남겨두고
-		float MontageLength = NormalAttackMontage->GetPlayLength();
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
-			UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-			if (CharMoveComp)
-			{
-				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
-				bIsAttack = false;
-			}
-			})
-			, MontageLength, false);
+	if (!ComboTimerHandle.IsValid())
+	{
+		HasNextComboCommand = false;
+	}
+	else
+	{
+		HasNextComboCommand = true;
 	}
 }
 
@@ -237,9 +226,9 @@ bool AUSCharacterBase::WeaponAttackCheck(TSet<AActor*>& HitActors)
 			GetWorld(),
 			Start,
 			End,
-			FColor::Blue,
+			DrawColor,
 			false,  // 지속적으로 그릴 것인지 여부
-			-1.0f,   // 지속 시간
+			1.0f,   // 지속 시간
 			0,      // DepthPriority
 			1.0f    // 선의 두께
 		);
@@ -275,7 +264,7 @@ bool AUSCharacterBase::AttackCheck(TSet<AActor*>& HitActors)
 	float CapsuleHalfHeight = AttackRange * 0.5f;
 	FColor DrawColor = HitDetected && HitActors.Contains(OutHitResult.GetActor()) == false ? FColor::Green : FColor::Red;
 
-	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 5.0f);
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 1.0f);
 
 #endif
 
@@ -313,4 +302,54 @@ float AUSCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	}
 
 	return DamageAmount;
+}
+
+void AUSCharacterBase::ComboActionBegin()
+{
+	// Combo Status
+	CurrentCombo = 1;
+
+	// Movement Setting
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	// Animation Setting
+	const float AttackSpeedRate = 1.0f;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->Montage_Play(NormalAttackMontage, AttackSpeedRate);
+
+	ComboTimerHandle.Invalidate();
+	SetComboCheckTimer();
+}
+
+void AUSCharacterBase::ComboActionEnd()
+{
+	CurrentCombo = 0;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
+void AUSCharacterBase::SetComboCheckTimer()
+{
+	float ComboEffectiveTime = NormalAttackMontage->GetSectionLength(CurrentCombo - 1)*0.8;
+	if (ComboEffectiveTime > 0.0f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AUSCharacterBase::ComboCheck, ComboEffectiveTime, false);
+	}
+}
+
+void AUSCharacterBase::ComboCheck()
+{
+	ComboTimerHandle.Invalidate();
+	if (NormalAttackMontage->GetNumSections() == CurrentCombo || HasNextComboCommand == false)
+	{
+		ComboActionEnd();
+	}
+	else
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, NormalAttackMontage->GetNumSections());
+		AnimInstance->Montage_JumpToSection(NormalAttackMontage->GetSectionName(CurrentCombo - 1), NormalAttackMontage);
+		SetComboCheckTimer();
+		HasNextComboCommand = false;
+	}
 }
