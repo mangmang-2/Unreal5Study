@@ -325,6 +325,8 @@ void AUSCharacterBase::ComboActionEnd()
 {
 	CurrentCombo = 0;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+	NotifyComboActionEnd();
 }
 
 void AUSCharacterBase::SetComboCheckTimer()
@@ -352,4 +354,16 @@ void AUSCharacterBase::ComboCheck()
 		SetComboCheckTimer();
 		HasNextComboCommand = false;
 	}
+}
+
+int32 AUSCharacterBase::GetMaxCombo()
+{
+	if (NormalAttackMontage == nullptr)
+		return 0;
+
+	return NormalAttackMontage->GetNumSections();
+}
+
+void AUSCharacterBase::NotifyComboActionEnd()
+{
 }

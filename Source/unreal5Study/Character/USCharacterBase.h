@@ -99,4 +99,7 @@ public:
 	void ComboActionEnd();
 	void SetComboCheckTimer();
 	void ComboCheck();
+	int32 GetMaxCombo();
+
+	virtual void NotifyComboActionEnd();
 };
