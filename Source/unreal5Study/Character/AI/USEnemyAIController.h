@@ -21,7 +21,11 @@ public:
 	void StopAI();
 
 protected:
+	virtual void BeginPlay() override;
+
 	virtual void OnPossess(APawn* InPawn) override;
+
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -29,4 +33,21 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UBehaviorTree> BTAsset;
+
+protected:
+	UPROPERTY(VisibleAnywhere)
+    TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
+
+	UPROPERTY(VisibleAnywhere)
+    TObjectPtr<class UAISenseConfig_Sight> SightConfig;
+
+	UFUNCTION()
+	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+
+	void DrawSightCone();
+
+public:
+	UPROPERTY(VisibleAnywhere)
+	TArray<TObjectPtr<class AActor>> PerceptionActors;
 };

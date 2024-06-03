@@ -6,6 +6,8 @@
 #include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
 #include "Engine/DamageEvents.h"
+#include "ProceduralMeshComponent.h"
+
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -46,6 +48,10 @@ AUSCharacterBase::AUSCharacterBase()
 
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 	ClimbingClear();
+
+	ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
+
+
 }
 
 // Called when the game starts or when spawned
@@ -53,6 +59,7 @@ void AUSCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+
 }
 
 // Called every frame
@@ -60,11 +67,67 @@ void AUSCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-#if ENABLE_DRAW_DEBUG
+	//int32 NumberOfSections = ceilf(HalfAngle * 2.0f / DeltaAngle);
+	//float DAngle = HalfAngle * 2.0f / NumberOfSections;
+	//FVector StartPoint = GetActorLocation();
+	//StartPoint.Z -= 80;
+	//TArray<FHitResult> HitArray;
+	//for (int32 i = 0; i < NumberOfSections; i++)
+	//{
+	//	int32 L_CurrentAngle = DAngle* i - HalfAngle;
+	//	
+	//	// 회전 축
+	//	FVector RotationAxis(0.0f, 0.0f, 1.0f);
 
+	//	// 회전 각도 (도 단위)
+	//	float RotationAngle = L_CurrentAngle;
 
+	//	// 벡터 회전
+	//	FVector RotatedVector = GetActorForwardVector().RotateAngleAxis(RotationAngle, RotationAxis) * ExternalRadius;
+	//	FHitResult HitResult;
+	//	HitCheck(StartPoint, StartPoint + RotatedVector, HitResult, false, -1, false);
 
-#endif
+	//	HitArray.Add(HitResult);
+	//}
+	//
+	//FVector LLeftPoint;
+	//FVector LRightPoint;
+	//TArray<FVector> Vertices;
+	//TArray<int32> Triangles;
+	//for (int32 Index = 0; Index < HitArray.Num() - 1; ++Index)
+	//{
+	//	if (HitArray[Index].bBlockingHit)
+	//	{
+	//		LLeftPoint = HitArray[Index].Location;
+	//	}
+	//	else
+	//	{
+	//		LLeftPoint = HitArray[Index].TraceEnd;
+	//	}
+
+	//	if (HitArray[Index + 1].bBlockingHit)
+	//	{
+	//		LRightPoint = HitArray[Index + 1].Location;
+	//	}
+	//	else
+	//	{
+	//		LRightPoint = HitArray[Index + 1].TraceEnd;
+	//	}
+
+	//	
+	//	Vertices.Add(StartPoint);
+	//	Vertices.Add(LLeftPoint);
+	//	Vertices.Add(LRightPoint);
+	//	
+	//	Triangles.Add(0 + Index * 3);
+	//	Triangles.Add(2 + Index * 3);
+	//	Triangles.Add(1 + Index * 3);
+	//}
+	//TArray<FVector> Normals;
+	//TArray<FVector2D> UVs;
+	//TArray<FProcMeshTangent> Tangents;
+	//TArray<FColor> VertexColors;
+	//ProceduralMesh->CreateMeshSection(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
 }
 
 // Called to bind functionality to input
@@ -367,3 +430,4 @@ int32 AUSCharacterBase::GetMaxCombo()
 void AUSCharacterBase::NotifyComboActionEnd()
 {
 }
+

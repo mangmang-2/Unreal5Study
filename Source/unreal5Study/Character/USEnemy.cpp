@@ -32,7 +32,7 @@ float AUSEnemy::GetAIPatrolRadius()
 
 float AUSEnemy::GetAIDetectRange()
 {
-	return 700.0f;
+	return 800.0f;
 }
 
 float AUSEnemy::GetAIAttackRange()

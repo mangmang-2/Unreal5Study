@@ -102,4 +102,14 @@ public:
 	int32 GetMaxCombo();
 
 	virtual void NotifyComboActionEnd();
+
+public:
+	float HalfAngle = 45.0;
+	float DeltaAngle = 1.0;
+	float ExternalRadius = 1500.0;
+
+	UPROPERTY(VisibleAnywhere)
+    TObjectPtr<class UProceduralMeshComponent> ProceduralMesh;
+
+
 };
