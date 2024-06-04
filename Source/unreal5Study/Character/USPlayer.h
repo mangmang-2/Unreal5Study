@@ -64,9 +64,6 @@ public:
 	void SetupCemeraSprigArm();
 	void SetCameraSprigArm(EViewType ViewType);
 
-	void ClimbingCorner(FVector StartPoint, FVector EndPoint, UAnimMontage* Montage);
-	void ClimbingOutSideCorner(FVector StartPoint, FVector EndPoint, FVector OffSet, UAnimMontage* Montage);
-
 protected:
 	TMap<EViewType, TObjectPtr<class USpringArmComponent>> CemeraSprigArm;
 
@@ -103,4 +100,14 @@ public:
 private:
 	AActor* CurrentTarget;
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Partners")
+	TArray<TObjectPtr<class AUSPartner>> USPartnerList;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Partners")
+	TSubclassOf<class AUSPartner> PartnerBPClass;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Partners")
+    void AddPartner();
 };

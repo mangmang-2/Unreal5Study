@@ -39,8 +39,8 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
 
-		bIsClimbing = OwnerChracterBase->bIsClimbing;
-		bIsClimbingUpMontage = OwnerChracterBase->bIsClimbingUp;
+		bIsClimbing = OwnerChracterBase->IsClimbing();
+		bIsClimbingMontage = OwnerChracterBase->IsClimbingMontage();
 
 		ClimbingUP = Velocity.Z * 100.0;
 
@@ -53,10 +53,10 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		ClimbingRight = RightVelocity * 100.0;
 		
 		//UE_LOG(LogTemp, Warning, TEXT("Climbing%s"), *Velocity.ToString());
-		if (OwnerChracterBase->bIsClimbingEdge) // 가장 자리에 도달한 순간 모션은 종료되어야함
-		{
-			ClimbingUP = 0;
-			ClimbingRight = 0;
-		}
+		//if (OwnerChracterBase->bIsClimbingEdge) // 가장 자리에 도달한 순간 모션은 종료되어야함
+		//{
+		//	ClimbingUP = 0;
+		//	ClimbingRight = 0;
+		//}
 	}
 }

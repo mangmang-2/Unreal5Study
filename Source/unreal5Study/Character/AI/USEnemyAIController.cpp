@@ -64,7 +64,7 @@ void AUSEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	RunAI();
+	//RunAI();
 }
 
 void AUSEnemyAIController::Tick(float DeltaTime)
@@ -93,7 +93,7 @@ void AUSEnemyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedAct
 			if (Stimulus.WasSuccessfullySensed())
 			{
 				APawn* PawnActor = Cast<APawn>(Actor);
-				if (PawnActor && PawnActor->GetController()->IsPlayerController())
+				if (PawnActor && PawnActor->GetController() && PawnActor->GetController()->IsPlayerController())
 				{
 					PerceptionActors.Add(Actor);
 					UE_LOG(LogTemp, Log, TEXT("WasSuccessfullySensed"));

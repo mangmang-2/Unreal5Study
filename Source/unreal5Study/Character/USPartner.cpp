@@ -3,3 +3,6 @@
 
 #include "Character/USPartner.h"
 
+AUSPartner::AUSPartner()
+{
+}

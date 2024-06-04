@@ -63,7 +63,7 @@ protected:
 	uint8 bIsClimbing : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsClimbingUpMontage : 1;
+	uint8 bIsClimbingMontage : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float ClimbingUP;

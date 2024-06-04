@@ -7,6 +7,7 @@
 #include "MotionWarpingComponent.h"
 #include "Engine/DamageEvents.h"
 #include "ProceduralMeshComponent.h"
+#include "Movement/USClimbingComponent.h"
 
 
 // Sets default values
@@ -46,12 +47,10 @@ AUSCharacterBase::AUSCharacterBase()
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
 	Weapon->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
 
-	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
-	ClimbingClear();
-
+	
 	ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
-
+	ClimbingComponent = CreateDefaultSubobject<UUSClimbingComponent>(TEXT("ClimbingComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -216,34 +215,13 @@ bool AUSCharacterBase::CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadiu
 	return bHit;
 }
 
-void AUSCharacterBase::ClimbingClear()
-{
-	if (GetWorld())
-	{
-		bIsClimbingFalling = true;
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
-			bIsClimbingFalling = false;
-			})
-			, 1.0, false);
-	}
-
-	bIsClimbing = false;
-	bIsClimbingUp = false;
-	UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
-	if (CharMoveComp)
-	{
-		CharMoveComp->SetMovementMode(EMovementMode::MOVE_Walking);
-		CharMoveComp->bOrientRotationToMovement = true;
-	}
-}
 
 void AUSCharacterBase::NormalAttack()
 {
 	if (GetCharacterMovement()->IsFalling())
 		return;
 
-	if (bIsClimbingFalling || bIsClimbingUp || bIsClimbingCorner || bIsAttack)
+	if (bIsAttack)
 		return;
 
 	if (CurrentCombo == 0)
@@ -429,5 +407,29 @@ int32 AUSCharacterBase::GetMaxCombo()
 
 void AUSCharacterBase::NotifyComboActionEnd()
 {
+}
+
+bool AUSCharacterBase::IsClimbing()
+{
+	if(ClimbingComponent == nullptr)
+		return false;
+
+	return ClimbingComponent->IsClimbing();
+}
+
+bool AUSCharacterBase::IsClimbingMontage()
+{
+	if (ClimbingComponent == nullptr)
+		return false;
+
+	return ClimbingComponent->IsClimbingMontage();
+}
+
+bool AUSCharacterBase::IsClimbingFalling()
+{
+	if (ClimbingComponent == nullptr)
+		return false;
+
+	return ClimbingComponent->IsClimbingFalling();
 }
 

@@ -17,6 +17,6 @@ void UAnimNotify_ClimbingTopCheck::Notify(USkeletalMeshComponent* MeshComp, UAni
 	AUSCharacterBase* USCharacter = Cast<AUSCharacterBase>(MeshComp->GetOwner());
 	if (USCharacter)
 	{
-		USCharacter->ClimbingClear();
+		//USCharacter->ClimbingClear();
 	}
 }

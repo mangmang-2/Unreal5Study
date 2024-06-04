@@ -30,49 +30,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USkeletalMeshComponent> Weapon;
 
-
-public:
-	// 추후에 애님 인스턴스로 이동하거나 데이터를 줘야할듯
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 bIsClimbing : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 bIsClimbingEdge : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 bIsClimbingUp : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 bIsClimbingFalling : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UAnimMontage> ClimbingTopMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	uint8 bIsClimbingCorner : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UAnimMontage> ClimbingTurnCornerLMontage; 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UAnimMontage> ClimbingTurnCornerRMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UAnimMontage> ClimbingOutSideTurnCornerLMontage; 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UAnimMontage> ClimbingOutSideTurnCornerRMontage;
-
-
 public:
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
-	void ClimbingClear();
 
-protected:
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<class UMotionWarpingComponent> MotionWarping;
 
 protected:
 
@@ -111,5 +72,11 @@ public:
 	UPROPERTY(VisibleAnywhere)
     TObjectPtr<class UProceduralMeshComponent> ProceduralMesh;
 
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UUSClimbingComponent> ClimbingComponent;
 
+	bool IsClimbing();
+	bool IsClimbingMontage();
+	bool IsClimbingFalling();
 };

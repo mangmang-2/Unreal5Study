@@ -13,5 +13,6 @@ UCLASS()
 class UNREAL5STUDY_API AUSPartner : public AUSCharacterBase
 {
 	GENERATED_BODY()
-	
+public:
+	AUSPartner();
 };
