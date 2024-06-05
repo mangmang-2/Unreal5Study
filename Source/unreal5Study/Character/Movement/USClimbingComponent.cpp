@@ -44,7 +44,7 @@ void UUSClimbingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 			return;
 	}
 
-	ClimbingLocation();
+	ClimbingLocation(DeltaTime);
 
 }
 
@@ -56,12 +56,12 @@ bool UUSClimbingComponent::ClimbingStart()
 
 	if (owner->GetCharacterMovement()->IsFalling())
 	{
-		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 80;
+		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 100;
 		FVector StartPoint = owner->GetCapsuleComponent()->GetComponentLocation();
 
 		FVector MiddleEndPoint = StartPoint + ForwardVector;
 		FHitResult HitResultMiddle;
-		bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, false, -1.0f, false);
+		bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, true, -1.0f, false);
 
 		if (bHitMiddle)
 		{
@@ -74,40 +74,45 @@ bool UUSClimbingComponent::ClimbingStart()
 				CharMoveComp->bOrientRotationToMovement = false;
 				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
 			}
+
+			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius() + 0;
+			owner->SetActorLocation(HitResultMiddle.Normal * CapsuleRadius + HitResultMiddle.Location);
+
+			FRotator Rotation = FRotationMatrix::MakeFromX(HitResultMiddle.Normal * -1).Rotator();
+			owner->SetActorRotation(Rotation);
 		}
 	}
 
 	return bIsClimbing;
 }
 
-void UUSClimbingComponent::ClimbingLocation()
+void UUSClimbingComponent::ClimbingLocation(float DeltaTime)
 {
 	ACharacter* owner = Cast<ACharacter>(GetOwner());
 	if (owner == nullptr)
 		return;
-
 	if (bIsClimbing)
 	{
-		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 80;
+		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 100;
 		FVector StartPoint = owner->GetCapsuleComponent()->GetComponentLocation();
 
 		FVector MiddleEndPoint = StartPoint + ForwardVector;
 		FHitResult HitResultMiddle;
-		bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, false, -1.0f, false);
+		bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, true, -1.0f, false);
 		if (bHitMiddle)
 		{
-			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
 
+			FRotator Rotation = FRotationMatrix::MakeFromX(HitResultMiddle.Normal * -1).Rotator();
+			/*if (TargetRotation == Rotation)
+				return;*/
+
+			//TargetRotation = Rotation;
+			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius() + 0;
 			owner->SetActorLocation(HitResultMiddle.Normal * CapsuleRadius + HitResultMiddle.Location);
 
-			FRotator Rotation = FRotationMatrix::MakeFromX(HitResultMiddle.Normal).Rotator();
-
-			double NewYawValue = Rotation.Yaw + 180;
-			FRotator CurrentRotation = owner->GetActorRotation();
-			FRotator NewRotation = FRotator(CurrentRotation.Pitch, NewYawValue, CurrentRotation.Roll);
-
-			owner->SetActorRotation(NewRotation);
+			owner->SetActorRotation(Rotation);
 		}
+		
 	}
 }
 

@@ -56,7 +56,7 @@ protected:
 
 public:
 	bool ClimbingStart();
-	void ClimbingLocation();
+	void ClimbingLocation(float DeltaTime);
 
 	bool GetHeadPoint(FHitResult& HitResult);
 	void ClimbingUp();
