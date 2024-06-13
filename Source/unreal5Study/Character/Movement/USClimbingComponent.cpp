@@ -75,7 +75,7 @@ bool UUSClimbingComponent::ClimbingStart()
 				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
 			}
 
-			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius() + 15;
+			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius() + 10;
 			owner->SetActorLocation(HitResultMiddle.Normal * CapsuleRadius + HitResultMiddle.Location);
 
 			FRotator Rotation = FRotationMatrix::MakeFromX(HitResultMiddle.Normal * -1).Rotator();
@@ -107,7 +107,7 @@ void UUSClimbingComponent::ClimbingLocation(float DeltaTime)
 				return;*/
 
 			//TargetRotation = Rotation;
-			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius() + 15;
+			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
 			owner->SetActorLocation(HitResultMiddle.Normal * CapsuleRadius + HitResultMiddle.Location);
 
 			owner->SetActorRotation(Rotation);
