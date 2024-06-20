@@ -178,6 +178,25 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 	}
 	else
 	{
+		
+		FRotator AimRotation = GetBaseAimRotation();
+		FRotator ActorRotation =  GetActorRotation();
+		// 이동각도 - 현재각도를 구해서 이동해야하는 각도를 구함, 그중에서 Z값만을 확인
+		FRotator DeltaRotation = AimRotation - ActorRotation;
+		UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : %f"), DeltaRotation.Yaw);
+
+
+		if (DeltaRotation.Yaw < 0)
+		{
+			// 오른쪽으로 가는 이벤트
+			UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Right"));
+		}
+		else
+		{
+			// 왼쪽으로 가는 이벤트
+			UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Left"));
+		}
+		
 		AddMovementInput(ForwardDirection, MovementVector.X);
 		AddMovementInput(RightDirection, MovementVector.Y);
 	}
