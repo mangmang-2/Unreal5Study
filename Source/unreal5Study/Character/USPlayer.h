@@ -64,6 +64,11 @@ public:
 	void SetupCemeraSprigArm();
 	void SetCameraSprigArm(EViewType ViewType);
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Blueprint")
+	void K2_RotateRight(double Yaw, FRotator CharacterRotation);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Blueprint")
+	void K2_RotateLeft(double Yaw, FRotator CharacterRotation);
+
 protected:
 	TMap<EViewType, TObjectPtr<class USpringArmComponent>> CemeraSprigArm;
 

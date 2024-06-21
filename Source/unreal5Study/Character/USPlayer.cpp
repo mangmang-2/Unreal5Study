@@ -190,13 +190,16 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 		{
 			// 오른쪽으로 가는 이벤트
 			UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Right"));
+			K2_RotateRight(DeltaRotation.Yaw, ActorRotation);
 		}
 		else
 		{
 			// 왼쪽으로 가는 이벤트
 			UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Left"));
+			K2_RotateLeft(DeltaRotation.Yaw, ActorRotation);
 		}
 		
+
 		AddMovementInput(ForwardDirection, MovementVector.X);
 		AddMovementInput(RightDirection, MovementVector.Y);
 	}
