@@ -57,7 +57,7 @@ void AUSPlayer::BeginPlay()
 		HUDWidget->AddToViewport();
 	}
 
-	AddPartner();
+	//AddPartner();
 }
 
 // 값 변경이 아니라 세팅값을 둔 여러게의 스프링암을 만들고 교체하는 형식으로 바껴야할듯
