@@ -44,8 +44,11 @@ AUSCharacterBase::AUSCharacterBase()
 		MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	}
 	
-	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
-	Weapon->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
+	Sword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sword"));
+	Sword->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
+
+	Shield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Shield"));
+	Shield->SetupAttachment(GetMesh(), TEXT("HandSocket_L"));
 
 	
 	ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
@@ -242,15 +245,15 @@ void AUSCharacterBase::NormalAttack()
 
 bool AUSCharacterBase::WeaponAttackCheck(TSet<AActor*>& HitActors)
 {
-	if (Weapon)
+	if (Sword)
 	{
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
 		QueryParams.bTraceComplex = true;
 		QueryParams.AddIgnoredActor(this); // 이 액터는 트레이스에서 제외
 
-		const FVector Start = Weapon->GetComponentLocation();
-		const FVector End = Weapon->GetSocketLocation("EndPoint");
+		const FVector Start = Sword->GetComponentLocation();
+		const FVector End = Sword->GetSocketLocation("EndPoint");
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
@@ -372,7 +375,9 @@ void AUSCharacterBase::ComboActionEnd()
 
 void AUSCharacterBase::SetComboCheckTimer()
 {
-	float ComboEffectiveTime = NormalAttackMontage->GetSectionLength(CurrentCombo - 1)*0.8;
+	static uint32 aaa2 = 1;
+	float aaa = NormalAttackMontage->GetSectionLength(aaa2 - 1);
+	float ComboEffectiveTime = NormalAttackMontage->GetSectionLength(CurrentCombo - 1)*0.5;
 	if (ComboEffectiveTime > 0.0f)
 	{
 		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AUSCharacterBase::ComboCheck, ComboEffectiveTime, false);
