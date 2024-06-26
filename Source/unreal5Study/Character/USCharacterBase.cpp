@@ -44,11 +44,17 @@ AUSCharacterBase::AUSCharacterBase()
 		MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	}
 	
-	Sword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sword"));
-	Sword->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
+	EquipSword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquipSword"));
+	EquipSword->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
 
-	Shield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Shield"));
-	Shield->SetupAttachment(GetMesh(), TEXT("HandSocket_L"));
+	EquipShield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquipShield"));
+	EquipShield->SetupAttachment(GetMesh(), TEXT("HandSocket_L"));
+
+	UnequipSword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipSword"));
+	UnequipSword->SetupAttachment(GetMesh(), TEXT("Sword_Holder"));
+
+	UnequipShield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipShield"));
+	UnequipShield->SetupAttachment(GetMesh(), TEXT("Shield_Holder"));
 
 	
 	ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
@@ -61,7 +67,8 @@ void AUSCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
+	ShowSword(bIsCombatState);
+	ShowShield(bIsCombatState);
 }
 
 // Called every frame
@@ -245,15 +252,15 @@ void AUSCharacterBase::NormalAttack()
 
 bool AUSCharacterBase::WeaponAttackCheck(TSet<AActor*>& HitActors)
 {
-	if (Sword)
+	if (EquipSword)
 	{
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
 		QueryParams.bTraceComplex = true;
 		QueryParams.AddIgnoredActor(this); // 이 액터는 트레이스에서 제외
 
-		const FVector Start = Sword->GetComponentLocation();
-		const FVector End = Sword->GetSocketLocation("EndPoint");
+		const FVector Start = EquipSword->GetComponentLocation();
+		const FVector End = EquipSword->GetSocketLocation("EndPoint");
 
 		bool bHit = GetWorld()->LineTraceSingleByChannel(
 			HitResult,
@@ -436,5 +443,21 @@ bool AUSCharacterBase::IsClimbingFalling()
 		return false;
 
 	return ClimbingComponent->IsClimbingFalling();
+}
+
+void AUSCharacterBase::ShowSword(bool bShow)
+{
+	if (EquipSword)
+		EquipSword->SetVisibility(bShow);
+	if (UnequipSword)
+		UnequipSword->SetVisibility(!bShow);
+}
+
+void AUSCharacterBase::ShowShield(bool bShow)
+{
+	if(EquipShield)
+		EquipShield->SetVisibility(bShow);
+	if (UnequipShield)
+		UnequipShield->SetVisibility(!bShow);
 }
 

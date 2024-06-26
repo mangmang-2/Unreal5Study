@@ -28,10 +28,16 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UStaticMeshComponent> Sword;
+	TObjectPtr<class UStaticMeshComponent> EquipSword;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UStaticMeshComponent> Shield;
+	TObjectPtr<class UStaticMeshComponent> EquipShield;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> UnequipSword;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> UnequipShield;
 
 public:
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
@@ -82,4 +88,12 @@ public:
 	bool IsClimbing();
 	bool IsClimbingMontage();
 	bool IsClimbingFalling();
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	uint8 bIsCombatState: 1; 
+
+	void ShowSword(bool bShow);
+	void ShowShield(bool bShow);
 };
+
