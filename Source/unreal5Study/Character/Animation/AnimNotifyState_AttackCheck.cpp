@@ -20,7 +20,7 @@ void UAnimNotifyState_AttackCheck::NotifyTick(USkeletalMeshComponent* MeshComp, 
 		AUSCharacterBase* USCharacterBase = Cast<AUSCharacterBase>(MeshComp->GetOwner());
 		if (USCharacterBase)
 		{
-			USCharacterBase->WeaponAttackCheck(HitActors);
+			//USCharacterBase->WeaponAttackCheck(HitActors);
 		}
 	}
 }

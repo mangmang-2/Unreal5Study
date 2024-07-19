@@ -35,5 +35,5 @@ public:
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished);
 
 	virtual void AttackByAI();
-	virtual void NotifyComboActionEnd() override;
+	//virtual void NotifyComboActionEnd() override;
 };

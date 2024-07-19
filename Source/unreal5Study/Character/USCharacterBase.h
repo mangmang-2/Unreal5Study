@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
 #include "USCharacterBase.generated.h"
 
 UCLASS()
-class UNREAL5STUDY_API AUSCharacterBase : public ACharacter
+class UNREAL5STUDY_API AUSCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -50,28 +51,26 @@ protected:
 	uint8 bIsAttack : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UAnimMontage> NormalAttackMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ImpactMontage;
+
 
 	int32 CurrentCombo = 0;
 	FTimerHandle ComboTimerHandle;
 	bool HasNextComboCommand = false;
 
 public:
-	void NormalAttack();
-	bool WeaponAttackCheck(TSet<AActor*>& HitActors);
-	bool AttackCheck(TSet<AActor*>& HitActors);
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	//void NormalAttack();
+	//bool WeaponAttackCheck(TSet<AActor*>& HitActors);
+	//bool AttackCheck(TSet<AActor*>& HitActors);
+	//virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
-	void ComboActionBegin();
-	void ComboActionEnd();
-	void SetComboCheckTimer();
-	void ComboCheck();
-	int32 GetMaxCombo();
+	//void ComboActionBegin();
+	//void ComboActionEnd();
+	//void SetComboCheckTimer();
+	//void ComboCheck();
+	//int32 GetMaxCombo();
 
-	virtual void NotifyComboActionEnd();
+	//virtual void NotifyComboActionEnd();
 
 public:
 	float HalfAngle = 45.0;
@@ -95,5 +94,16 @@ public:
 
 	void ShowSword(bool bShow);
 	void ShowShield(bool bShow);
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
+	TObjectPtr<class UAbilitySystemComponent> ASCComponent;
+
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
+
+public:
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual void PossessedBy(AController* NewController) override;
 };
 

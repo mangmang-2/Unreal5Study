@@ -52,7 +52,7 @@ void AUSEnemy::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackF
 
 void AUSEnemy::AttackByAI()
 {
-	if (CurrentCombo == 0)
+	/*if (CurrentCombo == 0)
 	{
 		CurrentCombo++;
 		const float AttackSpeedRate = 1.0f;
@@ -91,11 +91,11 @@ void AUSEnemy::AttackByAI()
 				})
 				, ComboEffectiveTime, false);
 		}
-	}
+	}*/
 }
 
-void AUSEnemy::NotifyComboActionEnd()
-{
-	Super::NotifyComboActionEnd();
-	OnAttackFinished.ExecuteIfBound();
-}
+//void AUSEnemy::NotifyComboActionEnd()
+//{
+//	Super::NotifyComboActionEnd();
+//	OnAttackFinished.ExecuteIfBound();
+//}

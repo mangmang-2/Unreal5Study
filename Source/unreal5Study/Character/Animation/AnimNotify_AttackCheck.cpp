@@ -14,7 +14,7 @@ void UAnimNotify_AttackCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 		if (USCharacterBase)
 		{
 			TSet<AActor*> HitActors;
-			USCharacterBase->AttackCheck(HitActors);
+//			USCharacterBase->AttackCheck(HitActors);
 		}
 	}
 }

@@ -115,4 +115,13 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Partners")
     void AddPartner();
+
+public:
+	virtual void PossessedBy(AController* NewController) override;
+
+	void EquipWeaponCallBack(const struct FGameplayEventData* EventData);
+	void EquipShieldCallBack(const struct FGameplayEventData* EventData);
+
+	void ComboAttack();
+
 };

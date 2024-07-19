@@ -18,6 +18,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "USPartner.h"
 #include "Movement/USClimbingComponent.h"
+#include "USPlayerState.h"
+#include "AbilitySystemComponent.h"
+#include "Ability/Tag/USGameplayTag.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -45,6 +48,7 @@ AUSPlayer::AUSPlayer()
 	}
 }
 
+
 void AUSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -64,6 +68,8 @@ void AUSPlayer::BeginPlay()
 void AUSPlayer::SetViewData(const UUSCameraData* CameraData)
 {
 	if (CameraData == nullptr)
+		return;
+	if (Controller == nullptr)
 		return;
 
 	bUseControllerRotationYaw = CameraData->bUseControllerRotationYaw;
@@ -113,7 +119,7 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (InputActionMap.Contains(EInputKey::MouseLClick))
 	{
-		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseLClick], ETriggerEvent::Triggered, this, &ThisClass::NormalAttack);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseLClick], ETriggerEvent::Triggered, this, &ThisClass::ComboAttack);
 	}
 
 	if (InputActionMap.Contains(EInputKey::LockOn))
@@ -137,6 +143,8 @@ void AUSPlayer::Tick(float DeltaTime)
 void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
 {
 	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	if (PlayerController == nullptr)
+		return;
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 	{
 		Subsystem->ClearAllMappings();
@@ -415,3 +423,57 @@ void AUSPlayer::AddPartner()
 	}
 }
 
+void AUSPlayer::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (ASCComponent == nullptr)
+		return;
+
+	ASCComponent->GenericGameplayEventCallbacks.FindOrAdd(USTAG_CHARACTER_EQUIP_WEAPON).AddUObject(this, &AUSPlayer::EquipWeaponCallBack);
+	ASCComponent->GenericGameplayEventCallbacks.FindOrAdd(USTAG_CHARACTER_EQUIP_SHIELD).AddUObject(this, &AUSPlayer::EquipShieldCallBack);
+
+}
+
+void AUSPlayer::EquipWeaponCallBack(const FGameplayEventData* EventData)
+{
+	if (EventData == nullptr)
+		return;
+	if (EquipSword == nullptr)
+		return;
+
+	const UStaticMeshComponent* Equip = Cast<UStaticMeshComponent>(EventData->OptionalObject.Get());
+
+	EquipSword->SetStaticMesh(Equip->GetStaticMesh());
+	UnequipSword->SetStaticMesh(Equip->GetStaticMesh());
+}
+
+void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
+{
+	if (EventData == nullptr)
+		return;
+	if (EquipShield == nullptr)
+		return;
+
+	const UStaticMeshComponent* Equip = Cast<UStaticMeshComponent>(EventData->OptionalObject.Get());
+
+	EquipShield->SetStaticMesh(Equip->GetStaticMesh());
+	UnequipShield->SetStaticMesh(Equip->GetStaticMesh());
+}
+
+void AUSPlayer::ComboAttack()
+{
+	FGameplayAbilitySpec* Spec = ASCComponent->FindAbilitySpecFromInputID(2);
+	if (Spec)
+	{
+		Spec->InputPressed = true;
+		if (Spec->IsActive())
+		{
+			ASCComponent->AbilitySpecInputPressed(*Spec);
+		}
+		else
+		{
+			ASCComponent->TryActivateAbility(Spec->Handle);
+		}
+	}
+}
