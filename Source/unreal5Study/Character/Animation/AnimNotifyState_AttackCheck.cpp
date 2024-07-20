@@ -8,7 +8,7 @@ void UAnimNotifyState_AttackCheck::NotifyBegin(USkeletalMeshComponent* MeshComp,
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	HitActors.Reset();
+
 }
 
 void UAnimNotifyState_AttackCheck::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
@@ -30,5 +30,5 @@ void UAnimNotifyState_AttackCheck::NotifyEnd(USkeletalMeshComponent* MeshComp, U
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	HitActors.Reset();
+
 }

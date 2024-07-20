@@ -20,9 +20,6 @@ public:
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference);
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference);
 
-private:
-	TSet<AActor*> HitActors;
-
 protected:
 	UPROPERTY(EditAnywhere, Meta=(Categories=Event))
 	FGameplayTag TriggerGameplayTag;

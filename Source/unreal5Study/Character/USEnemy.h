@@ -19,6 +19,8 @@ class UNREAL5STUDY_API AUSEnemy : public AUSCharacterBase, public IUSTargetableI
 public:
 	AUSEnemy();
 
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	virtual void PostInitializeComponents() override;
 
