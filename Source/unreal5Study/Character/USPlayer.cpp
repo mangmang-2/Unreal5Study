@@ -61,6 +61,8 @@ void AUSPlayer::BeginPlay()
 		HUDWidget->AddToViewport();
 	}
 
+	if(ClimbingComponent)
+		ClimbingComponent->SetClimb(true);
 	//AddPartner();
 }
 
@@ -191,19 +193,19 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 		FRotator ActorRotation =  GetActorRotation();
 		// 이동각도 - 현재각도를 구해서 이동해야하는 각도를 구함, 그중에서 Z값만을 확인
 		FRotator DeltaRotation = AimRotation - ActorRotation;
-		UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : %f"), DeltaRotation.Yaw);
+		//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : %f"), DeltaRotation.Yaw);
 
 
 		if (DeltaRotation.Yaw < 0)
 		{
 			// 오른쪽으로 가는 이벤트
-			UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Right"));
+			//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Right"));
 			K2_RotateRight(DeltaRotation.Yaw, ActorRotation);
 		}
 		else
 		{
 			// 왼쪽으로 가는 이벤트
-			UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Left"));
+			//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Left"));
 			K2_RotateLeft(DeltaRotation.Yaw, ActorRotation);
 		}
 		
@@ -463,6 +465,8 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 
 void AUSPlayer::ComboAttack()
 {
+	if (ASCComponent == nullptr)
+		return;
 	FGameplayAbilitySpec* Spec = ASCComponent->FindAbilitySpecFromInputID(2);
 	if (Spec)
 	{

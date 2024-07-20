@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "GameplayTagContainer.h"
 #include "AnimNotifyState_AttackCheck.generated.h"
 
 /**
@@ -21,4 +22,8 @@ public:
 
 private:
 	TSet<AActor*> HitActors;
+
+protected:
+	UPROPERTY(EditAnywhere, Meta=(Categories=Event))
+	FGameplayTag TriggerGameplayTag;
 };

@@ -71,6 +71,9 @@ void AUSCharacterBase::BeginPlay()
 	
 	ShowSword(bIsCombatState);
 	ShowShield(bIsCombatState);
+
+	if (ClimbingComponent)
+		ClimbingComponent->SetClimb(false);
 }
 
 // Called every frame

@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "Character/Input/USInputContextData.h"
 #include "Character/Camera/USCameraData.h"
+#include "Abilities/GameplayAbilityTypes.h"
 #include "USPlayer.generated.h"
 
 
@@ -121,6 +122,7 @@ public:
 
 	void EquipWeaponCallBack(const struct FGameplayEventData* EventData);
 	void EquipShieldCallBack(const struct FGameplayEventData* EventData);
+
 
 	void ComboAttack();
 

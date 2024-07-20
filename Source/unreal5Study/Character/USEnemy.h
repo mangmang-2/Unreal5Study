@@ -36,4 +36,5 @@ public:
 
 	virtual void AttackByAI();
 	//virtual void NotifyComboActionEnd() override;
+	virtual void PossessedBy(AController* NewController) override;
 };

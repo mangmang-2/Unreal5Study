@@ -54,6 +54,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UMotionWarpingComponent> MotionWarping;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	uint8 bClimbOn : 1;
+
 public:
 	bool ClimbingStart();
 	void ClimbingLocation(float DeltaTime);
@@ -73,6 +76,7 @@ public:
 	bool IsClimbingMontage() { return bIsClimbingMontage; }
 	bool IsClimbingFalling() { return bIsClimbingFalling; }
 
+	void SetClimb(bool bOn) { bClimbOn = bOn; }
 public:
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);

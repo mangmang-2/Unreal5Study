@@ -34,6 +34,9 @@ void UUSClimbingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (bClimbOn == false)
+		return;
+
 	if (bIsClimbingFalling || bIsClimbingMontage)
 		return;
 

@@ -2,7 +2,7 @@
 
 
 #include "Character/Animation/AnimNotifyState_AttackCheck.h"
-#include "../USCharacterBase.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 void UAnimNotifyState_AttackCheck::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -17,10 +17,11 @@ void UAnimNotifyState_AttackCheck::NotifyTick(USkeletalMeshComponent* MeshComp, 
 
 	if (MeshComp && MeshComp->GetOwner())
 	{
-		AUSCharacterBase* USCharacterBase = Cast<AUSCharacterBase>(MeshComp->GetOwner());
-		if (USCharacterBase)
+		AActor* OwnerActor = MeshComp->GetOwner();
+		if (OwnerActor)
 		{
-			//USCharacterBase->WeaponAttackCheck(HitActors);
+			FGameplayEventData PayloadData;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerActor, TriggerGameplayTag, PayloadData);
 		}
 	}
 }

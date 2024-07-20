@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
+#include "GameplayTagContainer.h"
 #include "AnimNotify_AttackCheck.generated.h"
 
 /**
@@ -16,4 +17,8 @@ class UNREAL5STUDY_API UAnimNotify_AttackCheck : public UAnimNotify
 	
 private:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference);
+
+protected:
+	UPROPERTY(EditAnywhere, Meta=(Categories=Event))
+	FGameplayTag TriggerGameplayTag;
 };

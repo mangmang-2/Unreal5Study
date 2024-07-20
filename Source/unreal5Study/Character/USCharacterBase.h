@@ -41,6 +41,7 @@ protected:
 	TObjectPtr<class UStaticMeshComponent> UnequipShield;
 
 public:
+	FORCEINLINE class UStaticMeshComponent* GetWeaponMesh() { return EquipSword; }
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
 

@@ -3,11 +3,13 @@
 
 #include "Character/USEnemy.h"
 #include "AI/USEnemyAIController.h"
+#include "AbilitySystemComponent.h"
 
 AUSEnemy::AUSEnemy()
 {
 	AIControllerClass = AUSEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	ASCComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 }
 
 void AUSEnemy::PostInitializeComponents()
@@ -92,6 +94,19 @@ void AUSEnemy::AttackByAI()
 				, ComboEffectiveTime, false);
 		}
 	}*/
+}
+
+void AUSEnemy::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	ASCComponent->InitAbilityActorInfo(this, this);
+
+	for (const auto& StartAbility : StartAbilities)
+	{
+		FGameplayAbilitySpec StartSpec(StartAbility);
+		ASCComponent->GiveAbility(StartSpec);
+	}
 }
 
 //void AUSEnemy::NotifyComboActionEnd()
