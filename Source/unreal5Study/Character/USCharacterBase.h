@@ -60,20 +60,6 @@ protected:
 	bool HasNextComboCommand = false;
 
 public:
-	//void NormalAttack();
-	//bool WeaponAttackCheck(TSet<AActor*>& HitActors);
-	//bool AttackCheck(TSet<AActor*>& HitActors);
-	//virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
-	//void ComboActionBegin();
-	//void ComboActionEnd();
-	//void SetComboCheckTimer();
-	//void ComboCheck();
-	//int32 GetMaxCombo();
-
-	//virtual void NotifyComboActionEnd();
-
-public:
 	float HalfAngle = 45.0;
 	float DeltaAngle = 1.0;
 	float ExternalRadius = 1500.0;

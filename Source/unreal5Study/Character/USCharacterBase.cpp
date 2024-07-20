@@ -48,18 +48,21 @@ AUSCharacterBase::AUSCharacterBase()
 	
 	EquipSword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquipSword"));
 	EquipSword->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
+	EquipSword->SetCollisionProfileName(TEXT("NoCollision"));
 
 	EquipShield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquipShield"));
 	EquipShield->SetupAttachment(GetMesh(), TEXT("HandSocket_L"));
+	EquipShield->SetCollisionProfileName(TEXT("NoCollision"));
 
 	UnequipSword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipSword"));
 	UnequipSword->SetupAttachment(GetMesh(), TEXT("Sword_Holder"));
+	UnequipSword->SetCollisionProfileName(TEXT("NoCollision"));
 
 	UnequipShield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipShield"));
 	UnequipShield->SetupAttachment(GetMesh(), TEXT("Shield_Holder"));
-
+	UnequipShield->SetCollisionProfileName(TEXT("NoCollision"));
 	
-	ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
+	//ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
 	ClimbingComponent = CreateDefaultSubobject<UUSClimbingComponent>(TEXT("ClimbingComponent"));
 }
@@ -68,7 +71,7 @@ AUSCharacterBase::AUSCharacterBase()
 void AUSCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	ShowSword(bIsCombatState);
 	ShowShield(bIsCombatState);
 
@@ -80,68 +83,6 @@ void AUSCharacterBase::BeginPlay()
 void AUSCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//int32 NumberOfSections = ceilf(HalfAngle * 2.0f / DeltaAngle);
-	//float DAngle = HalfAngle * 2.0f / NumberOfSections;
-	//FVector StartPoint = GetActorLocation();
-	//StartPoint.Z -= 80;
-	//TArray<FHitResult> HitArray;
-	//for (int32 i = 0; i < NumberOfSections; i++)
-	//{
-	//	int32 L_CurrentAngle = DAngle* i - HalfAngle;
-	//	
-	//	// 회전 축
-	//	FVector RotationAxis(0.0f, 0.0f, 1.0f);
-
-	//	// 회전 각도 (도 단위)
-	//	float RotationAngle = L_CurrentAngle;
-
-	//	// 벡터 회전
-	//	FVector RotatedVector = GetActorForwardVector().RotateAngleAxis(RotationAngle, RotationAxis) * ExternalRadius;
-	//	FHitResult HitResult;
-	//	HitCheck(StartPoint, StartPoint + RotatedVector, HitResult, false, -1, false);
-
-	//	HitArray.Add(HitResult);
-	//}
-	//
-	//FVector LLeftPoint;
-	//FVector LRightPoint;
-	//TArray<FVector> Vertices;
-	//TArray<int32> Triangles;
-	//for (int32 Index = 0; Index < HitArray.Num() - 1; ++Index)
-	//{
-	//	if (HitArray[Index].bBlockingHit)
-	//	{
-	//		LLeftPoint = HitArray[Index].Location;
-	//	}
-	//	else
-	//	{
-	//		LLeftPoint = HitArray[Index].TraceEnd;
-	//	}
-
-	//	if (HitArray[Index + 1].bBlockingHit)
-	//	{
-	//		LRightPoint = HitArray[Index + 1].Location;
-	//	}
-	//	else
-	//	{
-	//		LRightPoint = HitArray[Index + 1].TraceEnd;
-	//	}
-
-	//	
-	//	Vertices.Add(StartPoint);
-	//	Vertices.Add(LLeftPoint);
-	//	Vertices.Add(LRightPoint);
-	//	
-	//	Triangles.Add(0 + Index * 3);
-	//	Triangles.Add(2 + Index * 3);
-	//	Triangles.Add(1 + Index * 3);
-	//}
-	//TArray<FVector> Normals;
-	//TArray<FVector2D> UVs;
-	//TArray<FProcMeshTangent> Tangents;
-	//TArray<FColor> VertexColors;
-	//ProceduralMesh->CreateMeshSection(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
 }
 
 // Called to bind functionality to input
@@ -229,202 +170,6 @@ bool AUSCharacterBase::CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadiu
 
 	return bHit;
 }
-
-//
-//void AUSCharacterBase::NormalAttack()
-//{
-//	if (GetCharacterMovement()->IsFalling())
-//		return;
-//
-//	if (bIsAttack)
-//		return;
-//
-//	if (CurrentCombo == 0)
-//	{
-//		ComboActionBegin();
-//		return;
-//	}
-//
-//	if (!ComboTimerHandle.IsValid())
-//	{
-//		HasNextComboCommand = false;
-//	}
-//	else
-//	{
-//		HasNextComboCommand = true;
-//	}
-//}
-//
-//bool AUSCharacterBase::WeaponAttackCheck(TSet<AActor*>& HitActors)
-//{
-//	if (EquipSword)
-//	{
-//		FHitResult HitResult;
-//		FCollisionQueryParams QueryParams;
-//		QueryParams.bTraceComplex = true;
-//		QueryParams.AddIgnoredActor(this); // 이 액터는 트레이스에서 제외
-//
-//		const FVector Start = EquipSword->GetComponentLocation();
-//		const FVector End = EquipSword->GetSocketLocation("EndPoint");
-//
-//		bool bHit = GetWorld()->LineTraceSingleByChannel(
-//			HitResult,
-//			Start,
-//			End,
-//			ECC_Pawn,
-//			QueryParams
-//		);
-//
-//
-//		FColor DrawColor = bHit && HitActors.Contains(HitResult.GetActor()) == false ? FColor::Green : FColor::Red;
-//
-//		DrawDebugLine(
-//			GetWorld(),
-//			Start,
-//			End,
-//			DrawColor,
-//			false,  // 지속적으로 그릴 것인지 여부
-//			1.0f,   // 지속 시간
-//			0,      // DepthPriority
-//			1.0f    // 선의 두께
-//		);
-//
-//
-//		if (bHit && HitActors.Contains(HitResult.GetActor()) == false)
-//		{
-//			HitActors.Add(HitResult.GetActor());
-//			FDamageEvent DamageEvent;
-//			HitResult.GetActor()->TakeDamage(0, DamageEvent, GetController(), this);
-//		}
-//
-//	}
-//	return false;
-//}
-//
-//bool AUSCharacterBase::AttackCheck(TSet<AActor*>& HitActors)
-//{
-//	FHitResult OutHitResult;
-//	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
-//
-//	const float AttackRange = 100.0f;
-//	const float AttackRadius = 20.0f;
-//	const float AttackDamage = 30.0f;
-//	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
-//	const FVector End = Start + GetActorForwardVector() * AttackRange;
-//
-//	bool HitDetected = GetWorld()->SweepSingleByChannel(OutHitResult, Start, End, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(AttackRadius), Params);
-//
-//#if ENABLE_DRAW_DEBUG
-//
-//	FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
-//	float CapsuleHalfHeight = AttackRange * 0.5f;
-//	FColor DrawColor = HitDetected && HitActors.Contains(OutHitResult.GetActor()) == false ? FColor::Green : FColor::Red;
-//
-//	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 1.0f);
-//
-//#endif
-//
-//	if (HitDetected && HitActors.Contains(OutHitResult.GetActor()) == false)
-//	{
-//		HitActors.Add(OutHitResult.GetActor());
-//		FDamageEvent DamageEvent;
-//		OutHitResult.GetActor()->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
-//	}
-//
-//
-//
-//	return HitDetected;
-//}
-//
-//float AUSCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-//{
-//	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-//
-//
-//	AUSCharacterBase* USCharacterBase = Cast<AUSCharacterBase>(DamageCauser);
-//	if (USCharacterBase && USCharacterBase->GetCapsuleComponent())
-//	{
-//		FVector ForwardVector = USCharacterBase->GetCapsuleComponent()->GetForwardVector();
-//		//ForwardVector.Z = 0;
-//		ForwardVector *= 200;
-//
-//		LaunchCharacter(ForwardVector, false, false);
-//	}
-//
-//	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-//	if (AnimInstance && ImpactMontage)
-//	{
-//		AnimInstance->Montage_Play(ImpactMontage, 1.0);
-//	}
-//
-//	return DamageAmount;
-//}
-//
-//void AUSCharacterBase::ComboActionBegin()
-//{
-//	// Combo Status
-//	CurrentCombo = 1;
-//
-//	// Movement Setting
-//	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-//
-//	// Animation Setting
-//	const float AttackSpeedRate = 1.0f;
-//	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-//	AnimInstance->Montage_Play(NormalAttackMontage, AttackSpeedRate);
-//
-//	ComboTimerHandle.Invalidate();
-//	SetComboCheckTimer();
-//}
-//
-//void AUSCharacterBase::ComboActionEnd()
-//{
-//	CurrentCombo = 0;
-//	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-//
-//	NotifyComboActionEnd();
-//}
-//
-//void AUSCharacterBase::SetComboCheckTimer()
-//{
-//	static uint32 aaa2 = 1;
-//	float aaa = NormalAttackMontage->GetSectionLength(aaa2 - 1);
-//	float ComboEffectiveTime = NormalAttackMontage->GetSectionLength(CurrentCombo - 1)*0.5;
-//	if (ComboEffectiveTime > 0.0f)
-//	{
-//		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AUSCharacterBase::ComboCheck, ComboEffectiveTime, false);
-//	}
-//}
-//
-//void AUSCharacterBase::ComboCheck()
-//{
-//	ComboTimerHandle.Invalidate();
-//	if (NormalAttackMontage->GetNumSections() == CurrentCombo || HasNextComboCommand == false)
-//	{
-//		ComboActionEnd();
-//	}
-//	else
-//	{
-//		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-//
-//		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, NormalAttackMontage->GetNumSections());
-//		AnimInstance->Montage_JumpToSection(NormalAttackMontage->GetSectionName(CurrentCombo - 1), NormalAttackMontage);
-//		SetComboCheckTimer();
-//		HasNextComboCommand = false;
-//	}
-//}
-//
-//int32 AUSCharacterBase::GetMaxCombo()
-//{
-//	if (NormalAttackMontage == nullptr)
-//		return 0;
-//
-//	return NormalAttackMontage->GetNumSections();
-//}
-//
-//void AUSCharacterBase::NotifyComboActionEnd()
-//{
-//}
 
 bool AUSCharacterBase::IsClimbing()
 {
