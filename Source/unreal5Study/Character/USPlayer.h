@@ -125,5 +125,7 @@ public:
 
 
 	void ComboAttack();
-
+	
+	UFUNCTION()
+	void OnOutOfHealth();
 };

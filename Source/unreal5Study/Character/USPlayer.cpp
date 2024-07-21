@@ -21,6 +21,7 @@
 #include "USPlayerState.h"
 #include "AbilitySystemComponent.h"
 #include "Ability/Tag/USGameplayTag.h"
+#include "Ability/Attribute/USChracterAttributeSet.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -435,6 +436,11 @@ void AUSPlayer::PossessedBy(AController* NewController)
 	ASCComponent->GenericGameplayEventCallbacks.FindOrAdd(USTAG_CHARACTER_EQUIP_WEAPON).AddUObject(this, &AUSPlayer::EquipWeaponCallBack);
 	ASCComponent->GenericGameplayEventCallbacks.FindOrAdd(USTAG_CHARACTER_EQUIP_SHIELD).AddUObject(this, &AUSPlayer::EquipShieldCallBack);
 
+	const UUSChracterAttributeSet* CurrentAttributeSet = ASCComponent->GetSet<UUSChracterAttributeSet>();
+	if (CurrentAttributeSet)
+	{
+		CurrentAttributeSet->OnOutOfHealth.AddDynamic(this, &ThisClass::OnOutOfHealth);
+	}
 }
 
 void AUSPlayer::EquipWeaponCallBack(const FGameplayEventData* EventData)
@@ -480,4 +486,8 @@ void AUSPlayer::ComboAttack()
 			ASCComponent->TryActivateAbility(Spec->Handle);
 		}
 	}
+}
+
+void AUSPlayer::OnOutOfHealth()
+{
 }

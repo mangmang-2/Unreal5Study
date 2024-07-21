@@ -29,4 +29,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class AUSTA_Attack> TargetActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UAnimMontage> ActionMontage;
 };

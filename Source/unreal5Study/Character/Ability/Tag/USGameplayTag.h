@@ -7,3 +7,4 @@
 #define USTAG_CHARACTER_EQUIP_SHIELD FGameplayTag::RequestGameplayTag(FName("Character.Equip.Shield"))
 #define USTAG_CHARACTER_INVINSIBLE FGameplayTag::RequestGameplayTag(FName("Character.Invinsible"))
 #define USTAG_CHARACTER_INVINSIBLE_ATTACKHIT FGameplayTag::RequestGameplayTag(FName("Character.Invinsible.AttackHit"))
+#define USTAG_CHARACTER_DEATH FGameplayTag::RequestGameplayTag(FName("Character.Death"))

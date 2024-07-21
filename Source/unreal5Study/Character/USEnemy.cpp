@@ -5,12 +5,14 @@
 #include "AI/USEnemyAIController.h"
 #include "AbilitySystemComponent.h"
 #include "ProceduralMeshComponent.h"
+#include "Ability/Attribute/USChracterAttributeSet.h"
 
 AUSEnemy::AUSEnemy()
 {
 	AIControllerClass = AUSEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	ASCComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+	AttributeSet = CreateDefaultSubobject<UUSChracterAttributeSet>(TEXT("AttributeSet"));
 }
 
 void AUSEnemy::Tick(float DeltaTime)
@@ -175,10 +177,12 @@ void AUSEnemy::PossessedBy(AController* NewController)
 		FGameplayAbilitySpec StartSpec(StartAbility);
 		ASCComponent->GiveAbility(StartSpec);
 	}
+
+	AttributeSet->OnOutOfHealth.AddDynamic(this, &ThisClass::OnOutOfHealth);
 }
 
-//void AUSEnemy::NotifyComboActionEnd()
-//{
-//	Super::NotifyComboActionEnd();
-//	OnAttackFinished.ExecuteIfBound();
-//}
+
+void AUSEnemy::OnOutOfHealth()
+{
+	//SetDead();
+}
