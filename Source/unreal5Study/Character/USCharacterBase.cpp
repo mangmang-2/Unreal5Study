@@ -11,6 +11,7 @@
 #include "AbilitySystemComponent.h"
 #include "Ability/Tag/USGameplayTag.h"
 #include "USPlayerState.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -49,18 +50,22 @@ AUSCharacterBase::AUSCharacterBase()
 	EquipSword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquipSword"));
 	EquipSword->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
 	EquipSword->SetCollisionProfileName(TEXT("NoCollision"));
+	EquipSword->SetIsReplicated(true);
 
 	EquipShield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EquipShield"));
 	EquipShield->SetupAttachment(GetMesh(), TEXT("HandSocket_L"));
 	EquipShield->SetCollisionProfileName(TEXT("NoCollision"));
+	EquipShield->SetIsReplicated(true);
 
 	UnequipSword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipSword"));
 	UnequipSword->SetupAttachment(GetMesh(), TEXT("Sword_Holder"));
 	UnequipSword->SetCollisionProfileName(TEXT("NoCollision"));
+	UnequipSword->SetIsReplicated(true);
 
 	UnequipShield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipShield"));
 	UnequipShield->SetupAttachment(GetMesh(), TEXT("Shield_Holder"));
 	UnequipShield->SetCollisionProfileName(TEXT("NoCollision"));
+	UnequipShield->SetIsReplicated(true);
 	
 	//ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
@@ -233,5 +238,11 @@ void AUSCharacterBase::PossessedBy(AController* NewController)
 		StartSpec.InputID = AbilityCount++;
 		ASCComponent->GiveAbility(StartSpec);
 	}
+}
+
+void AUSCharacterBase::SetDeathEvent()
+{
+	FGameplayEventData EventData;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_CHARACTER_DEATH, EventData);
 }
 

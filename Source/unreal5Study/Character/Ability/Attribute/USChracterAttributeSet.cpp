@@ -34,7 +34,6 @@ void UUSChracterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMod
 
 	if ((GetHealth() <= 0.0f))
 	{
-		Data.Target.AddLooseGameplayTag(USTAG_CHARACTER_DEATH);
 		OnOutOfHealth.Broadcast();
 	}
 }

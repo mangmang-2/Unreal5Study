@@ -184,5 +184,5 @@ void AUSEnemy::PossessedBy(AController* NewController)
 
 void AUSEnemy::OnOutOfHealth()
 {
-	//SetDead();
+	SetDeathEvent();
 }

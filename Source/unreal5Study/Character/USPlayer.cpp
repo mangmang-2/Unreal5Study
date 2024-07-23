@@ -47,6 +47,13 @@ AUSPlayer::AUSPlayer()
 	{
 		PartnerBPClass = PartnerBPClassRef.Class;
 	}
+
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh> BodyMeshRef(TEXT("/Script/Engine.StaticMesh'/Game/Sword_and_Shield/Demo/Mannequin_UE4/Meshes/Shield.Shield'"));
+	//if (BodyMeshRef.Object)
+	//{
+	//	UnequipShield->SetStaticMesh(BodyMeshRef.Object);
+	//}
+	
 }
 
 
@@ -490,4 +497,5 @@ void AUSPlayer::ComboAttack()
 
 void AUSPlayer::OnOutOfHealth()
 {
+	SetDeathEvent();
 }
