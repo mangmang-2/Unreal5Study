@@ -21,7 +21,7 @@ void UUSMiniViewWidget::NativeConstruct()
 
 	if (Player && ViewType != EViewType::None)
 	{
-		SetSceneCaptureComponent(Player->GetSceneCaptureComponent(ViewType));
+		//SetSceneCaptureComponent(Player->GetSceneCaptureComponent(ViewType));
 	}
 		
 	UImage* Image = Cast<UImage>(GetWidgetFromName(TEXT("Image")));

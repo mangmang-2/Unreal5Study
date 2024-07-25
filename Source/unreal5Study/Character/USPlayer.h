@@ -45,25 +45,15 @@ public:
 
 public:
 	// 특별히 인풋 매핑을 바꿀일이 있다면 여기서 변경 할 것
-	void SetInputContextChange(class UInputMappingContext* InputMappingContext);
+	void SetInputContextChange(class UInputMappingContext* MappingContext);
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	void CameraChange();
 	void ClickMove();
 
 	virtual void Jump() override;
 
 	void ClickInputClear();
-
-	virtual void SetViewData(const class UUSCameraData* CameraData);
-	EViewType GetNextViewType(EViewType CurrentView);
-	
-	class USpringArmComponent* GetSpringArmComponent(EViewType ViewType) { return CemeraSprigArm[ViewType]; }
-	class USceneCaptureComponent2D* GetSceneCaptureComponent(EViewType ViewType) { return SceneCapture[ViewType]; }
-
-	void SetupCemeraSprigArm();
-	void SetCameraSprigArm(EViewType ViewType);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Blueprint")
 	void K2_RotateRight(double Yaw, FRotator CharacterRotation);
@@ -71,16 +61,15 @@ public:
 	void K2_RotateLeft(double Yaw, FRotator CharacterRotation);
 
 protected:
-	TMap<EViewType, TObjectPtr<class USpringArmComponent>> CemeraSprigArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> FollowCamera;
-
-	// 1인칭, 3인칭, 탑뷰 카메라 데이터......인데 input도 있어서 이 이름이면 안될것 같다...
-	UPROPERTY(EditAnywhere, Category = CameraTypeMap, Meta = (AllowPrivateAccess = "true"))
-	TMap<EViewType, class UUSCameraData*> CameraTypeMap;
-
-	EViewType CurrentViewType = EViewType::FirstPerson;
+	
+	UPROPERTY(EditAnywhere, Category = InputContext)
+	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
 	// 인풋
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, Meta = (AllowPrivateAccess = "true"))

@@ -25,9 +25,17 @@
 
 AUSPlayer::AUSPlayer()
 {
+
+	// Create a camera boom (pulls in towards the player if there is a collision)
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+
+	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->bUsePawnControlRotation = false;
-	bUseControllerRotationYaw = true;
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> HUDWidgetRef(TEXT("/Game/Study/Character/UI/WBP_HUD.WBP_HUD_C"));
 	if (HUDWidgetRef.Succeeded())
@@ -61,8 +69,6 @@ void AUSPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetupCemeraSprigArm();
-	CameraChange();
 	if (HUDWidgetClass)
 	{
 		HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
@@ -71,26 +77,6 @@ void AUSPlayer::BeginPlay()
 
 	if(ClimbingComponent)
 		ClimbingComponent->SetClimb(true);
-	//AddPartner();
-}
-
-// 값 변경이 아니라 세팅값을 둔 여러게의 스프링암을 만들고 교체하는 형식으로 바껴야할듯
-void AUSPlayer::SetViewData(const UUSCameraData* CameraData)
-{
-	if (CameraData == nullptr)
-		return;
-	if (Controller == nullptr)
-		return;
-
-	bUseControllerRotationYaw = CameraData->bUseControllerRotationYaw;
-	if (bUseControllerRotationYaw == false)
-	{
-		Controller->SetControlRotation(FRotator::ZeroRotator);
-	}
-	
-	SetInputContextChange(CameraData->InputMappingContext);
-
-	
 }
 
 void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -136,6 +122,8 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::LockOn], ETriggerEvent::Triggered, this, &ThisClass::ToggleLockOn);
 	}
+
+	SetInputContextChange(InputMappingContext);
 }
 
 void AUSPlayer::Tick(float DeltaTime)
@@ -150,7 +138,7 @@ void AUSPlayer::Tick(float DeltaTime)
 	
 }
 
-void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingContext)
+void AUSPlayer::SetInputContextChange(class UInputMappingContext* MappingContext)
 {
 	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
 	if (PlayerController == nullptr)
@@ -158,14 +146,10 @@ void AUSPlayer::SetInputContextChange(class UInputMappingContext* InputMappingCo
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 	{
 		Subsystem->ClearAllMappings();
-		if (InputMappingContext == nullptr)
+		if (MappingContext == nullptr)
 			return;
 
-		UInputMappingContext* NewMappingContext = InputMappingContext;
-		if (NewMappingContext)
-		{
-			Subsystem->AddMappingContext(NewMappingContext, 0);
-		}
+		Subsystem->AddMappingContext(MappingContext, 0);
 	}
 }
 
@@ -204,18 +188,18 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 		//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : %f"), DeltaRotation.Yaw);
 
 
-		if (DeltaRotation.Yaw < 0)
-		{
-			// 오른쪽으로 가는 이벤트
-			//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Right"));
-			K2_RotateRight(DeltaRotation.Yaw, ActorRotation);
-		}
-		else
-		{
-			// 왼쪽으로 가는 이벤트
-			//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Left"));
-			K2_RotateLeft(DeltaRotation.Yaw, ActorRotation);
-		}
+		//if (DeltaRotation.Yaw < 0)
+		//{
+		//	// 오른쪽으로 가는 이벤트
+		//	//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Right"));
+		//	K2_RotateRight(DeltaRotation.Yaw, ActorRotation);
+		//}
+		//else
+		//{
+		//	// 왼쪽으로 가는 이벤트
+		//	//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Left"));
+		//	K2_RotateLeft(DeltaRotation.Yaw, ActorRotation);
+		//}
 		
 
 		AddMovementInput(ForwardDirection, MovementVector.X);
@@ -233,25 +217,6 @@ void AUSPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Look %s"), *LookAxisVector.ToString());
-}
-
-void AUSPlayer::CameraChange()
-{
-	// 현재 시점을 다음 시점으로 업데이트
-	CurrentViewType = GetNextViewType(CurrentViewType);
-
-	// 새로운 시점에 맞게 카메라 데이터 설정
-	if (CameraTypeMap[CurrentViewType])
-	{
-		SetViewData(CameraTypeMap[CurrentViewType]); // 이걸 카메라 변경이라고 봐야하나...하는일
-	}
-	
-	// 스프링암에 붙임
-	if (CemeraSprigArm[CurrentViewType])
-	{
-		FollowCamera->AttachToComponent(CemeraSprigArm[CurrentViewType], FAttachmentTransformRules::KeepRelativeTransform, USpringArmComponent::SocketName);
-	}
-		
 }
 
 void AUSPlayer::ClickMove()
@@ -296,56 +261,6 @@ void AUSPlayer::ClickInputClear()
 	{
 		PlayerController->StopMovement();
 	}
-}
-
-
-EViewType AUSPlayer::GetNextViewType(EViewType CurrentView)
-{
-	switch (CurrentView)
-	{
-	case EViewType::None: return EViewType::FirstPerson;
-	case EViewType::FirstPerson: return EViewType::ThirdPerson;
-	case EViewType::ThirdPerson: return EViewType::TopDown;
-	case EViewType::TopDown: return EViewType::FirstPerson;
-	default: return EViewType::None; // 기본값 처리
-	}
-}
-
-void AUSPlayer::SetupCemeraSprigArm()
-{
-	for (uint8 viewtype = (uint8)EViewType::None; viewtype < (uint8)EViewType::Max; ++viewtype)
-	{
-		SetCameraSprigArm( static_cast<EViewType>(viewtype));
-	}
-}
-
-void AUSPlayer::SetCameraSprigArm(EViewType ViewType)
-{
-	if (CameraTypeMap.Contains(ViewType) == false)
-		return;
-
-	const UUSCameraData* CameraData = CameraTypeMap[ViewType];
-	if (CameraData == nullptr)
-		return;
-
-	//TObjectPtr<USpringArmComponent> SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName(*FString::Printf(TEXT("CameraBoom%d"), static_cast<int32>(ViewType))));
-	TObjectPtr<USpringArmComponent> SpringArm = NewObject<USpringArmComponent>(this, FName(*FString::Printf(TEXT("CameraBoom%d"), static_cast<int32>(ViewType))));
-	SpringArm->RegisterComponent();
-
-	SpringArm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-
-	SpringArm->TargetArmLength = CameraData->TargetArmLength;
-	SpringArm->SetRelativeRotation(CameraData->RelativeRotation);
-	SpringArm->SetRelativeLocation(CameraData->RelativeLocation);
-	SpringArm->bUsePawnControlRotation = CameraData->bUsePawnControlRotation;
-	SpringArm->bInheritPitch = CameraData->bInheritPitch;
-	SpringArm->bInheritYaw = CameraData->bInheritYaw;
-	SpringArm->bInheritRoll = CameraData->bInheritRoll;
-	SpringArm->bDoCollisionTest = CameraData->bDoCollisionTest;
-
-	CemeraSprigArm.Add(ViewType, SpringArm);
-
-	SceneCapture[ViewType]->AttachToComponent(SpringArm, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void AUSPlayer::LockOnTarget()

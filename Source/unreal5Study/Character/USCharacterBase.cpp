@@ -36,7 +36,9 @@ AUSCharacterBase::AUSCharacterBase()
 		MoveComp->MaxWalkSpeed = 500.f;
 		MoveComp->MinAnalogWalkSpeed = 20.f;
 		MoveComp->BrakingDecelerationWalking = 2000.f;
+		MoveComp->BrakingDecelerationFalling = 1500.0f;
 	}
+
 
 	// Mesh
 	auto MeshComp = GetMesh();

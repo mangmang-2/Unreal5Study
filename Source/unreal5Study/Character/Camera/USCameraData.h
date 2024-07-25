@@ -52,6 +52,4 @@ public:
 	UPROPERTY(EditAnywhere, Category = SpringArm)
 	bool bUseControllerRotationYaw;
 
-	UPROPERTY(EditAnywhere, Category = InputContext)
-	TObjectPtr<class UInputMappingContext> InputMappingContext;
 };
