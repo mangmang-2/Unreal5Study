@@ -24,5 +24,10 @@ public:
 
 public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	
+	UFUNCTION()
+	void OnCompleteCallback();
 
+	UFUNCTION()
+	void OnInterruptedCallback();
 };

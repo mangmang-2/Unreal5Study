@@ -59,16 +59,6 @@ AUSCharacterBase::AUSCharacterBase()
 	EquipShield->SetCollisionProfileName(TEXT("NoCollision"));
 	EquipShield->SetIsReplicated(true);
 
-	UnequipSword = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipSword"));
-	UnequipSword->SetupAttachment(GetMesh(), TEXT("Sword_Holder"));
-	UnequipSword->SetCollisionProfileName(TEXT("NoCollision"));
-	UnequipSword->SetIsReplicated(true);
-
-	UnequipShield = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnequipShield"));
-	UnequipShield->SetupAttachment(GetMesh(), TEXT("Shield_Holder"));
-	UnequipShield->SetCollisionProfileName(TEXT("NoCollision"));
-	UnequipShield->SetIsReplicated(true);
-	
 	//ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
 	ClimbingComponent = CreateDefaultSubobject<UUSClimbingComponent>(TEXT("ClimbingComponent"));
@@ -204,18 +194,25 @@ bool AUSCharacterBase::IsClimbingFalling()
 
 void AUSCharacterBase::ShowSword(bool bShow)
 {
-	if (EquipSword)
-		EquipSword->SetVisibility(bShow);
-	if (UnequipSword)
-		UnequipSword->SetVisibility(!bShow);
+	if (EquipSword == nullptr)
+		return;
+
+	if(bShow)
+		EquipSword->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HandSocket_R"));
+	else
+		EquipSword->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("Sword_Holder"));
+
 }
 
 void AUSCharacterBase::ShowShield(bool bShow)
 {
-	if(EquipShield)
-		EquipShield->SetVisibility(bShow);
-	if (UnequipShield)
-		UnequipShield->SetVisibility(!bShow);
+	if (EquipShield == nullptr)
+		return;
+
+	if (bShow)
+		EquipShield->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HandSocket_L"));
+	else
+		EquipShield->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("Shield_Holder"));
 }
 
 UAbilitySystemComponent* AUSCharacterBase::GetAbilitySystemComponent() const
@@ -232,6 +229,7 @@ void AUSCharacterBase::PossessedBy(AController* NewController)
 		return;
 	ASCComponent = USPlayerState->GetAbilitySystemComponent();
 	ASCComponent->InitAbilityActorInfo(USPlayerState, this);
+	ASCComponent->SetIsReplicated(true);
 
 	int32 AbilityCount = 0 ;
 	for (const auto& StartAbility : StartAbilities)

@@ -34,12 +34,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> EquipShield;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UStaticMeshComponent> UnequipSword;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UStaticMeshComponent> UnequipShield;
-
 public:
 	FORCEINLINE class UStaticMeshComponent* GetWeaponMesh() { return EquipSword; }
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);

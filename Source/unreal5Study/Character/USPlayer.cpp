@@ -375,7 +375,7 @@ void AUSPlayer::EquipWeaponCallBack(const FGameplayEventData* EventData)
 	const UStaticMeshComponent* Equip = Cast<UStaticMeshComponent>(EventData->OptionalObject.Get());
 
 	EquipSword->SetStaticMesh(Equip->GetStaticMesh());
-	UnequipSword->SetStaticMesh(Equip->GetStaticMesh());
+	EquipSword->SetupAttachment(GetMesh(), TEXT("Sword_Holder"));
 }
 
 void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
@@ -388,7 +388,6 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 	const UStaticMeshComponent* Equip = Cast<UStaticMeshComponent>(EventData->OptionalObject.Get());
 
 	EquipShield->SetStaticMesh(Equip->GetStaticMesh());
-	UnequipShield->SetStaticMesh(Equip->GetStaticMesh());
 }
 
 void AUSPlayer::ComboAttack()

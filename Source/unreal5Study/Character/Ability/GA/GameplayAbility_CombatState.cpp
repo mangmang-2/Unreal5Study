@@ -20,6 +20,20 @@ void UGameplayAbility_CombatState::ActivateAbility(const FGameplayAbilitySpecHan
 	if (ActionMontage == nullptr)
 		return;
 
-	UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("CombatState"), ActionMontage, 1.0f);
-	PlayAttackTask->ReadyForActivation();
+	UAbilityTask_PlayMontageAndWait* PlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("CombatState"), ActionMontage, 1.0f);
+
+	PlayTask->OnCompleted.AddDynamic(this, &UGameplayAbility_CombatState::OnCompleteCallback);
+	PlayTask->OnInterrupted.AddDynamic(this, &UGameplayAbility_CombatState::OnInterruptedCallback);
+
+	PlayTask->ReadyForActivation();
+}
+
+void UGameplayAbility_CombatState::OnCompleteCallback()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UGameplayAbility_CombatState::OnInterruptedCallback()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

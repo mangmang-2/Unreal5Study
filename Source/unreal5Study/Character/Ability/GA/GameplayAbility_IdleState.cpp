@@ -20,6 +20,23 @@ void UGameplayAbility_IdleState::ActivateAbility(const FGameplayAbilitySpecHandl
 	if (ActionMontage == nullptr)
 		return;
 
-	UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("IdleState"), ActionMontage, 1.0f);
-	PlayAttackTask->ReadyForActivation();
+	UAbilityTask_PlayMontageAndWait* PlayTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("IdleState"), ActionMontage, 1.0f);
+
+	PlayTask->OnCompleted.AddDynamic(this, &UGameplayAbility_IdleState::OnCompleteCallback);
+	PlayTask->OnInterrupted.AddDynamic(this, &UGameplayAbility_IdleState::OnInterruptedCallback);
+
+
+	PlayTask->ReadyForActivation();
+
+}
+
+
+void UGameplayAbility_IdleState::OnCompleteCallback()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UGameplayAbility_IdleState::OnInterruptedCallback()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
