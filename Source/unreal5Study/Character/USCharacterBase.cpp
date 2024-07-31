@@ -243,6 +243,6 @@ void AUSCharacterBase::PossessedBy(AController* NewController)
 void AUSCharacterBase::SetDeathEvent()
 {
 	FGameplayEventData EventData;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_CHARACTER_DEATH, EventData);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_STATE_DEATH, EventData);
 }
 

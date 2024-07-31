@@ -5,6 +5,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "AbilitySystemComponent.h"
 
 UGameplayAbility_Death::UGameplayAbility_Death()
 {
@@ -38,6 +39,18 @@ void UGameplayAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	PlayAttackTask->OnCompleted.AddDynamic(this, &UGameplayAbility_Death::OnCompleteCallback);
 	PlayAttackTask->OnInterrupted.AddDynamic(this, &UGameplayAbility_Death::OnInterruptedCallback);
 	PlayAttackTask->ReadyForActivation();
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	if (ASC)
+	{
+		FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+		//EffectContext.AddSourceObject(ActorInfo->AvatarActor.Get());
+		FGameplayEffectSpecHandle EffectSpecHandle = ASC->MakeOutgoingSpec(GameplayEffectClass, 1, EffectContext);
+		if (EffectSpecHandle.IsValid())
+		{
+			ASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+		}
+	}
 }
 
 void UGameplayAbility_Death::OnCompleteCallback()

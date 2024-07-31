@@ -64,14 +64,12 @@ void AUSEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	//RunAI();
+	RunAI();
 }
 
 void AUSEnemyAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	DrawSightCone();
 }
 
 void AUSEnemyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
@@ -111,54 +109,13 @@ void AUSEnemyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedAct
 		}
 	}
 }
-void AUSEnemyAIController::DrawSightCone()
+
+float AUSEnemyAIController::GetRadius()
 {
-	if (SightConfig && GetPawn())
-	{
-		float Radius = SightConfig->SightRadius;
-		float HalfAngle = SightConfig->PeripheralVisionAngleDegrees;
+	return SightConfig->SightRadius;
+}
 
-		int32 NumberOfSections = ceilf(HalfAngle * 2.0f / 1.0f);
-		float DAngle = HalfAngle * 2.0f / NumberOfSections;
-		FVector StartPoint = GetPawn()->GetActorLocation();
-		StartPoint.Z -= 90;
-		TArray<FHitResult> HitArray;
-		for (int32 i = 0; i < NumberOfSections; i++)
-		{
-			int32 L_CurrentAngle = DAngle* i - HalfAngle;
-		
-			// 회전 축
-			FVector RotationAxis(0.0f, 0.0f, 1.0f);
-
-			// 회전 각도 (도 단위)
-			float RotationAngle = L_CurrentAngle;
-
-			// 벡터 회전
-			FVector RotatedVector = GetPawn()->GetActorForwardVector().RotateAngleAxis(RotationAngle, RotationAxis) * Radius;
-			FHitResult HitResult;
-
-			FCollisionQueryParams QueryParams;
-			QueryParams.bTraceComplex = true;
-			QueryParams.AddIgnoredActor(GetPawn()); // 이 액터는 트레이스에서 제외
-			bool bHit = GetWorld()->LineTraceSingleByChannel(
-				HitResult,
-				StartPoint,
-				StartPoint + RotatedVector,
-				ECC_Pawn,
-				QueryParams
-			);
-
-			DrawDebugLine(
-				GetWorld(),
-				StartPoint,
-				StartPoint + RotatedVector,
-				bHit == true ? FColor::Blue : FColor::Red,
-				false,  // 지속적으로 그릴 것인지 여부
-				-1,   // 지속 시간
-				0,      // DepthPriority
-				1.0f    // 선의 두께
-			);
-		}
-
-	}
+float AUSEnemyAIController::GetAngleDegrees()
+{
+	return SightConfig->PeripheralVisionAngleDegrees;
 }

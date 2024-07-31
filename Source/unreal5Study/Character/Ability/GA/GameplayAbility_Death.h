@@ -18,6 +18,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ActionMontage;
 
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TSubclassOf<class UGameplayEffect> GameplayEffectClass;
 public:
 	UGameplayAbility_Death();
 

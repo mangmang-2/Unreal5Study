@@ -4,6 +4,8 @@
 #include "Character/Ability/GA/GameplayAbility_IdleState.h"
 #include "../../USCharacterBase.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 UGameplayAbility_IdleState::UGameplayAbility_IdleState()
 {
@@ -33,6 +35,16 @@ void UGameplayAbility_IdleState::ActivateAbility(const FGameplayAbilitySpecHandl
 
 void UGameplayAbility_IdleState::OnCompleteCallback()
 {
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	if (ASC)
+	{
+		FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+		FGameplayEffectSpecHandle EffectSpecHandle = ASC->MakeOutgoingSpec(GameplayEffectClass, 1, EffectContext);
+		if (EffectSpecHandle.IsValid())
+		{
+			ASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+		}
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 

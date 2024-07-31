@@ -44,10 +44,12 @@ protected:
 	UFUNCTION()
 	void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
-
-	void DrawSightCone();
+	
 
 public:
 	UPROPERTY(VisibleAnywhere)
 	TArray<TObjectPtr<class AActor>> PerceptionActors;
+
+	float GetRadius();
+	float GetAngleDegrees();
 };

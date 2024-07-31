@@ -6,6 +6,8 @@
 #include "AIController.h"
 #include "../../Interface/USCharacterAIInterface.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "../Ability/Tag/USGameplayTag.h"
 
 UBTTask_Attack::UBTTask_Attack()
 {
@@ -21,22 +23,14 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 		return EBTNodeResult::Failed;
 	}
 
-	IUSCharacterAIInterface* AIPawn = Cast<IUSCharacterAIInterface>(ControllingPawn);
-	if (nullptr == AIPawn)
-	{
-		return EBTNodeResult::Failed;
-	}
+	FGameplayEventData PayloadData;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ControllingPawn, USTAG_INPUT_ATTACK_COMBOATTAC1, PayloadData);
 
-	FAICharacterAttackFinished OnAttackFinished;
-	OnAttackFinished.BindLambda(
-		[&]()
-		{
-			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-		}
-	);
-
-	AIPawn->SetAIAttackDelegate(OnAttackFinished);
-	AIPawn->AttackByAI();
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		})
+		, 0.5f, false);
 
 	return EBTNodeResult::InProgress;
 }

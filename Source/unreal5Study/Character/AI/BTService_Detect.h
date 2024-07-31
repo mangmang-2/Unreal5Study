@@ -19,4 +19,7 @@ public:
 
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+
+
+	void DrawSightCone(APawn* ControllingPawn, class AUSEnemyAIController* AIController);
 };

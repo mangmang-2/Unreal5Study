@@ -6,6 +6,8 @@
 #include "AbilitySystemComponent.h"
 #include "ProceduralMeshComponent.h"
 #include "Ability/Attribute/USChracterAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "Ability/Tag/USGameplayTag.h"
 
 AUSEnemy::AUSEnemy()
 {
@@ -124,6 +126,9 @@ void AUSEnemy::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackF
 
 void AUSEnemy::AttackByAI()
 {
+
+
+
 	/*if (CurrentCombo == 0)
 	{
 		CurrentCombo++;

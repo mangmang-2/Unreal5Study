@@ -4,6 +4,9 @@
 #include "Character/Ability/GA/GameplayAbility_CombatState.h"
 #include "../../USCharacterBase.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 
 UGameplayAbility_CombatState::UGameplayAbility_CombatState()
 {
@@ -30,6 +33,17 @@ void UGameplayAbility_CombatState::ActivateAbility(const FGameplayAbilitySpecHan
 
 void UGameplayAbility_CombatState::OnCompleteCallback()
 {
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	if (ASC)
+	{
+		FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+		//EffectContext.AddSourceObject(ActorInfo->AvatarActor.Get());
+		FGameplayEffectSpecHandle EffectSpecHandle = ASC->MakeOutgoingSpec(GameplayEffectClass, 1, EffectContext);
+		if (EffectSpecHandle.IsValid())
+		{
+			ASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+		}
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
