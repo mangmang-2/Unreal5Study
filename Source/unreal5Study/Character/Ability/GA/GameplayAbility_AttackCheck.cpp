@@ -46,12 +46,13 @@ void UGameplayAbility_AttackCheck::OnTraceResultCallback(const FGameplayAbilityT
 			//UE_LOG(LogTemp, Log, TEXT(dot : %f"), DotProduct);
 			if (DotProduct < -0.7)
 			{
+				CurrentActorInfo->SkeletalMeshComponent->GetAnimInstance()->StopAllMontages(1.0f);
+
 				FGameplayEventData EventData;
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitActor, USTAG_CHARACTER_STATE_SHIELDBLOCK, EventData);
 				EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 				return;
 			}
-			
 		}
 
 		// 피격 로직

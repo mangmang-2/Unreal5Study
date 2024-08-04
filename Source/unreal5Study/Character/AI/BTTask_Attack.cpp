@@ -30,7 +30,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		})
-		, 0.5f, false);
+		, 1.0f, false);
 
 	return EBTNodeResult::InProgress;
 }
