@@ -5,6 +5,6 @@
 
 AUSPlayerController::AUSPlayerController()
 {
-	bShowMouseCursor = true;
+	//bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 }

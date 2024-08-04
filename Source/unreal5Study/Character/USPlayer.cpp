@@ -22,6 +22,7 @@
 #include "AbilitySystemComponent.h"
 #include "Ability/Tag/USGameplayTag.h"
 #include "Ability/Attribute/USChracterAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -116,6 +117,12 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (InputActionMap.Contains(EInputKey::MouseLClick))
 	{
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseLClick], ETriggerEvent::Triggered, this, &ThisClass::ComboAttack);
+	}
+
+	if (InputActionMap.Contains(EInputKey::MouseRClick))
+	{
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Triggered, this, &ThisClass::OnShieldActivated);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Completed, this, &ThisClass::OnShieldDeactivated);
 	}
 
 	if (InputActionMap.Contains(EInputKey::LockOn))
@@ -390,6 +397,26 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 	EquipShield->SetStaticMesh(Equip->GetStaticMesh());
 }
 
+void AUSPlayer::OnShieldActivated()
+{
+	if (ASCComponent->HasMatchingGameplayTag(USTAG_CHARACTER_STATE_SHIELD_ACTIVE))
+		return;
+	UE_LOG(LogTemp, Warning, TEXT("ShieldActivated"));
+	FGameplayEventData PayloadData;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_ACTIVE, PayloadData);
+
+	MoveSetting(false);
+}
+
+void AUSPlayer::OnShieldDeactivated()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ShieldDeactivated"));
+	FGameplayEventData PayloadData;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_DEACTIVE, PayloadData);
+
+	MoveSetting(true);
+}
+
 void AUSPlayer::ComboAttack()
 {
 	if (ASCComponent == nullptr)
@@ -413,3 +440,24 @@ void AUSPlayer::OnOutOfHealth()
 {
 	SetDeathEvent();
 }
+
+void AUSPlayer::MoveSetting(bool bDefault)
+{
+	if (bDefault)
+	{
+		bUseControllerRotationPitch = false;
+		bUseControllerRotationYaw = false;
+		bUseControllerRotationRoll = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		CameraBoom->bUsePawnControlRotation = true;
+		FollowCamera->bUsePawnControlRotation = false;
+		GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	}
+	else
+	{
+		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
+		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
+		GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+	}
+}
+

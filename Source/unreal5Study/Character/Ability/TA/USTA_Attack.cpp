@@ -73,12 +73,11 @@ FGameplayAbilityTargetDataHandle AUSTA_Attack::MakeTargetData() const
 			return FGameplayAbilityTargetDataHandle();
 		}
 
+		
+
 		UE_LOG(LogTemp, Warning, TEXT("AUSTA_Attack::MakeTargetData()"));
 		FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(HitResult);
 		DataHandle.Add(TargetData);
-
-		FGameplayEventData EventData;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), USTAG_CHARACTER_INVINSIBLE, EventData);
 	}
 
 	FColor DrawColor = bHit ? FColor::Green : FColor::Red;

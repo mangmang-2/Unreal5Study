@@ -124,53 +124,6 @@ void AUSEnemy::SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackF
 	OnAttackFinished = InOnAttackFinished;
 }
 
-void AUSEnemy::AttackByAI()
-{
-
-
-
-	/*if (CurrentCombo == 0)
-	{
-		CurrentCombo++;
-		const float AttackSpeedRate = 1.0f;
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		AnimInstance->Montage_Play(NormalAttackMontage, AttackSpeedRate);
-
-		float ComboEffectiveTime = NormalAttackMontage->GetSectionLength(CurrentCombo - 1) * 0.8;
-
-		if (ComboEffectiveTime > 0.0f)
-		{
-			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
-				OnAttackFinished.ExecuteIfBound();
-				})
-				, ComboEffectiveTime, false);
-		}
-
-	}
-	else if (NormalAttackMontage->GetNumSections() == CurrentCombo)
-	{
-		ComboActionEnd();
-	}
-	else
-	{
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, NormalAttackMontage->GetNumSections());
-		AnimInstance->Montage_JumpToSection(NormalAttackMontage->GetSectionName(CurrentCombo - 1), NormalAttackMontage);
-		float ComboEffectiveTime = NormalAttackMontage->GetSectionLength(CurrentCombo - 1) * 0.8;
-
-		if (ComboEffectiveTime > 0.0f)
-		{
-			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
-				OnAttackFinished.ExecuteIfBound();
-				})
-				, ComboEffectiveTime, false);
-		}
-	}*/
-}
-
 void AUSEnemy::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

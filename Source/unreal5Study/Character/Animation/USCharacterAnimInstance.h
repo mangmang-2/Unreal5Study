@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "GameplayEffectTypes.h"
 #include "USCharacterAnimInstance.generated.h"
 
 /**
@@ -17,11 +18,14 @@ class UNREAL5STUDY_API UUSCharacterAnimInstance : public UAnimInstance
 public:
 	UUSCharacterAnimInstance();
 
+	virtual void InitializeWithAbilitySystem(UAbilitySystemComponent* ASC);
+
 private:
 	virtual void NativeInitializeAnimation() override;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
 	TObjectPtr<class ACharacter> Owner;
@@ -71,4 +75,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float ClimbingRight;
 
+protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
+	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 };

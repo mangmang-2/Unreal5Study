@@ -3,14 +3,19 @@
 
 #include "Character/Animation/USCharacterAnimInstance.h"
 #include "GameFramework/Character.h"
-
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../USCharacterBase.h"
 #include "Kismet/KismetMathLibrary.h"
+
 UUSCharacterAnimInstance::UUSCharacterAnimInstance()
 {
 	MovingThreshould = 3.0f;
 	JumpingThreshould = 100.0f;
+}
+
+void UUSCharacterAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* ASC)
+{
+	GameplayTagPropertyMap.Initialize(this, ASC);
 }
 
 void UUSCharacterAnimInstance::NativeInitializeAnimation()

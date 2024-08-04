@@ -23,6 +23,7 @@ enum class EInputKey : uint8
 	ClickMove UMETA(DisplayName = "ClickMove"),
 	MouseWheel UMETA(DisplayName = "MouseWheel"),
 	MouseLClick UMETA(DisplayName = "MouseLClick"),
+	MouseRClick UMETA(DisplayName = "MouseRClick"),
 	LockOn UMETA(DisplayName = "LockOn"),
 };
 
@@ -112,9 +113,12 @@ public:
 	void EquipWeaponCallBack(const struct FGameplayEventData* EventData);
 	void EquipShieldCallBack(const struct FGameplayEventData* EventData);
 
-
+	void OnShieldActivated();
+	void OnShieldDeactivated();
 	void ComboAttack();
 	
 	UFUNCTION()
 	void OnOutOfHealth();
+
+	void MoveSetting(bool bDefault);
 };

@@ -36,7 +36,6 @@ public:
 	FAICharacterAttackFinished OnAttackFinished;
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished);
 
-	virtual void AttackByAI();
 	//virtual void NotifyComboActionEnd() override;
 	virtual void PossessedBy(AController* NewController) override;
 

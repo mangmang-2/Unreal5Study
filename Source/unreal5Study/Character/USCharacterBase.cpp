@@ -12,6 +12,7 @@
 #include "Ability/Tag/USGameplayTag.h"
 #include "USPlayerState.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Animation/USCharacterAnimInstance.h"
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -74,6 +75,12 @@ void AUSCharacterBase::BeginPlay()
 
 	if (ClimbingComponent)
 		ClimbingComponent->SetClimb(false);
+
+	if (UUSCharacterAnimInstance* Anim = Cast<UUSCharacterAnimInstance>(GetMesh()->GetAnimInstance()) ; Anim != nullptr && ASCComponent != nullptr)
+	{
+		Anim->InitializeWithAbilitySystem(ASCComponent);
+	}
+
 }
 
 // Called every frame
