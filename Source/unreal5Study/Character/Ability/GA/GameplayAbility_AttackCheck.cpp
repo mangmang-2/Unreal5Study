@@ -40,13 +40,15 @@ void UGameplayAbility_AttackCheck::OnTraceResultCallback(const FGameplayAbilityT
 		}
 		// 방패로 막히면 내 애니메이션 실패
 		UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
-		if (ASC && ASC->HasMatchingGameplayTag(USTAG_CHARACTER_STATE_SHIELD_ACTIVE))
+		if (ASC && ASC->HasMatchingGameplayTag(USTAG_CHARACTER_STATE_SHIELD_ACTIVE) && CurrentActorInfo)
 		{
 			float DotProduct = FVector::DotProduct(HitActor->GetActorForwardVector(), CurrentActorInfo->AvatarActor->GetActorForwardVector());
 			//UE_LOG(LogTemp, Log, TEXT(dot : %f"), DotProduct);
 			if (DotProduct < -0.7)
 			{
-				CurrentActorInfo->SkeletalMeshComponent->GetAnimInstance()->StopAllMontages(1.0f);
+				UAnimInstance* animInst = CurrentActorInfo->SkeletalMeshComponent->GetAnimInstance();
+				if(animInst)
+					animInst->StopAllMontages(1.0f);
 
 				FGameplayEventData EventData;
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitActor, USTAG_CHARACTER_STATE_SHIELDBLOCK, EventData);
