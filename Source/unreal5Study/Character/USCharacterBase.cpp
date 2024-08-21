@@ -13,6 +13,7 @@
 #include "USPlayerState.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Animation/USCharacterAnimInstance.h"
+#include "ModularCharacter/USModularCharacterComponent.h"
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -63,6 +64,8 @@ AUSCharacterBase::AUSCharacterBase()
 	//ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
 	ClimbingComponent = CreateDefaultSubobject<UUSClimbingComponent>(TEXT("ClimbingComponent"));
+
+	ModularCharacterComponent = CreateDefaultSubobject<UUSModularCharacterComponent>(TEXT("ModularCharacterComponent"));
 }
 
 // Called when the game starts or when spawned

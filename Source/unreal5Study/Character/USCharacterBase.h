@@ -88,5 +88,9 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void SetDeathEvent();
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UUSModularCharacterComponent> ModularCharacterComponent;
 };
 
