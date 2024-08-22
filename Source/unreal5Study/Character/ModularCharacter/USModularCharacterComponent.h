@@ -20,34 +20,12 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	void InitLeaderPose();
+
+public:
+	void RandomChange();
 
 private:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> Helmet2;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> Helmet;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> Gloves;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> Pants;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> ArmArmor;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> PantsArmor;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> Shoes;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> ShoulderArmor;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Modular, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> Torso;
-		
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = ModularList, Meta = (AllowPrivateAccess = "true"))
+	TArray<TObjectPtr<class USkeletalMeshComponent>> ModularList;		
 };
