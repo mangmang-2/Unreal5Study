@@ -17,6 +17,9 @@ class UNREAL5STUDY_API UUSUserWidget : public UUserWidget
 public:
 	virtual void SetOwningActor(AActor* InOwner);
 
+	void NativeConstruct();
+	void NativeDestruct();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Actor")
 	TObjectPtr<AActor> OwningActor;

@@ -24,8 +24,15 @@ protected:
 
 public:
 	void RandomChange();
+	void ClearAllParts();
+
+	void ChangeParts(struct FModularCharacterRaw ModularRaw);
+	void ChangeParts(uint8 eCategory, class USkeletalMesh* ModularMesh);
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = ModularList, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ModularList, Meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<class USkeletalMeshComponent>> ModularList;		
+
+public:
+    const TArray<TObjectPtr<USkeletalMeshComponent>>& GetModularList();
 };

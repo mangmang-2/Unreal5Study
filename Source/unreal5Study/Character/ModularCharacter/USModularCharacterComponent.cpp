@@ -22,7 +22,7 @@ void UUSModularCharacterComponent::BeginPlay()
 	Super::BeginPlay();
 
 	InitLeaderPose();
-	RandomChange();
+	//RandomChange();
 }
 
 void UUSModularCharacterComponent::InitLeaderPose()
@@ -61,4 +61,31 @@ void UUSModularCharacterComponent::RandomChange()
 			}
 		}
 	}
+}
+
+void UUSModularCharacterComponent::ClearAllParts()
+{
+	for (auto& Modular : ModularList)
+	{
+		Modular->SetSkeletalMesh(nullptr);
+	}
+}
+
+void UUSModularCharacterComponent::ChangeParts(FModularCharacterRaw ModularRaw)
+{
+	uint8 eCategory = static_cast<uint8>(ModularRaw.ModularCategory);
+	if (ModularList.IsValidIndex(eCategory) == false)
+		return;
+
+	ChangeParts(eCategory, ModularRaw.ModularMesh);
+}
+
+void UUSModularCharacterComponent::ChangeParts(uint8 eCategory, USkeletalMesh* ModularMesh)
+{
+	ModularList[eCategory]->SetSkeletalMesh(ModularMesh);
+}
+
+const TArray<TObjectPtr<USkeletalMeshComponent>>& UUSModularCharacterComponent::GetModularList()
+{
+	return ModularList;
 }

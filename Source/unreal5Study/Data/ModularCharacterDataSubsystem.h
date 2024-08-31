@@ -23,7 +23,7 @@ enum class EModularCharacterType : uint8
 	TorsoArms		UMETA(DisplayName = "TorsoArms"),
 	HelmetClose		UMETA(DisplayName = "HelmetClose"),
 	Coat			UMETA(DisplayName = "Coat"),
-	MAX				UMETA(DisplayName = "Max"),
+	MAX				UMETA(DisplayName = "None"),
 };
 
 USTRUCT(BlueprintType)
@@ -39,7 +39,13 @@ struct FModularCharacterRaw : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TObjectPtr<class USkeletalMesh> ModularMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TObjectPtr<class UTexture2D> ModularIcon;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPreviewChange, struct FModularCharacterRaw, ModularRaw);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPreviewClear);
 
 /**
  * 
@@ -61,8 +67,12 @@ protected:
     TArray<FModularCharacterRaw> ModularCharacterDataArray;
 
 public:
+	void GetModularList(TArray<FModularCharacterRaw>& ModularArray);
 	void GetModularList(EModularCharacterType eCategory, TArray<FModularCharacterRaw>& ModularArray);
 	bool GetRandomModular(EModularCharacterType eCategory, FModularCharacterRaw& ModularData);
 
-	
+public:
+	FOnPreviewChange OnPreviewChange;
+	FOnPreviewChange OnPreviewMainChange;
+	FOnPreviewClear OnPreviewClear;
 };

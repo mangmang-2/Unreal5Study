@@ -31,6 +31,11 @@ void UModularCharacterDataSubsystem::ReadDataTable()
     }
 }
 
+void UModularCharacterDataSubsystem::GetModularList(TArray<FModularCharacterRaw>& ModularArray)
+{
+    ModularArray = ModularCharacterDataArray;
+}
+
 void UModularCharacterDataSubsystem::GetModularList(EModularCharacterType eCategory, TArray<FModularCharacterRaw>& ModularArray)
 {
     for (auto& Row : ModularCharacterDataArray)

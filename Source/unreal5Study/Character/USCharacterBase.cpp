@@ -83,12 +83,6 @@ void AUSCharacterBase::BeginPlay()
 	{
 		Anim->InitializeWithAbilitySystem(ASCComponent);
 	}
-
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
-		ModularCharacterComponent->RandomChange();
-		})
-		, 1.0f, true);	
 }
 
 // Called every frame
