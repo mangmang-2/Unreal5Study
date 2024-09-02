@@ -73,7 +73,7 @@ void UUSPreviewSlotGrid::Build(EModularCharacterType eCategory)
 
 void UUSPreviewSlotGrid::CreateSlotWidget(int32 InRow, int32 InColumn, FModularCharacterRaw ModularRaw)
 {
-	TSubclassOf<UUSPreviewSlot> SlotClass = LoadClass<UUSPreviewSlot>(nullptr, TEXT("/Game/Study/UI/WBP_Slot.WBP_Slot_C"));
+	TSubclassOf<UUSPreviewSlot> SlotClass = LoadClass<UUSPreviewSlot>(nullptr, TEXT("/Game/Study/UI/Modular/WBP_Slot.WBP_Slot_C"));
 
 	if (SlotClass && GridPanel)
 	{
