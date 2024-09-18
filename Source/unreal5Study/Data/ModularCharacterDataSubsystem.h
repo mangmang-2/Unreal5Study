@@ -26,6 +26,17 @@ enum class EModularCharacterType : uint8
 	MAX				UMETA(DisplayName = "None"),
 };
 
+UENUM(BlueprintType)
+enum class EModularColorParts : uint8
+{
+	Color			UMETA(DisplayName = "color"),
+	Base			UMETA(DisplayName = "base"),
+	Belts			UMETA(DisplayName = "belts"),
+	Damage			UMETA(DisplayName = "damage"),
+	Metal			UMETA(DisplayName = "metal"),
+
+};
+
 USTRUCT(BlueprintType)
 struct FModularCharacterRaw : public FTableRowBase
 {

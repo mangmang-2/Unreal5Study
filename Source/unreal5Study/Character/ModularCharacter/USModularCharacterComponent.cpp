@@ -85,6 +85,20 @@ void UUSModularCharacterComponent::ChangeParts(uint8 eCategory, USkeletalMesh* M
 	ModularList[eCategory]->SetSkeletalMesh(ModularMesh);
 }
 
+void UUSModularCharacterComponent::ChangePartsColor(uint8 PartsType, uint8 ColorParts, FLinearColor Color)
+{
+	if (ModularList.IsValidIndex(PartsType) == false)
+		return;
+
+	UMaterialInstanceDynamic* DynMaterial = ModularList[PartsType]->CreateAndSetMaterialInstanceDynamic(0);
+	if (DynMaterial)
+	{
+		FString ColorPartsName = StaticEnum<EModularColorParts>()->GetDisplayNameTextByIndex(ColorParts).ToString();
+
+		DynMaterial->SetVectorParameterValue(FName(*ColorPartsName), Color);
+	}
+}
+
 const TArray<TObjectPtr<USkeletalMeshComponent>>& UUSModularCharacterComponent::GetModularList()
 {
 	return ModularList;

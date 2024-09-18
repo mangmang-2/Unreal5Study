@@ -9,4 +9,8 @@ enum class EWidgetID : uint32
 	PreviewMain			UMETA(DisplayName = "PreviewMain"),
 	PreviewSlotGrid		UMETA(DisplayName = "PreviewSlotGrid"),
 	PreviewSlot			UMETA(DisplayName = "PreviewSlot"),
+
+	DyeingMain			UMETA(DisplayName = "DyeingMain"),
+	DyeingPalette		UMETA(DisplayName = "DyeingPalette"),
+	DyeingSlot			UMETA(DisplayName = "DyeingSlot"),
 };

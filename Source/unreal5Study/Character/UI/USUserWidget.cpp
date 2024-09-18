@@ -60,15 +60,15 @@ void UUSUserWidget::ResponseMessage(int32 MessageType, UWidgetMessage* WidgetMes
 {
 }
 
-void UUSUserWidget::SendMessage(int32 MessageType, UWidgetMessage* WidgetMessage)
+void UUSUserWidget::SendMessage(EWidgetID SendWidgetID, int32 MessageType, UWidgetMessage* WidgetMessage)
 {
     if (OwningActor)
     {
         if (UWidgetGameInstance* WidgetGameInstance = UGameInstance::GetSubsystem<UWidgetGameInstance>(OwningActor->GetGameInstance()))
         {
-            if (WidgetGameInstance->WidgetMessageMap.Contains(static_cast<uint32>(WidgetID)))
+            if (WidgetGameInstance->WidgetMessageMap.Contains(static_cast<uint32>(SendWidgetID)))
             {
-                WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(WidgetID)].Broadcast(MessageType, WidgetMessage);
+                WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(SendWidgetID)].Broadcast(MessageType, WidgetMessage);
             }
         }
     }

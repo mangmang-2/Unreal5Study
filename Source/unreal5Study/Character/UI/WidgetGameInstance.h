@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "USWidgetID.h"
 #include "WidgetGameInstance.generated.h"
 
 
