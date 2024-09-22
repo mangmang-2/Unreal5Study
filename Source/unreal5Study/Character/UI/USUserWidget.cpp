@@ -14,15 +14,22 @@ void UUSUserWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-    if (OwningActor)
+    if (UWidgetGameInstance* WidgetGameInstance = UGameInstance::GetSubsystem<UWidgetGameInstance>(GetGameInstance()))
     {
-        if (UWidgetGameInstance* WidgetGameInstance = UGameInstance::GetSubsystem<UWidgetGameInstance>(OwningActor->GetGameInstance()))
+        // 존재하면 다시 넣지않음
+        if (WidgetGameInstance->WidgetMessageMap.Contains(static_cast<uint32>(WidgetID)))
         {
-            // 존재하면 다시 넣지않음
             if (WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(WidgetID)].IsAlreadyBound(this, &ThisClass::DelegateMessage) == false)
             {
                 WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(WidgetID)].AddDynamic(this, &ThisClass::DelegateMessage);
             }
+        }
+        else
+        {
+            FOnWidgetMessage WidgetMessageDelegate;
+            WidgetMessageDelegate.AddDynamic(this, &ThisClass::DelegateMessage);
+
+            WidgetGameInstance->WidgetMessageMap.Add(static_cast<uint32>(WidgetID), WidgetMessageDelegate);
         }
     }
     
@@ -62,14 +69,11 @@ void UUSUserWidget::ResponseMessage(int32 MessageType, UWidgetMessage* WidgetMes
 
 void UUSUserWidget::SendMessage(EWidgetID SendWidgetID, int32 MessageType, UWidgetMessage* WidgetMessage)
 {
-    if (OwningActor)
-    {
-        if (UWidgetGameInstance* WidgetGameInstance = UGameInstance::GetSubsystem<UWidgetGameInstance>(OwningActor->GetGameInstance()))
-        {
-            if (WidgetGameInstance->WidgetMessageMap.Contains(static_cast<uint32>(SendWidgetID)))
-            {
-                WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(SendWidgetID)].Broadcast(MessageType, WidgetMessage);
-            }
-        }
-    }
+	if (UWidgetGameInstance* WidgetGameInstance = UGameInstance::GetSubsystem<UWidgetGameInstance>(GetGameInstance()))
+	{
+		if (WidgetGameInstance->WidgetMessageMap.Contains(static_cast<uint32>(SendWidgetID)))
+		{
+			WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(SendWidgetID)].Broadcast(MessageType, WidgetMessage);
+		}
+	}
 }

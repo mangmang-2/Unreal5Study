@@ -6,6 +6,7 @@
 #include "Components/TextBlock.h"
 #include "../../USCharacterBase.h"
 #include "../../ModularCharacter/USModularCharacterComponent.h"
+#include "USDyeingData.h"
 
 void UUSDyeingSlot::SetData(FModularCharacterRaw ModularRaw)
 {
@@ -21,4 +22,9 @@ void UUSDyeingSlot::OnModularPartsIconButtonClicked()
 		return;
 
 	CharacterOwner->ModularCharacterComponent->ChangeParts(ModularRawData);
+
+	UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
+	WidgetMessage->PartsType = static_cast<int8>(ModularRawData.ModularCategory);
+	WidgetMessage->ModularData = ModularRawData;
+	SendMessage(EWidgetID::DyeingPanel, 0, WidgetMessage);
 }

@@ -20,7 +20,7 @@ public:
 	UFUNCTION()
 	void OnTabButtonClicked();
 
-	void SelectButton(class UButton* Button);
+	void SelectButton(uint8 ButtonIndex);
 public:
 
 	UPROPERTY(meta = (BindWidget))

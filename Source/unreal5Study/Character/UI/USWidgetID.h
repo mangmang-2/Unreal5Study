@@ -6,11 +6,12 @@ UENUM()
 enum class EWidgetID : uint32
 {
 	None,
-	PreviewMain			UMETA(DisplayName = "PreviewMain"),
-	PreviewSlotGrid		UMETA(DisplayName = "PreviewSlotGrid"),
-	PreviewSlot			UMETA(DisplayName = "PreviewSlot"),
+	PreviewMain				UMETA(DisplayName = "PreviewMain"),
+	PreviewSlotGrid			UMETA(DisplayName = "PreviewSlotGrid"),
+	PreviewSlot				UMETA(DisplayName = "PreviewSlot"),
 
-	DyeingMain			UMETA(DisplayName = "DyeingMain"),
-	DyeingPalette		UMETA(DisplayName = "DyeingPalette"),
-	DyeingSlot			UMETA(DisplayName = "DyeingSlot"),
+	DyeingPanel				UMETA(DisplayName = "DyeingPanel"),
+	DyeingPalette			UMETA(DisplayName = "DyeingPalette"),
+	DyeingSlot				UMETA(DisplayName = "DyeingSlot"),
+	DyeingSelectColorPanel	UMETA(DisplayName = "DyeingSelectColorPanel"),
 };

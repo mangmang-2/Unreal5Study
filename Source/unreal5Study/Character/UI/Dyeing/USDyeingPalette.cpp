@@ -8,8 +8,7 @@
 #include "Engine/Texture2D.h"
 #include "Rendering/Texture2DResource.h"
 #include "Components/Image.h"
-#include "../../USCharacterBase.h"
-#include "../../ModularCharacter/USModularCharacterComponent.h"
+#include "USDyeingData.h"
 
 // HSV to RGB 변환 함수 정의
 FLinearColor HSVtoRGB(float H, float S, float V)
@@ -105,11 +104,14 @@ UTexture2D* UUSDyeingPalette::CreateGradationTexture(UObject* Outer, int32 Width
     return Texture;
 }
 
+UUSDyeingPalette::UUSDyeingPalette(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+    WidgetID = EWidgetID::DyeingPalette;
+}
+
 void UUSDyeingPalette::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-    WidgetID = EWidgetID::DyeingPalette;
 
     if (Palette && ColorMaterial)
     {
@@ -124,8 +126,9 @@ void UUSDyeingPalette::NativeConstruct()
     }
 }
 
-FReply UUSDyeingPalette::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UUSDyeingPalette::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+    FReply Reply = Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
     // 마우스 클릭 이벤트 처리
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
@@ -140,13 +143,13 @@ FReply UUSDyeingPalette::NativeOnMouseButtonDown(const FGeometry& InGeometry, co
 
         FColor NewColor = GetPixelColor(LocalWidgetPosition.X, LocalWidgetPosition.Y);
 
-        FLinearColor LinearColor = NewColor.ReinterpretAsLinear();
-        SelectColor->SetColorAndOpacity(LinearColor);
+        //FLinearColor LinearColor = NewColor.ReinterpretAsLinear();
+        //SelectColor->SetColorAndOpacity(LinearColor);
 
         ChangeModulPartsColor(NewColor);
     }
 
-    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+    return FReply::Handled();
 }
 
 // 텍스처에서 픽셀의 색상을 읽어오는 함수
@@ -160,15 +163,7 @@ FColor UUSDyeingPalette::GetPixelColor(int32 X, int32 Y)
 
 void UUSDyeingPalette::ChangeModulPartsColor(FColor Color)
 {
-    AUSCharacterBase* CharacterOwner = Cast<AUSCharacterBase>(GetOwningPlayerPawn());
-    if (CharacterOwner == nullptr)
-        return;
-
-    CharacterOwner->ModularCharacterComponent->ChangePartsColor(1, 1, Color.ReinterpretAsLinear());
-}
-
-void UUSDyeingPalette::ResponseMessage(int32 MessageType, UWidgetMessage* WidgetMessage)
-{
-
-    return;
+    UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
+    WidgetMessage->Color = Color;
+    SendMessage(EWidgetID::DyeingPanel, 2, WidgetMessage);
 }

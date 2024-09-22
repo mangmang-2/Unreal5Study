@@ -8,7 +8,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "DyeingGameInstance.h"
-#include "../WidgetGameInstance.h"
+#include "USDyeingData.h"
 
 void UUSDyeingPartsSelecter::NativeConstruct()
 {
@@ -33,7 +33,7 @@ void UUSDyeingPartsSelecter::NativeConstruct()
 
     if (ButtonList.Num() > 0)
     {
-        SelectButton(ButtonList[0]);
+        SelectButton( 0);
     }
 }
 
@@ -46,7 +46,7 @@ void UUSDyeingPartsSelecter::OnTabButtonClicked()
         {
             UE_LOG(LogTemp, Warning, TEXT("TabButton %d clicked"), i);
 
-            SelectButton(ButtonList[i]);
+            SelectButton(i);
         }
         else
         {
@@ -55,14 +55,20 @@ void UUSDyeingPartsSelecter::OnTabButtonClicked()
     }
 }
 
-void UUSDyeingPartsSelecter::SelectButton(UButton* Button)
+void UUSDyeingPartsSelecter::SelectButton(uint8 ButtonIndex)
 {
+    
+    UButton* Button = ButtonList[ButtonIndex];
+    if (Button == nullptr)
+        return;
+
     FButtonStyle ButtonStyle = SaveStyle;
     FSlateBrush SelectedBrush;
     SelectedBrush.TintColor = FSlateColor(FLinearColor::Black);
     ButtonStyle.SetNormal(SelectedBrush);
     Button->SetStyle(ButtonStyle);
 
-    //UWidgetMessage WidgetMessage;
-    //SendMessage(EWidgetID::DyeingPalette, 0, &WidgetMessage);
+    UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
+    WidgetMessage->ColorParts = ButtonIndex;
+    SendMessage(EWidgetID::DyeingPanel, 1, WidgetMessage);
 }

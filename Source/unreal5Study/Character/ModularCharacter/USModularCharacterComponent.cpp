@@ -83,6 +83,7 @@ void UUSModularCharacterComponent::ChangeParts(FModularCharacterRaw ModularRaw)
 void UUSModularCharacterComponent::ChangeParts(uint8 eCategory, USkeletalMesh* ModularMesh)
 {
 	ModularList[eCategory]->SetSkeletalMesh(ModularMesh);
+	ModularList[eCategory]->SetMaterial(0, nullptr);
 }
 
 void UUSModularCharacterComponent::ChangePartsColor(uint8 PartsType, uint8 ColorParts, FLinearColor Color)
