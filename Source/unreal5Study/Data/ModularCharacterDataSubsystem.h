@@ -29,12 +29,12 @@ enum class EModularCharacterType : uint8
 UENUM(BlueprintType)
 enum class EModularColorParts : uint8
 {
-	Color			UMETA(DisplayName = "color"),
+	Color			UMETA(DisplayName = "2 color"),
 	Base			UMETA(DisplayName = "base"),
 	Belts			UMETA(DisplayName = "belts"),
 	Damage			UMETA(DisplayName = "damage"),
 	Metal			UMETA(DisplayName = "metal"),
-
+	MAX				UMETA(DisplayName = "None"),
 };
 
 USTRUCT(BlueprintType)
@@ -72,6 +72,8 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
 	void ReadDataTable();
+
+	FLinearColor GetColor(FModularCharacterRaw Modular, uint8 ColorParts);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

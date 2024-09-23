@@ -18,7 +18,7 @@ class UNREAL5STUDY_API UUSDyeingSlot : public UUSUserWidget
 public:
 
 	void SetData(struct FModularCharacterRaw ModularRaw);
-
+	FModularCharacterRaw GetModular();
 	UFUNCTION(BlueprintCallable)
 	void OnModularPartsIconButtonClicked();
 protected:

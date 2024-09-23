@@ -15,6 +15,11 @@ void UUSDyeingSlot::SetData(FModularCharacterRaw ModularRaw)
 	ItemName->SetText(FText::FromString(ModularRaw.ModularName));
 }
 
+FModularCharacterRaw UUSDyeingSlot::GetModular()
+{
+	return ModularRawData;
+}
+
 void UUSDyeingSlot::OnModularPartsIconButtonClicked()
 {
 	AUSCharacterBase* CharacterOwner = Cast<AUSCharacterBase>(GetOwningPlayerPawn());

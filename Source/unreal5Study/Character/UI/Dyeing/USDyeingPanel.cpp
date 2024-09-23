@@ -27,16 +27,39 @@ void UUSDyeingPanel::ResponseMessage(int32 MessageType, UWidgetMessage* WidgetMe
         PartsType = DyeingMessage->PartsType;
         SelectDyeingSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
         SelectDyeingSlot->SetData(DyeingMessage->ModularData);
+        SetOriginColor();
         break;
     case 1: // color ÆÄÃ÷ : base, metal..
         ColorParts = DyeingMessage->ColorParts;
+        SetOriginColor();
         break;
     case 2: // color 
         Color = DyeingMessage->Color;
+        SetSelectColor();
         break;
     default:
         break;
     }
+    
+}
+
+void UUSDyeingPanel::SetOriginColor()
+{
+	UModularCharacterDataSubsystem* ModularSubsystem = UGameInstance::GetSubsystem<UModularCharacterDataSubsystem>(GetGameInstance());
+	if (ModularSubsystem == nullptr)
+		return;
+	FLinearColor LinearColor = ModularSubsystem->GetColor(SelectDyeingSlot->GetModular(), ColorParts);
+
+    UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
+    WidgetMessage->Color = LinearColor;
+    SendMessage(EWidgetID::DyeingSelectColorPanel, 0, WidgetMessage);
+}
+
+void UUSDyeingPanel::SetSelectColor()
+{
+    UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
+    WidgetMessage->Color = Color;
+    SendMessage(EWidgetID::DyeingSelectColorPanel, 1, WidgetMessage);
 }
 
 void UUSDyeingPanel::StartDyeing()
@@ -51,6 +74,6 @@ void UUSDyeingPanel::StartDyeing()
     if (CharacterOwner == nullptr)
         return;
 
-    CharacterOwner->ModularCharacterComponent->ChangePartsColor(PartsType, ColorParts, Color.ReinterpretAsLinear());
+    CharacterOwner->ModularCharacterComponent->ChangePartsColor(PartsType, ColorParts, Color);
 }
 

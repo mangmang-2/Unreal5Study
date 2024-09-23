@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/UI/USUserWidget.h"
+#include "../../../Data/ModularCharacterDataSubsystem.h"
 #include "USDyeingSelectColorPanel.generated.h"
 
 /**
@@ -17,6 +18,7 @@ class UNREAL5STUDY_API UUSDyeingSelectColorPanel : public UUSUserWidget
 public:
 	UUSDyeingSelectColorPanel(const FObjectInitializer& ObjectInitializer);
 	virtual void ResponseMessage(int32 MessageType, UWidgetMessage* WidgetMessage);
+	void SetColor(class UUSDyeingColorDetail* Detail, FLinearColor Color);
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -24,8 +26,5 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UUSDyeingColorDetail> WBP_DyeingColorDetail_Select;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UUSDyeingColorDetail> WBP_DyeingColorDetail_Random;
 	
 };

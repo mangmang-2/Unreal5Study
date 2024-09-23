@@ -4,13 +4,19 @@
 #include "Character/UI/Dyeing/USDyeingColorDetail.h"
 #include "USDyeingColorDetail.h"
 #include "Components/TextBlock.h"
+#include "Components/Button.h"
 
 void UUSDyeingColorDetail::InitText(FText InputColor)
 {
 	Color->SetText(InputColor);
 }
 
-void UUSDyeingColorDetail::SetColor()
+void UUSDyeingColorDetail::SetColor(FLinearColor InputColor)
 {
+    FButtonStyle ButtonStyle;
+    FSlateBrush SelectedBrush;
+    SelectedBrush.TintColor = FSlateColor(InputColor);
+    ButtonStyle.SetNormal(SelectedBrush);
+    Button->SetStyle(ButtonStyle);
 }
 

@@ -19,6 +19,9 @@ public:
 	virtual void NativeConstruct() override;
 	virtual void ResponseMessage(int32 MessageType, class UWidgetMessage* WidgetMessage);
 
+	void SetOriginColor();
+	void SetSelectColor();
+
 	UFUNCTION(BlueprintCallable)
 	void StartDyeing();
 
@@ -29,5 +32,5 @@ protected:
 protected:
 	uint8 PartsType = -1;
 	uint8 ColorParts = -1;
-	FColor Color;
+	FLinearColor Color;
 };

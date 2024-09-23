@@ -12,7 +12,7 @@ class UNREAL5STUDY_API UDyeingMessage : public UWidgetMessage
 public:
     uint8 PartsType = 0;
     uint8 ColorParts = 0;
-    FColor Color;
+    FLinearColor Color;
 
     FModularCharacterRaw ModularData;
 };

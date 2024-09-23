@@ -122,13 +122,12 @@ void UUSDyeingPalette::NativeConstruct()
         DynamicMaterial->SetTextureParameterValue("Palette", GradationTexture);
         // Border에 머티리얼 적용
         Palette->SetBrushFromMaterial(DynamicMaterial);
-        ;
     }
 }
 
-FReply UUSDyeingPalette::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+FReply UUSDyeingPalette::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-    FReply Reply = Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+    FReply Reply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
     // 마우스 클릭 이벤트 처리
     if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
     {
@@ -164,6 +163,6 @@ FColor UUSDyeingPalette::GetPixelColor(int32 X, int32 Y)
 void UUSDyeingPalette::ChangeModulPartsColor(FColor Color)
 {
     UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
-    WidgetMessage->Color = Color;
+    WidgetMessage->Color = Color.ReinterpretAsLinear();
     SendMessage(EWidgetID::DyeingPanel, 2, WidgetMessage);
 }

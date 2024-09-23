@@ -17,10 +17,13 @@ class UNREAL5STUDY_API UUSDyeingColorDetail : public UUSUserWidget
 public:
 	void InitText(FText InputColor);
 
-	void SetColor();
+	void SetColor(FLinearColor InputColor);
 
 protected:
 
 	UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UTextBlock> Color;
+
+	UPROPERTY(meta = (BindWidget))
+    TObjectPtr<class UButton> Button;
 };

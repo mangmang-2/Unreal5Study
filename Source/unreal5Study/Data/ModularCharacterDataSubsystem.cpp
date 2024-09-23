@@ -31,6 +31,23 @@ void UModularCharacterDataSubsystem::ReadDataTable()
     }
 }
 
+FLinearColor UModularCharacterDataSubsystem::GetColor(FModularCharacterRaw Modular, uint8 ColorParts)
+{
+    USkeletalMeshComponent* SkeletalMeshComponent = NewObject<USkeletalMeshComponent>(this);
+    SkeletalMeshComponent->SetSkeletalMesh(Modular.ModularMesh);
+    FLinearColor Color = FLinearColor::Black;
+    if (SkeletalMeshComponent)
+    {
+        UMaterialInstanceDynamic* MaterialInstance = SkeletalMeshComponent->CreateAndSetMaterialInstanceDynamic(0);
+        if (MaterialInstance)
+        {
+            FString ColorPartsName = StaticEnum<EModularColorParts>()->GetDisplayNameTextByIndex(ColorParts).ToString();
+            bool bHasColor = MaterialInstance->GetVectorParameterValue(FName(*ColorPartsName), Color);
+        }
+    }
+    return Color;
+}
+
 void UModularCharacterDataSubsystem::GetModularList(TArray<FModularCharacterRaw>& ModularArray)
 {
     ModularArray = ModularCharacterDataArray;

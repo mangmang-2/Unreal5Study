@@ -18,7 +18,7 @@ public:
 	UUSDyeingPalette(const FObjectInitializer& ObjectInitializer);
 
 	virtual void NativeConstruct() override;
-	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	UTexture2D* CreateGradationTexture(UObject* Outer, int32 Width, int32 Height);
 	FColor GetPixelColor(int32 X, int32 Y);
