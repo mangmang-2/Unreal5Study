@@ -121,4 +121,8 @@ public:
 	void OnOutOfHealth();
 
 	void MoveSetting(bool bDefault);
+
+protected:
+	UPROPERTY(VisibleAnywhere)
+    TObjectPtr<class UUSInventory> InventoryComponent;
 };

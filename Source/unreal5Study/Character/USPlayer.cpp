@@ -62,7 +62,7 @@ AUSPlayer::AUSPlayer()
 	//{
 	//	UnequipShield->SetStaticMesh(BodyMeshRef.Object);
 	//}
-	
+//	InventoryComponent = CreateDefaultSubobject<UUSInventory>(TEXT("Inventory"));
 }
 
 

@@ -77,3 +77,22 @@ void UUSDyeingPanel::StartDyeing()
     CharacterOwner->ModularCharacterComponent->ChangePartsColor(PartsType, ColorParts, Color);
 }
 
+void UUSDyeingPanel::SaveDyeing()
+{
+}
+
+void UUSDyeingPanel::ReturnDyeing()
+{
+    if (PartsType < 0)
+        return;
+
+    if (ColorParts < 0)
+        return;
+
+    AUSCharacterBase* CharacterOwner = Cast<AUSCharacterBase>(GetOwningPlayerPawn());
+    if (CharacterOwner == nullptr)
+        return;
+
+    CharacterOwner->ModularCharacterComponent->InitPartsColor(PartsType, ColorParts);
+}
+

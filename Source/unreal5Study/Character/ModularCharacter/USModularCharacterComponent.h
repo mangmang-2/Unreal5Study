@@ -29,6 +29,7 @@ public:
 	void ChangeParts(struct FModularCharacterRaw ModularRaw);
 	void ChangeParts(uint8 eCategory, class USkeletalMesh* ModularMesh);
 	void ChangePartsColor(uint8 PartsType, uint8 ColorParts, FLinearColor Color);
+	void InitPartsColor(uint8 PartsType, uint8 ColorParts);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = ModularList, Meta = (AllowPrivateAccess = "true"))

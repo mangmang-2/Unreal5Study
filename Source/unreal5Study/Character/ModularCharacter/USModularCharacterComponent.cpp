@@ -100,6 +100,11 @@ void UUSModularCharacterComponent::ChangePartsColor(uint8 PartsType, uint8 Color
 	}
 }
 
+void UUSModularCharacterComponent::InitPartsColor(uint8 PartsType, uint8 ColorParts)
+{
+	ModularList[PartsType]->SetMaterial(0, nullptr);
+}
+
 const TArray<TObjectPtr<USkeletalMeshComponent>>& UUSModularCharacterComponent::GetModularList()
 {
 	return ModularList;

@@ -17,6 +17,7 @@ void UUSDyeingColorDetail::SetColor(FLinearColor InputColor)
     FSlateBrush SelectedBrush;
     SelectedBrush.TintColor = FSlateColor(InputColor);
     ButtonStyle.SetNormal(SelectedBrush);
+    ButtonStyle.SetHovered(SelectedBrush);
     Button->SetStyle(ButtonStyle);
 }
 

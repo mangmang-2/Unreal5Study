@@ -25,6 +25,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartDyeing();
 
+	UFUNCTION(BlueprintCallable)
+	void SaveDyeing();
+
+	UFUNCTION(BlueprintCallable)
+	void ReturnDyeing();
 protected:
 	UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UUSDyeingSlot> SelectDyeingSlot;
