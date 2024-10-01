@@ -2,30 +2,29 @@
 
 
 #include "Character/UI/Dyeing/USDyeingItemList.h"
-#include "../../../Data/ModularCharacterDataSubsystem.h"
 #include "USDyeingSlot.h"
 #include "Components/VerticalBox.h"
+#include "Item/USItemGameInstanceSubsystem.h"
+
 
 void UUSDyeingItemList::NativeConstruct()
 {
 	Super::NativeDestruct();
 
-
-	UModularCharacterDataSubsystem* ModularSubsystem = UGameInstance::GetSubsystem<UModularCharacterDataSubsystem>(GetGameInstance());
-
-	int32 Row = 0, Column = 0;
-	TArray<FModularCharacterRaw> ModularArray;
-	ModularSubsystem->GetModularList(ModularArray);
-	for (const auto& Modular : ModularArray)
+	SlotList.Empty();
+	if (UUSItemGameInstanceSubsystem* ItemSubsystem = UGameInstance::GetSubsystem<UUSItemGameInstanceSubsystem>(GetGameInstance()))
 	{
-		if (Modular.ModularIcon != nullptr)
+		int32 Row = 0, Column = 0;
+		TArray<FUSItemData> ItemArray;
+		ItemSubsystem->GetItemList(ItemArray);
+		for (const auto& ItemData : ItemArray)
 		{
-			CreateSlotWidget(Modular);
+			CreateSlotWidget(ItemData);
 		}
 	}
 }
 
-void UUSDyeingItemList::CreateSlotWidget(FModularCharacterRaw ModularRaw)
+void UUSDyeingItemList::CreateSlotWidget(FUSItemData ItemRaw)
 {
 	TSubclassOf<UUSDyeingSlot> SlotClass = LoadClass<UUSDyeingSlot>(nullptr, TEXT("/Game/Study/UI/Dyeing/WBP_DyeingSlot.WBP_DyeingSlot_C"));
 
@@ -35,7 +34,8 @@ void UUSDyeingItemList::CreateSlotWidget(FModularCharacterRaw ModularRaw)
 		if (NewSlot)
 		{
 			ItemList->AddChildToVerticalBox(NewSlot);
-			NewSlot->SetData(ModularRaw);
+			NewSlot->SetData(ItemRaw);
 		}
+		SlotList.Add(NewSlot);
 	}
 }

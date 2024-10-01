@@ -8,9 +8,9 @@
 // Sets default values for this component's properties
 UUSModularCharacterComponent::UUSModularCharacterComponent()
 {
-	for (uint8 i = 0; i < static_cast<uint8>(EModularCharacterType::MAX); i++)
+	for (uint8 i = 0; i < static_cast<uint8>(EItemCategory::MAX); i++)
 	{
-		FString DisplayName = StaticEnum<EModularCharacterType>()->GetDisplayNameTextByIndex(i).ToString();
+		FString DisplayName = StaticEnum<EItemCategory>()->GetDisplayNameTextByIndex(i).ToString();
 
 		ModularList.Add(CreateDefaultSubobject<USkeletalMeshComponent>(*DisplayName));
 	}
@@ -51,10 +51,10 @@ void UUSModularCharacterComponent::RandomChange()
 	UModularCharacterDataSubsystem* ModularSubsystem = UGameInstance::GetSubsystem<UModularCharacterDataSubsystem>(owner->GetGameInstance());
 	if (ModularSubsystem)
 	{
-		for (uint8 i = 0; i < static_cast<uint8>(EModularCharacterType::MAX); i++)
+		for (uint8 i = 0; i < static_cast<uint8>(EItemCategory::MAX); i++)
 		{
 			ModularList[i]->SetSkeletalMesh(nullptr);
-			EModularCharacterType eCategory = static_cast<EModularCharacterType>(i);
+			EItemCategory eCategory = static_cast<EItemCategory>(i);
 			if (FModularCharacterRaw ModularData; FMath::RandRange(0, 5) > 0 && ModularSubsystem->GetRandomModular(eCategory, ModularData))
 			{
 				ModularList[i]->SetSkeletalMesh(ModularData.ModularMesh);
@@ -80,6 +80,20 @@ void UUSModularCharacterComponent::ChangeParts(FModularCharacterRaw ModularRaw)
 	ChangeParts(eCategory, ModularRaw.ModularMesh);
 }
 
+void UUSModularCharacterComponent::ChangeParts(FUSItemData ItemData)
+{
+	uint8 eCategory = static_cast<uint8>(ItemData.ItemCategory);
+	if (ModularList.IsValidIndex(eCategory) == false)
+		return;
+
+	ChangeParts(eCategory, ItemData.ItemMesh);
+	
+	for (uint8 i = 0; i < static_cast<uint8>(EItemColorParts::MAX); i++)
+	{
+		ChangePartsColor(eCategory, i, ItemData.GetChangeColor(i));
+	}
+}
+
 void UUSModularCharacterComponent::ChangeParts(uint8 eCategory, USkeletalMesh* ModularMesh)
 {
 	ModularList[eCategory]->SetSkeletalMesh(ModularMesh);
@@ -94,7 +108,7 @@ void UUSModularCharacterComponent::ChangePartsColor(uint8 PartsType, uint8 Color
 	UMaterialInstanceDynamic* DynMaterial = ModularList[PartsType]->CreateAndSetMaterialInstanceDynamic(0);
 	if (DynMaterial)
 	{
-		FString ColorPartsName = StaticEnum<EModularColorParts>()->GetDisplayNameTextByIndex(ColorParts).ToString();
+		FString ColorPartsName = StaticEnum<EItemColorParts>()->GetDisplayNameTextByIndex(ColorParts).ToString();
 
 		DynMaterial->SetVectorParameterValue(FName(*ColorPartsName), Color);
 	}

@@ -16,10 +16,10 @@ void UUSPreviewSlotGrid::NativeConstruct()
 	{
 		ComboBoxString_Category->ClearOptions();
 
-		ComboBoxString_Category->AddOption(StaticEnum<EModularCharacterType>()->GetDisplayNameTextByIndex(static_cast<int32>(EModularCharacterType::MAX)).ToString());
-		for (uint8 i = 0; i < static_cast<uint8>(EModularCharacterType::MAX); i++)
+		ComboBoxString_Category->AddOption(StaticEnum<EItemCategory>()->GetDisplayNameTextByIndex(static_cast<int32>(EItemCategory::MAX)).ToString());
+		for (uint8 i = 0; i < static_cast<uint8>(EItemCategory::MAX); i++)
 		{
-			FString DisplayName = StaticEnum<EModularCharacterType>()->GetDisplayNameTextByIndex(i).ToString();
+			FString DisplayName = StaticEnum<EItemCategory>()->GetDisplayNameTextByIndex(i).ToString();
 
 			ComboBoxString_Category->AddOption(DisplayName);
 		}
@@ -31,10 +31,10 @@ void UUSPreviewSlotGrid::NativeConstruct()
 			ComboBoxString_Category->OnSelectionChanged.AddDynamic(this, &ThisClass::OnCategorySelectionChanged);
 	}
 
-	Build(EModularCharacterType::MAX);
+	Build(EItemCategory::MAX);
 }
 
-void UUSPreviewSlotGrid::Build(EModularCharacterType eCategory)
+void UUSPreviewSlotGrid::Build(EItemCategory eCategory)
 {
 	UModularCharacterDataSubsystem* ModularSubsystem = UGameInstance::GetSubsystem<UModularCharacterDataSubsystem>(GetGameInstance());
 
@@ -46,7 +46,7 @@ void UUSPreviewSlotGrid::Build(EModularCharacterType eCategory)
 		if (Modular.ModularIcon != nullptr)
 		{
 			
-			if (eCategory >= EModularCharacterType::MAX)
+			if (eCategory >= EItemCategory::MAX)
 			{
 				CreateSlotWidget(Row, Column++, Modular);
 				if (Column == 3) // 이걸..계산해서 할까 하다가 일단은 하드코딩
@@ -89,5 +89,5 @@ void UUSPreviewSlotGrid::CreateSlotWidget(int32 InRow, int32 InColumn, FModularC
 void UUSPreviewSlotGrid::OnCategorySelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
 	GridPanel->ClearChildren();
-	Build(static_cast<EModularCharacterType>(StaticEnum<EModularCharacterType>()->GetIndexByName(*SelectedItem)));
+	Build(static_cast<EItemCategory>(StaticEnum<EItemCategory>()->GetIndexByName(*SelectedItem)));
 }

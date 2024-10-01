@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Lyra/GameFramework/GameplayMessageSubsystem.h"
+#include "Character/UI/Dyeing/USDyeingData.h"
 #include "USInventory.generated.h"
 
 
@@ -22,7 +24,11 @@ protected:
 
 public:
 	void BuildItemList();
+
+	void ResponseMessage(FGameplayTag Channel, const FDyeingMessageData& Payload);
+
 protected:
+	
 	UPROPERTY()
-	TArray<TObjectPtr<class UUSItemData>> Itemlist;
+	TArray<struct FUSItemData> Itemlist;
 };

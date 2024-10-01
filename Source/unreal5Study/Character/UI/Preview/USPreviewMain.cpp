@@ -35,7 +35,7 @@ void UUSPreviewMain::NativeConstruct()
 			for (int32 i = 0 ; i < ModularList.Num(); i++)
 			{
 				FModularCharacterRaw raw;
-				raw.ModularCategory = static_cast<EModularCharacterType>(i);
+				raw.ModularCategory = static_cast<EItemCategory>(i);
 				raw.ModularMesh = ModularList[i]->GetSkeletalMeshAsset();
 				ModularSubsystem->OnPreviewChange.Broadcast(raw);
 

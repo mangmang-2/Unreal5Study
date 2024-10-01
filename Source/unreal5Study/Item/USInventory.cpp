@@ -2,8 +2,13 @@
 
 
 #include "Item/USInventory.h"
-#include "../Data/ModularCharacterDataSubsystem.h"
+
 #include "USItemData.h"
+#include "USItemGameInstanceSubsystem.h"
+#include "NativeGameplayTags.h"
+#include "Lyra/GameFramework/GameplayMessageSubsystem.h"
+
+UE_DEFINE_GAMEPLAY_TAG(TAG_Inventory_Update_Color_Message, "Inventory.Update.Color");
 
 // Sets default values for this component's properties
 UUSInventory::UUSInventory()
@@ -22,6 +27,9 @@ void UUSInventory::BeginPlay()
 	Super::BeginPlay();
 
 	BuildItemList();
+
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	MessageSubsystem.RegisterListener(TAG_Inventory_Update_Color_Message, this, &ThisClass::ResponseMessage);
 }
 
 void UUSInventory::BuildItemList()
@@ -31,31 +39,40 @@ void UUSInventory::BuildItemList()
 	{
 		// 초기에 가볍게 사용하려고 모듈러를 만들었는데.. 어쩌다보니 공용으로 사용하는데...
 		// 아이템 데이터 정의를 새로 해야할 것 같음
-		if (UModularCharacterDataSubsystem* ModularSubsystem = UGameInstance::GetSubsystem<UModularCharacterDataSubsystem>(Owner->GetWorld()->GetGameInstance()))
+		if (UUSItemGameInstanceSubsystem* ItemSubsystem = UGameInstance::GetSubsystem<UUSItemGameInstanceSubsystem>(Owner->GetWorld()->GetGameInstance()))
 		{
-			int32 Row = 0, Column = 0;
-			TArray<FModularCharacterRaw> ModularArray;
-			ModularSubsystem->GetModularList(ModularArray);
-			for (const auto& Modular : ModularArray)
+			TArray<FUSItemData> ItemArray;
+			ItemSubsystem->GetItemList(ItemArray);
+			for (const auto& ItemData : ItemArray)
 			{
-				if (Modular.ModularIcon != nullptr) // 아이콘이 있는것만.. 나중에 수작업이라..
+				if (ItemData.ItemIcon != nullptr) // 아이콘이 있는것만.. 나중에 수작업이라..
 				{
-					UUSItemData* item = NewObject<UUSItemData>();
-					item->ItemName = Modular.ModularName;
-					item->ItemMesh = Modular.ModularMesh;
-					item->ItemIcon = Modular.ModularIcon;
-
-					for (int8 i = 0; i < static_cast<int8>(EModularColorParts::MAX); i++)
-					{
-						FLinearColor LinearColor = ModularSubsystem->GetColor(Modular, i);
-						item->ItemOriginPartsColor.Add(i, LinearColor);
-						item->ItemChangePartsColor.Add(i, LinearColor); // 초기에는 원본의 색이 들어가 있음
-					}
-
-					Itemlist.Add(item);
+					Itemlist.Add(ItemData);
 				}
 			}
 		}
 	}
+}
+
+void UUSInventory::ResponseMessage(FGameplayTag Channel, const FDyeingMessageData& Payload)
+{
+	switch (Payload.MessageType)
+	{
+	case 0:
+	{
+		FUSItemData* FoundItem = Itemlist.FindByPredicate([&](const FUSItemData& Item) {
+			return Item.ItemName == Payload.ItemData.ItemName;
+			});
+
+		if (FoundItem == nullptr)
+			return;
+
+		*FoundItem = Payload.ItemData;
+		break;
+	}
+	default:
+		break;
+	}
+
 }
 

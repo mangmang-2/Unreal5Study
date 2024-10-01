@@ -21,7 +21,10 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UVerticalBox> ItemList;
 
+
+	UPROPERTY()
+	TArray<TObjectPtr<class UUSDyeingSlot>> SlotList;
 public:
-	void CreateSlotWidget(struct FModularCharacterRaw ModularRaw);
+	void CreateSlotWidget(struct FUSItemData ItemRaw);
 
 };

@@ -41,7 +41,7 @@ FLinearColor UModularCharacterDataSubsystem::GetColor(FModularCharacterRaw Modul
         UMaterialInstanceDynamic* MaterialInstance = SkeletalMeshComponent->CreateAndSetMaterialInstanceDynamic(0);
         if (MaterialInstance)
         {
-            FString ColorPartsName = StaticEnum<EModularColorParts>()->GetDisplayNameTextByIndex(ColorParts).ToString();
+            FString ColorPartsName = StaticEnum<EItemColorParts>()->GetDisplayNameTextByIndex(ColorParts).ToString();
             bool bHasColor = MaterialInstance->GetVectorParameterValue(FName(*ColorPartsName), Color);
         }
     }
@@ -53,7 +53,7 @@ void UModularCharacterDataSubsystem::GetModularList(TArray<FModularCharacterRaw>
     ModularArray = ModularCharacterDataArray;
 }
 
-void UModularCharacterDataSubsystem::GetModularList(EModularCharacterType eCategory, TArray<FModularCharacterRaw>& ModularArray)
+void UModularCharacterDataSubsystem::GetModularList(EItemCategory eCategory, TArray<FModularCharacterRaw>& ModularArray)
 {
     for (auto& Row : ModularCharacterDataArray)
     {
@@ -64,7 +64,7 @@ void UModularCharacterDataSubsystem::GetModularList(EModularCharacterType eCateg
     }
 }
 
-bool UModularCharacterDataSubsystem::GetRandomModular(EModularCharacterType eCategory, FModularCharacterRaw& ModularData)
+bool UModularCharacterDataSubsystem::GetRandomModular(EItemCategory eCategory, FModularCharacterRaw& ModularData)
 {
     TArray<FModularCharacterRaw> ModularArray;
     GetModularList(eCategory, ModularArray);

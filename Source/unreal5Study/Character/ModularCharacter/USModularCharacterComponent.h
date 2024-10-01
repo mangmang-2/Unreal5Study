@@ -27,6 +27,7 @@ public:
 	void ClearAllParts();
 
 	void ChangeParts(struct FModularCharacterRaw ModularRaw);
+	void ChangeParts(struct FUSItemData ItemData);
 	void ChangeParts(uint8 eCategory, class USkeletalMesh* ModularMesh);
 	void ChangePartsColor(uint8 PartsType, uint8 ColorParts, FLinearColor Color);
 	void InitPartsColor(uint8 PartsType, uint8 ColorParts);

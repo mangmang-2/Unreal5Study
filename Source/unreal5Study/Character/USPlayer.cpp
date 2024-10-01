@@ -23,6 +23,7 @@
 #include "Ability/Tag/USGameplayTag.h"
 #include "Ability/Attribute/USChracterAttributeSet.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "../Item/USInventory.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -62,7 +63,7 @@ AUSPlayer::AUSPlayer()
 	//{
 	//	UnequipShield->SetStaticMesh(BodyMeshRef.Object);
 	//}
-//	InventoryComponent = CreateDefaultSubobject<UUSInventory>(TEXT("Inventory"));
+	InventoryComponent = CreateDefaultSubobject<UUSInventory>(TEXT("Inventory"));
 }
 
 

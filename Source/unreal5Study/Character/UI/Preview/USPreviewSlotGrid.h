@@ -6,7 +6,7 @@
 #include "Character/UI/USUserWidget.h"
 #include "USPreviewSlotGrid.generated.h"
 
-enum class EModularCharacterType : uint8;
+enum class EItemCategory : uint8;
 /**
  * 
  */
@@ -19,7 +19,7 @@ class UNREAL5STUDY_API UUSPreviewSlotGrid : public UUSUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	void Build(EModularCharacterType eCategory);
+	void Build(EItemCategory eCategory);
 	void CreateSlotWidget(int32 InRow, int32 InColumn, struct FModularCharacterRaw ModularRaw);
 
 	UFUNCTION()

@@ -34,7 +34,7 @@ void UUSDyeingSelectColorPanel::ResponseMessage(FGameplayTag Channel, const FDye
 {
 	switch (Payload.MessageType)
     {
-    case 0: // 원본
+    case 0: // 원본 
         SetColor(WBP_DyeingColorDetail_Origin, Payload.Color);
         break;
     case 1: // 선택한 색상

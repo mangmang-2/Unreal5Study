@@ -9,8 +9,10 @@
 #include "NativeGameplayTags.h"
 #include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
 #include "USDyeingData.h"
+#include "Item/USItemData.h"
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Inventory_Update_Color_Message);
 
 UUSDyeingPanel::UUSDyeingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -40,7 +42,7 @@ void UUSDyeingPanel::ResponseMessage(FGameplayTag Channel, const FDyeingMessageD
     case 0: // ºÎÀ§ : Àå°©, ¸ðÀÚ, ½Å¹ß..
         PartsType = Payload.PartsType;
         SelectDyeingSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-        SelectDyeingSlot->SetData(Payload.ModularData);
+        SelectDyeingSlot->SetData(Payload.ItemData);
         SetOriginColor();
         break;
     case 1: // color ÆÄÃ÷ : base, metal..
@@ -58,15 +60,12 @@ void UUSDyeingPanel::ResponseMessage(FGameplayTag Channel, const FDyeingMessageD
 
 void UUSDyeingPanel::SetOriginColor()
 {
-
-	UModularCharacterDataSubsystem* ModularSubsystem = UGameInstance::GetSubsystem<UModularCharacterDataSubsystem>(GetGameInstance());
-	if (ModularSubsystem == nullptr)
-		return;
-	FLinearColor LinearColor = ModularSubsystem->GetColor(SelectDyeingSlot->GetModular(), ColorParts);
+    FUSItemData Data = SelectDyeingSlot->GetItemData();
+    FLinearColor LinearColor = Data.GetChangeColor(ColorParts);
 
     FDyeingMessageData Message;
     Message.Verb = TAG_DyeingSelectColorPanel_Message;
-    Message.Color = Color;
+    Message.Color = LinearColor;
     Message.MessageType = 0;
 
     UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
@@ -97,10 +96,14 @@ void UUSDyeingPanel::StartDyeing()
         return;
 
     CharacterOwner->ModularCharacterComponent->ChangePartsColor(PartsType, ColorParts, Color);
-}
 
-void UUSDyeingPanel::SaveDyeing()
-{
+    FUSItemData Data = SelectDyeingSlot->GetItemData();
+    Data.SetChangeColor(ColorParts, Color);
+    SelectDyeingSlot->SetData(Data);
+
+    SetOriginColor();
+    SendInven();
+    SendSlot();
 }
 
 void UUSDyeingPanel::ReturnDyeing()
@@ -116,5 +119,28 @@ void UUSDyeingPanel::ReturnDyeing()
         return;
 
     CharacterOwner->ModularCharacterComponent->InitPartsColor(PartsType, ColorParts);
+    SetOriginColor();
+}
+
+void UUSDyeingPanel::SendInven()
+{
+	FDyeingMessageData Message;
+	Message.Verb = TAG_Inventory_Update_Color_Message;
+	Message.ItemData = SelectDyeingSlot->GetItemData();
+    Message.MessageType = 0;
+
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSystem.BroadcastMessage(Message.Verb, Message);
+}
+
+void UUSDyeingPanel::SendSlot()
+{
+    FDyeingMessageData Message;
+    Message.Verb = TAG_DyeingSlotUpdate_Message;
+    Message.ItemData = SelectDyeingSlot->GetItemData();
+    Message.MessageType = 0;
+
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+    MessageSystem.BroadcastMessage(Message.Verb, Message);
 }
 

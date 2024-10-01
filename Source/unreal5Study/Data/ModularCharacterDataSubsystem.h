@@ -4,38 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Item/USItemData.h"
 #include "ModularCharacterDataSubsystem.generated.h"
 
-
-UENUM(BlueprintType)
-enum class EModularCharacterType : uint8
-{
-	Helmet			UMETA(DisplayName = "Helmet"),
-	Helmet2			UMETA(DisplayName = "Helmet2"),
-	Gloves			UMETA(DisplayName = "Gloves"),
-	Pants			UMETA(DisplayName = "Pants"),
-	ArmArmor		UMETA(DisplayName = "ArmArmor"),
-	PantsArmor		UMETA(DisplayName = "PantsArmor"),
-	Shoes			UMETA(DisplayName = "Shoes"),
-	ShoulderArmor	UMETA(DisplayName = "ShoulderArmor"),
-	Torso			UMETA(DisplayName = "Torso"),
-	TorsoRag		UMETA(DisplayName = "TorsoRag"), 
-	TorsoArms		UMETA(DisplayName = "TorsoArms"),
-	HelmetClose		UMETA(DisplayName = "HelmetClose"),
-	Coat			UMETA(DisplayName = "Coat"),
-	MAX				UMETA(DisplayName = "None"),
-};
-
-UENUM(BlueprintType)
-enum class EModularColorParts : uint8
-{
-	Color			UMETA(DisplayName = "2 color"),
-	Base			UMETA(DisplayName = "base"),
-	Belts			UMETA(DisplayName = "belts"),
-	Damage			UMETA(DisplayName = "damage"),
-	Metal			UMETA(DisplayName = "metal"),
-	MAX				UMETA(DisplayName = "None"),
-};
 
 USTRUCT(BlueprintType)
 struct FModularCharacterRaw : public FTableRowBase
@@ -46,7 +17,7 @@ struct FModularCharacterRaw : public FTableRowBase
     FString ModularName;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EModularCharacterType ModularCategory;
+	EItemCategory ModularCategory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TObjectPtr<class USkeletalMesh> ModularMesh;
@@ -81,8 +52,8 @@ protected:
 
 public:
 	void GetModularList(TArray<FModularCharacterRaw>& ModularArray);
-	void GetModularList(EModularCharacterType eCategory, TArray<FModularCharacterRaw>& ModularArray);
-	bool GetRandomModular(EModularCharacterType eCategory, FModularCharacterRaw& ModularData);
+	void GetModularList(EItemCategory eCategory, TArray<FModularCharacterRaw>& ModularArray);
+	bool GetRandomModular(EItemCategory eCategory, FModularCharacterRaw& ModularData);
 
 public:
 	FOnPreviewChange OnPreviewChange;

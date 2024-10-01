@@ -1,12 +1,13 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "../../../Data/ModularCharacterDataSubsystem.h"
 #include "NativeGameplayTags.h"
+#include "Item/USItemData.h"
 #include "USDyeingData.generated.h"
 
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_DyeingPanel_Message);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_DyeingSelectColorPanel_Message);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_DyeingSlotUpdate_Message);
 
 USTRUCT(BlueprintType)
 struct FDyeingMessageData
@@ -39,10 +40,12 @@ struct FDyeingMessageData
 
 	UPROPERTY(BlueprintReadWrite, Category=Gameplay)
 	uint8 PartsType = 0;
+
 	UPROPERTY(BlueprintReadWrite, Category=Gameplay)
 	uint8 ColorParts = 0;
+
 	UPROPERTY(BlueprintReadWrite, Category=Gameplay)
 	FLinearColor Color;
-	UPROPERTY(BlueprintReadWrite, Category=Gameplay)
-	FModularCharacterRaw ModularData;
+
+	struct FUSItemData ItemData;
 };
