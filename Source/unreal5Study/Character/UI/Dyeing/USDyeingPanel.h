@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Character/UI/USUserWidget.h"
+#include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
+#include "USDyeingData.h"
 #include "USDyeingPanel.generated.h"
 
 /**
@@ -17,7 +19,8 @@ public:
 	UUSDyeingPanel(const FObjectInitializer& ObjectInitializer);
 
 	virtual void NativeConstruct() override;
-	virtual void ResponseMessage(int32 MessageType, class UWidgetMessage* WidgetMessage);
+	virtual void NativeDestruct() override;
+	virtual void ResponseMessage(FGameplayTag Channel, const FDyeingMessageData& Payload);
 
 	void SetOriginColor();
 	void SetSelectColor();
@@ -38,4 +41,6 @@ protected:
 	uint8 PartsType = -1;
 	uint8 ColorParts = -1;
 	FLinearColor Color;
+
+	FGameplayMessageListenerHandle ListenerHandle;
 };

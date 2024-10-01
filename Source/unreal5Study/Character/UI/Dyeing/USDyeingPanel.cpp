@@ -6,60 +6,82 @@
 #include "../../USCharacterBase.h"
 #include "../../ModularCharacter/USModularCharacterComponent.h"
 #include "USDyeingSlot.h"
+#include "NativeGameplayTags.h"
+#include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
+
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingSelectColorPanel_Message, "UI.Message.DyeingSelectColorPanel");
 
 UUSDyeingPanel::UUSDyeingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-    WidgetID = EWidgetID::DyeingPanel;
 }
 
 void UUSDyeingPanel::NativeConstruct()
 {
     Super::NativeConstruct();
     SelectDyeingSlot->SetVisibility(ESlateVisibility::Collapsed);
+
+    UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+    ListenerHandle = MessageSubsystem.RegisterListener(TAG_DyeingPanel_Message, this, &ThisClass::ResponseMessage);
 }
 
-void UUSDyeingPanel::ResponseMessage(int32 MessageType, UWidgetMessage* WidgetMessage)
+void UUSDyeingPanel::NativeDestruct()
 {
-    UDyeingMessage* DyeingMessage = Cast<UDyeingMessage>(WidgetMessage);
-    switch (MessageType)
+    Super::NativeDestruct();
+
+    UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+    MessageSubsystem.UnregisterListener(ListenerHandle);
+}
+
+void UUSDyeingPanel::ResponseMessage(FGameplayTag Channel, const FDyeingMessageData& Payload)
+{
+    switch (Payload.MessageType)
     {
     case 0: // ºÎÀ§ : Àå°©, ¸ðÀÚ, ½Å¹ß..
-        PartsType = DyeingMessage->PartsType;
+        PartsType = Payload.PartsType;
         SelectDyeingSlot->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-        SelectDyeingSlot->SetData(DyeingMessage->ModularData);
+        SelectDyeingSlot->SetData(Payload.ModularData);
         SetOriginColor();
         break;
     case 1: // color ÆÄÃ÷ : base, metal..
-        ColorParts = DyeingMessage->ColorParts;
+        ColorParts = Payload.ColorParts;
         SetOriginColor();
         break;
     case 2: // color 
-        Color = DyeingMessage->Color;
+        Color = Payload.Color;
         SetSelectColor();
         break;
     default:
         break;
     }
-    
 }
 
 void UUSDyeingPanel::SetOriginColor()
 {
+
 	UModularCharacterDataSubsystem* ModularSubsystem = UGameInstance::GetSubsystem<UModularCharacterDataSubsystem>(GetGameInstance());
 	if (ModularSubsystem == nullptr)
 		return;
 	FLinearColor LinearColor = ModularSubsystem->GetColor(SelectDyeingSlot->GetModular(), ColorParts);
 
-    UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
-    WidgetMessage->Color = LinearColor;
-    SendMessage(EWidgetID::DyeingSelectColorPanel, 0, WidgetMessage);
+    FDyeingMessageData Message;
+    Message.Verb = TAG_DyeingSelectColorPanel_Message;
+    Message.Color = Color;
+    Message.MessageType = 0;
+
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+    MessageSystem.BroadcastMessage(Message.Verb, Message);
 }
 
 void UUSDyeingPanel::SetSelectColor()
 {
-    UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
-    WidgetMessage->Color = Color;
-    SendMessage(EWidgetID::DyeingSelectColorPanel, 1, WidgetMessage);
+    FDyeingMessageData Message;
+    Message.Verb = TAG_DyeingSelectColorPanel_Message;
+    Message.Color = Color;
+    Message.MessageType = 1;
+
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+    MessageSystem.BroadcastMessage(Message.Verb, Message);
 }
 
 void UUSDyeingPanel::StartDyeing()

@@ -2,8 +2,6 @@
 
 
 #include "Character/UI/USUserWidget.h"
-#include "WidgetGameInstance.h"
-
 
 void UUSUserWidget::SetOwningActor(AActor* InOwner)
 {
@@ -13,25 +11,6 @@ void UUSUserWidget::SetOwningActor(AActor* InOwner)
 void UUSUserWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-    if (UWidgetGameInstance* WidgetGameInstance = UGameInstance::GetSubsystem<UWidgetGameInstance>(GetGameInstance()))
-    {
-        // 존재하면 다시 넣지않음
-        if (WidgetGameInstance->WidgetMessageMap.Contains(static_cast<uint32>(WidgetID)))
-        {
-            if (WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(WidgetID)].IsAlreadyBound(this, &ThisClass::DelegateMessage) == false)
-            {
-                WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(WidgetID)].AddDynamic(this, &ThisClass::DelegateMessage);
-            }
-        }
-        else
-        {
-            FOnWidgetMessage WidgetMessageDelegate;
-            WidgetMessageDelegate.AddDynamic(this, &ThisClass::DelegateMessage);
-
-            WidgetGameInstance->WidgetMessageMap.Add(static_cast<uint32>(WidgetID), WidgetMessageDelegate);
-        }
-    }
     
     // 커서를 보이게 설정하고, 게임과 UI 모두 입력 가능하게 설정
     if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
@@ -56,24 +35,4 @@ void UUSUserWidget::NativeDestruct()
         PC->bShowMouseCursor = false;
         PC->SetInputMode(FInputModeGameOnly());
     }
-}
-
-void UUSUserWidget::DelegateMessage(int32 MessageType, UWidgetMessage* WidgetMessage)
-{
-    ResponseMessage(MessageType, WidgetMessage);
-}
-
-void UUSUserWidget::ResponseMessage(int32 MessageType, UWidgetMessage* WidgetMessage)
-{
-}
-
-void UUSUserWidget::SendMessage(EWidgetID SendWidgetID, int32 MessageType, UWidgetMessage* WidgetMessage)
-{
-	if (UWidgetGameInstance* WidgetGameInstance = UGameInstance::GetSubsystem<UWidgetGameInstance>(GetGameInstance()))
-	{
-		if (WidgetGameInstance->WidgetMessageMap.Contains(static_cast<uint32>(SendWidgetID)))
-		{
-			WidgetGameInstance->WidgetMessageMap[static_cast<uint32>(SendWidgetID)].Broadcast(MessageType, WidgetMessage);
-		}
-	}
 }

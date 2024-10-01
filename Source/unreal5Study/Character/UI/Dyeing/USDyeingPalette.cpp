@@ -9,6 +9,10 @@
 #include "Rendering/Texture2DResource.h"
 #include "Components/Image.h"
 #include "USDyeingData.h"
+#include "NativeGameplayTags.h"
+#include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
+
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
 
 // HSV to RGB 변환 함수 정의
 FLinearColor HSVtoRGB(float H, float S, float V)
@@ -106,7 +110,6 @@ UTexture2D* UUSDyeingPalette::CreateGradationTexture(UObject* Outer, int32 Width
 
 UUSDyeingPalette::UUSDyeingPalette(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-    WidgetID = EWidgetID::DyeingPalette;
 }
 
 void UUSDyeingPalette::NativeConstruct()
@@ -162,7 +165,11 @@ FColor UUSDyeingPalette::GetPixelColor(int32 X, int32 Y)
 
 void UUSDyeingPalette::ChangeModulPartsColor(FColor Color)
 {
-    UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
-    WidgetMessage->Color = Color.ReinterpretAsLinear();
-    SendMessage(EWidgetID::DyeingPanel, 2, WidgetMessage);
+    FDyeingMessageData Message;
+    Message.Verb = TAG_DyeingPanel_Message;
+    Message.Color = Color.ReinterpretAsLinear();
+    Message.MessageType = 2;
+
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+    MessageSystem.BroadcastMessage(Message.Verb, Message);
 }

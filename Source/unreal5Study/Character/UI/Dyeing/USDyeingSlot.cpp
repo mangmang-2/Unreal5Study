@@ -7,6 +7,10 @@
 #include "../../USCharacterBase.h"
 #include "../../ModularCharacter/USModularCharacterComponent.h"
 #include "USDyeingData.h"
+#include "NativeGameplayTags.h"
+#include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
+
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
 
 void UUSDyeingSlot::SetData(FModularCharacterRaw ModularRaw)
 {
@@ -28,8 +32,12 @@ void UUSDyeingSlot::OnModularPartsIconButtonClicked()
 
 	CharacterOwner->ModularCharacterComponent->ChangeParts(ModularRawData);
 
-	UDyeingMessage* WidgetMessage = NewObject<UDyeingMessage>();
-	WidgetMessage->PartsType = static_cast<int8>(ModularRawData.ModularCategory);
-	WidgetMessage->ModularData = ModularRawData;
-	SendMessage(EWidgetID::DyeingPanel, 0, WidgetMessage);
+	FDyeingMessageData Message;
+	Message.Verb = TAG_DyeingPanel_Message;
+	Message.PartsType = static_cast<int8>(ModularRawData.ModularCategory);
+	Message.ModularData = ModularRawData;
+	Message.MessageType = 0;
+
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSystem.BroadcastMessage(Message.Verb, Message);
 }
