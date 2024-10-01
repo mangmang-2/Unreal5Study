@@ -6,7 +6,7 @@
 #include "USDyeingColorDetail.h"
 #include "NativeGameplayTags.h"
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingSelectColorPanel_Message, "UI.Message.DyeingSelectColorPanel");
+UE_DEFINE_GAMEPLAY_TAG(TAG_DyeingSelectColorPanel_Message, "UI.Message.DyeingSelectColorPanel");
 
 void UUSDyeingSelectColorPanel::NativeConstruct()
 {

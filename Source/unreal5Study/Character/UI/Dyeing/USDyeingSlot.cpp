@@ -10,7 +10,8 @@
 #include "NativeGameplayTags.h"
 #include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
+//UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
+
 
 void UUSDyeingSlot::SetData(FModularCharacterRaw ModularRaw)
 {

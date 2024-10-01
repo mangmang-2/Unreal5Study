@@ -12,7 +12,8 @@
 #include "NativeGameplayTags.h"
 #include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
+//UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_DyeingPanel_Message);
 
 // HSV to RGB 변환 함수 정의
 FLinearColor HSVtoRGB(float H, float S, float V)

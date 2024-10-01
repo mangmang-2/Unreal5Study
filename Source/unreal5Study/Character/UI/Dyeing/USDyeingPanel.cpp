@@ -8,9 +8,9 @@
 #include "USDyeingSlot.h"
 #include "NativeGameplayTags.h"
 #include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
+#include "USDyeingData.h"
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingSelectColorPanel_Message, "UI.Message.DyeingSelectColorPanel");
+UE_DEFINE_GAMEPLAY_TAG(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
 
 UUSDyeingPanel::UUSDyeingPanel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

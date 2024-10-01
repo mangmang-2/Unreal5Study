@@ -12,9 +12,6 @@
 #include "NativeGameplayTags.h"
 #include "../../../Lyra/GameFramework/GameplayMessageSubsystem.h"
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingSelectColorPanel_Message, "UI.Message.DyeingSelectColorPanel");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_DyeingPanel_Message, "UI.Message.DyeingPanel");
-
 void UUSDyeingPartsSelecter::NativeConstruct()
 {
 	Super::NativeConstruct();

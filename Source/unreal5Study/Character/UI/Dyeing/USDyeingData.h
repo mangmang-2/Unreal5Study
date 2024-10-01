@@ -2,7 +2,11 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "../../../Data/ModularCharacterDataSubsystem.h"
+#include "NativeGameplayTags.h"
 #include "USDyeingData.generated.h"
+
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_DyeingPanel_Message);
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_DyeingSelectColorPanel_Message);
 
 USTRUCT(BlueprintType)
 struct FDyeingMessageData
