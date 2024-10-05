@@ -13,9 +13,8 @@ public class unreal5Study : ModuleRules
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Slate", 
             "SlateCore", "NavigationSystem", "Niagara", "AIModule", "LevelSequence" , "MovieScene", "MotionWarping", "ProceduralMeshComponent",
-            "GameplayAbilities",
-            "GameplayTasks",
-            "GameplayTags"});
+            "GameplayAbilities","GameplayTasks","GameplayTags","GeometryScriptingEditor", "GeometryScriptingCore" }
+        );
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
         // Uncomment if you are using Slate UI

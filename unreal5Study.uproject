@@ -13,7 +13,8 @@
 				"UMG",
 				"CoreUObject",
 				"AIModule",
-				"GameplayAbilities"
+				"GameplayAbilities",
+				"GeometryFramework"
 			]
 		}
 	],
@@ -35,6 +36,10 @@
 		},
 		{
 			"Name": "GameplayAbilities",
+			"Enabled": true
+		},
+		{
+			"Name": "GeometryScripting",
 			"Enabled": true
 		}
 	]
