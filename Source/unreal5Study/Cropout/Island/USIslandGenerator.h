@@ -27,6 +27,7 @@ protected:
 	void Tesselation();
 
 	void MeshPlaneCut();
+	void ProjectUvs();
 	void ReleaseCompute();
 	void SetIslandColor();
 private:

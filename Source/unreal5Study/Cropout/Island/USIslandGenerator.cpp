@@ -16,6 +16,7 @@
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
 #include "Kismet/KismetMaterialLibrary.h"
+#include "NavigationSystem.h"
 
 AUSIslandGenerator::AUSIslandGenerator()
 {
@@ -25,6 +26,9 @@ void AUSIslandGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	DynamicMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	DynamicMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
+
     SpawnCone();
 	AppendBox();
 	MeshSlidify();
@@ -32,6 +36,7 @@ void AUSIslandGenerator::BeginPlay()
 	Tesselation();
 
 	MeshPlaneCut();
+	ProjectUvs();
 	ReleaseCompute();
 	SetIslandColor();
 }
@@ -128,6 +133,25 @@ void AUSIslandGenerator::Tesselation()
 
 void AUSIslandGenerator::MeshPlaneCut()
 {
+	FVector Location(0.0f, 0.0f, -390.0);
+	FRotator Rotation(180.0, 0.0f, 0.0f);
+	FVector Scale(1.0f, 1.0f, 1.0f);
+	FTransform Transform(Rotation, Location, Scale);
+
+	FGeometryScriptMeshPlaneCutOptions Options;
+	Options.bFillHoles = false;
+	Options.bFillSpans = false;
+	Options.bFlipCutSide = false;
+
+	UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshPlaneCut(
+		DynamicMeshComponent->GetDynamicMesh(),
+		Transform,
+		Options
+	);
+}
+
+void AUSIslandGenerator::ProjectUvs()
+{
 	FVector Location(0.0f, 0.0f, 0.0f);
 	FRotator Rotation(0.0f, 0.0f, 0.0f);
 	FVector Scale(1.0f, 1.0f, 1.0f);
@@ -140,8 +164,6 @@ void AUSIslandGenerator::MeshPlaneCut()
 		Transform,
 		Options
 	);
-
-	// uv ¼¼ÆÃ
 
 	FVector UVScale(100.0f, 100.0f, 100.0f);
 	FTransform UVTransform(Rotation, Location, UVScale);
@@ -160,6 +182,14 @@ void AUSIslandGenerator::ReleaseCompute()
 
 	FVector Location(0.0f, 0.0f, 0.05f);
 	AddActorWorldOffset(Location);
+
+	FNavigationSystem::UpdateComponentData(*DynamicMeshComponent);
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys)
+	{
+		NavSys->Build();
+	}
+
 }
 
 void AUSIslandGenerator::SetIslandColor()
@@ -175,7 +205,7 @@ void AUSIslandGenerator::SetIslandColor()
 		FRandomStream Stream;
 		float RandomHueShift = UKismetMathLibrary::RandomFloatInRangeFromStream(Stream, 0.0f, 90.0f) + 102.999725;
 		FLinearColor GrassColour = UKismetMaterialLibrary::GetVectorParameterValue(GetWorld(), MaterialCollection, TEXT("GrassColour"));
-		
+
 		float H, S, V, A;
 		UKismetMathLibrary::RGBToHSV(GrassColour, H, S, V, A);
 		FLinearColor NewGrassColour = UKismetMathLibrary::HSVToRGB(RandomHueShift, S, V, A);
