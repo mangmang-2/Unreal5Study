@@ -100,6 +100,7 @@ void AUSSpawner::OnAsyncLoadComplete()
 
 void AUSSpawner::SpawnInstances()
 {
+    SetActorLocation(FVector(0.0f, 0.0f, 0.0f));
     FVector CenterPos = GetRandomPoint();
 	for (int32 IndexCounter = 0; IndexCounter < SpawnInstance.Num(); ++IndexCounter)
 	{
@@ -165,13 +166,11 @@ FVector AUSSpawner::GetRandomPoint()
     if (NavSystem == nullptr)
         return FVector::ZeroVector;
     FVector Origin = { 0.0f, 0.0f, 0.0f };
-    float Radius = 10000.0;
-    ANavigationData* NavData = NavSystem->GetDefaultNavDataInstance(FNavigationSystem::Create);
-
+    float Radius = 1000.0;
     FNavLocation RandomLocation;
     bool bSuccess = NavSystem->GetRandomReachablePointInRadius(Origin, Radius, RandomLocation);
-
-    return bSuccess ? RandomLocation.Location : FVector::ZeroVector;
+    NavSystem->GetRandomPoint(RandomLocation);
+    return bSuccess ? RandomLocation.Location : RandomLocation;
 }
 
 void AUSSpawner::PickPointsAroundBiomePoints(class UInstancedStaticMeshComponent* Mesh, FVector BiomeCenter, float Radius, int32 BiomeCount, int32 MaxSpawn)
