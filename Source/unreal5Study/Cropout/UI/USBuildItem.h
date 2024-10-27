@@ -27,4 +27,7 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UHorizontalBox> ResourceList;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UBorder> Border_Color;
 };

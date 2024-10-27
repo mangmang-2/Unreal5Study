@@ -9,6 +9,7 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "USCostItem.h"
 #include "Components/SizeBox.h"
+#include "Components/Border.h"
 
 void UUSBuildItem::NativeConstruct()
 {
@@ -25,7 +26,7 @@ void UUSBuildItem::SetData(FUSResource* Resource)
 
 	TitleImage->SetBrushFromTexture(Resource->UIIcon);
 	TitleText->SetText(Resource->Title);
-
+	Border_Color->SetBrushColor(Resource->TabCol);
 	UDataTable* DataTablePointer = LoadObject<UDataTable>(nullptr, TEXT("/Game/Study/Cropout/Spawn/DT_CostTable.DT_CostTable"));
 
 	if (DataTablePointer != nullptr)
