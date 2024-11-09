@@ -8,6 +8,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AUSCropoutPlayer::AUSCropoutPlayer()
@@ -15,20 +16,25 @@ AUSCropoutPlayer::AUSCropoutPlayer()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
+	Cursor = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cursor"));
+	Cursor->SetupAttachment(RootComponent);
+	Cursor->SetRelativeLocation(FVector(0.0f, 0.0f, 0.5f));
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 1139.963867f;
-	//SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bUsePawnControlRotation = false;
 	SpringArm->bInheritPitch = true;
 	SpringArm->bInheritYaw = true;
 	SpringArm->bInheritRoll = true;
 	SpringArm->SocketOffset = FVector(-300.0, 0, 80.0);
-	SpringArm->SetRelativeRotation(FRotator(0.0f, -40.0f, 0.0f)); 
-
+	SpringArm->bDoCollisionTest = false;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	//Camera->bUsePawnControlRotation = false;
+	Camera->bUsePawnControlRotation = false;
 
 	FloatingPawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("FloatingPawnMovement"));
 
@@ -40,16 +46,16 @@ AUSCropoutPlayer::AUSCropoutPlayer()
 	}
 
 	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
-	//Collision->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-
-	Cursor = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cursor"));
+	Collision->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void AUSCropoutPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
+	RootComponent->SetWorldLocation(FVector(0.0f, 0.0f, 0.0f));
+	RootComponent->SetWorldRotation(FRotator(0.0f, 0.0f, 0.0f));
+	
 	UpdateZoom();
 }
 
@@ -58,7 +64,8 @@ void AUSCropoutPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//MoveTracking();
+	MoveTracking();
+	
 }
 
 // Called to bind functionality to input
@@ -93,7 +100,7 @@ void AUSCropoutPlayer::UpdateZoom()
 	SpringArm->TargetArmLength = TargetArmLength;
 
 	float TargetRotation = UKismetMathLibrary::Lerp(-40.0f, -55.0f, Alpha);
-	SpringArm->SetRelativeRotation(FRotator(0.0f, TargetRotation, 0.0f));
+	SpringArm->SetRelativeRotation(FRotator(TargetRotation, 0.0f, 0.0f));
 
 	float MaxSpeed = UKismetMathLibrary::Lerp(1000.0f, 6000.0f, Alpha);
 	FloatingPawnMovement->MaxSpeed = MaxSpeed;
@@ -133,8 +140,11 @@ void AUSCropoutPlayer::MoveTracking()
 	// 이동 입력 추가
 	AddMovementInput(WorldDirection, ScaleValue);
 
-
 	EdgeMode();
+
+	PositionCollisionOnGroundPlane();
+
+	UpdateCursorPosition();
 }
 
 void AUSCropoutPlayer::EdgeMode()
@@ -146,20 +156,19 @@ void AUSCropoutPlayer::EdgeMode()
 
 	FVector2D ScreenPos;
 	FVector Intersection;
-	ProjectMouseToGroundPlane(ScreenPos, Intersection);
+	bool bMousePostion;
+	ProjectMouseToGroundPlane(ScreenPos, Intersection, bMousePostion);
 
 	FVector Direction = CursorDistFromViewportCenter(ScreenPos - ViewportCenter);
-	float Strength = 1.0f;
-
 	FTransform ActorTransform = GetActorTransform();
 	FVector TransformDirection = UKismetMathLibrary::TransformDirection(ActorTransform, Direction);
 
+	float Strength = 1.0f;
 	AddMovementInput(TransformDirection, Strength);
 }
 
-void AUSCropoutPlayer::ProjectMouseToGroundPlane(FVector2D& ScreenPosition, FVector& Intersection)
+void AUSCropoutPlayer::ProjectMouseToGroundPlane(FVector2D& ScreenPosition, FVector& Intersection, bool& bMousePostion)
 {
-	bool bMousePostion;
 	ScreenPosition = GetMouseViewportPosition(bMousePostion);
 	if (bMousePostion == false)
 		ScreenPosition = GetViewportCenter();
@@ -250,30 +259,81 @@ FVector2D AUSCropoutPlayer::AdjustForNegativeDirection(FVector2D InputVector)
 
 void AUSCropoutPlayer::PositionCollisionOnGroundPlane()
 {
+	FVector2D ScreenPos;
+	FVector Intersection;
+	bool bMousePostion;
+	ProjectMouseToGroundPlane(ScreenPos, Intersection, bMousePostion);
+	Intersection.Z += 10.0f;
 
-	//APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-	//if (PlayerController == nullptr)
-	//	return;
-	//FVector WorldLocation, WorldDirection;
-	//if (PlayerController->DeprojectScreenPositionToWorld(ScreenPosition.X, ScreenPosition.Y, WorldLocation, WorldDirection))
-	//{
-	//	// 평면과의 교차점을 계산하기 위해 적당히 멀리 있는 지점까지 라인을 투사합니다.
-	//	FVector LineEnd = WorldLocation + WorldDirection * 10000.0f;
-	//	FVector Intersection = FMath::LinePlaneIntersection(WorldLocation, LineEnd, FVector(0.0f, 0.0f, 0.0f), FVector(0.0f, 0.0f, 1.0f));
+	FHitResult SweepHitResult;
+	bool bSweep = true;
 
-	//	// 2. 현재 위치를 가져와서 Z 값을 -500으로 설정
-	//	FVector CurrentLocation = TargetComponent->GetComponentLocation();
-	//	CurrentLocation.Z = -500.0f;
+	Collision->SetWorldLocation(Intersection, bSweep, &SweepHitResult);
+}
 
-	//	// 3. 보간된 위치 계산
-	//	float DeltaTime = GetWorld()->GetDeltaSeconds();
-	//	FVector TargetLocation = FMath::VInterpTo(CurrentLocation, Intersection, DeltaTime, 12.0f);
+void AUSCropoutPlayer::UpdateCursorPosition()
+{
+	if (HoverActor)
+	{
+		// HoverActor의 바운드 가져오기
+		FVector Origin, BoxExtent;
+		HoverActor->GetActorBounds(true, Origin, BoxExtent);
 
-	//	// 4. 터치 입력 또는 마우스 입력에 따라 위치 선택
-	//	FVector FinalLocation = bIsTouchInput ? TargetLocation : Intersection;
+		FVector NewOrigin(Origin.X, Origin.Y, 20.0f);
 
-	//	// 5. 위치 설정
-	//	TargetComponent->SetWorldLocation(FinalLocation);
-	//}
+		// 2D 벡터 크기 계산
+		FVector2D BoxExtent2D(BoxExtent.X, BoxExtent.Y);
+		double MaxExtent = UKismetMathLibrary::GetAbsMax2D(BoxExtent2D) / 50.0f;
+
+
+		// 시간에 따른 Sin 값을 사용하여 Y축 스케일 조정
+		double Time = UKismetSystemLibrary::GetGameTimeInSeconds(GetWorld());
+		double ScaleY = (FMath::Sin(Time * 5.0) * 0.25);
+
+		// 최종 스케일 값 설정
+		FVector Scale(MaxExtent + ScaleY + 1.0, MaxExtent + ScaleY + 1.0, 1.0f);
+		FRotator Rotation = FRotator::ZeroRotator;
+		Target = UKismetMathLibrary::MakeTransform(NewOrigin, Rotation, Scale);
+	}
+	else
+	{
+		FVector TargetLocation = Target.GetLocation();
+		FVector AdjustedLocation = FVector(TargetLocation.X, TargetLocation.Y, -100.0f);
+		FVector2D ScreenPos;
+		FVector Intersection;
+		bool bMousePostion;
+		ProjectMouseToGroundPlane(ScreenPos, Intersection, bMousePostion);
+
+		Target.SetScale3D(FVector(2.0f, 2.0f, 1.0f));
+		if (bMousePostion)
+		{
+			Target.SetLocation(Intersection);
+		}
+		else
+		{
+			Target.SetLocation(AdjustedLocation);
+		}
+	}
+	float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
+
+	FTransform CursorTransform = Cursor->GetComponentToWorld();
+	FTransform NewTransform = UKismetMathLibrary::TInterpTo(CursorTransform, Target, DeltaTime, 12.0f);
+	FVector Location = NewTransform.GetLocation();
+	Location.Z += 0.5;
+	NewTransform.SetLocation(Location);
+	Cursor->SetWorldTransform(NewTransform);
+}
+
+void AUSCropoutPlayer::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
+
+	if (OtherActor)
+	{
+		HoverActor = OtherActor; // HoverActor에 설정
+
+		// 타이머 시작: ClosestHoverCheck를 0.01초마다 반복적으로 호출
+		//GetWorld()->GetTimerManager().SetTimer(HoverCheckTimerHandle, this, &AYourClassName::ClosestHoverCheck, 0.01f, true);
+	}
 
 }

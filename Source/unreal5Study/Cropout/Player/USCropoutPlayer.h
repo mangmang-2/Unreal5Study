@@ -31,7 +31,7 @@ public:
 
 	void MoveTracking();
 	void EdgeMode();
-	void ProjectMouseToGroundPlane(FVector2D& ScreenPosition, FVector& Intersection);
+	void ProjectMouseToGroundPlane(FVector2D& ScreenPosition, FVector& Intersection, bool& bMousePostion);
 	FVector2D GetViewportCenter();
 	FVector2D GetMouseViewportPosition(bool& bMousePostion);
 	FVector ProjectScreenPositionToGamePlane(FVector2D ScreenPosition);
@@ -42,6 +42,9 @@ public:
 	FVector2D AdjustForNegativeDirection(FVector2D InputVector);
 
 	void PositionCollisionOnGroundPlane();
+	void UpdateCursorPosition();
+
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> BaseInputMappingContext;
@@ -70,4 +73,7 @@ protected:
 	float ZoomDirection = 0.0f;
 	float ZoomValue = 0.5;
 	float EdgeMoveDistance = 50.0f;
+
+	class AActor* HoverActor;
+	FTransform Target;
 };
