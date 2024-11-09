@@ -17,7 +17,12 @@ class UNREAL5STUDY_API UUSBuildItem : public UUSUserWidget
 public:
 	virtual void NativeConstruct();
 	void SetData(struct FUSResource* Resource);
+	void BuildCostItem(struct FUSResource* Resource);
+	
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 
+	void BeginBuild();
+	void AddUI();
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UImage> TitleImage;
@@ -30,4 +35,7 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UBorder> Border_Color;
+
+	UPROPERTY()
+	TSubclassOf<class AUSInteractable> InteractableClass;
 };

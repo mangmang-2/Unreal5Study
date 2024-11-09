@@ -42,3 +42,15 @@ void UUSUserWidget::NativeDestruct()
         }
     }
 }
+
+FReply UUSUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+    return FReply::Handled();
+}
+
+FReply UUSUserWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+    return FReply::Handled();
+}

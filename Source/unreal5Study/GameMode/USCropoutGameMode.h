@@ -13,5 +13,35 @@ UCLASS()
 class UNREAL5STUDY_API AUSCropoutGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:	
+	virtual void BeginPlay() override;
+
+	void GetSpawnRef();
+
+	UFUNCTION()
+	void IslandGencomplete();
+
+	void BeginAsyncSpawning();
+	UFUNCTION()
+	void OnAsyncLoadComplete();
+	void OnTownHallClassLoaded();
+
+	FVector GetSteppedPosition(const FVector& Position, float StepSize);
+
+protected:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> ActorClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> SpawnMarkerClass;
 	
+	UPROPERTY()
+	TObjectPtr<class AUSSpawner> SpawnRef;
+
+	UPROPERTY(EditAnywhere)
+	TSoftClassPtr<AActor> TownHallRef;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<AActor> TownHall;
 };

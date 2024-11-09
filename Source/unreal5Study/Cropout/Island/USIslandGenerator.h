@@ -6,6 +6,7 @@
 #include "DynamicMeshActor.h"
 #include "USIslandGenerator.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTaskComplete);
 /**
  * 
  */
@@ -21,6 +22,7 @@ public:
 
 protected:
 	void SpawnCone();
+	void SpawnMarker();
 	void AppendBox();
 	void MeshSlidify();
 	void SmoothMesh();
@@ -35,4 +37,11 @@ private:
 	float MaxSpawnDistance = 9776.351562;
 	float IslandSizeX = 800.0;
 	float IslandSizeY = 5000.0;
+
+	FOnTaskComplete OnTaskComplete;
+	TArray<FVector> SpawnPoints;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> SpawnMarkerClass;
 };

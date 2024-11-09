@@ -17,6 +17,7 @@
 #include "Materials/MaterialParameterCollectionInstance.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "NavigationSystem.h"
+#include "../../GameMode/USCropoutGameMode.h"
 
 AUSIslandGenerator::AUSIslandGenerator()
 {
@@ -26,10 +27,22 @@ void AUSIslandGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
+	if (GameMode)
+	{
+		AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(GameMode);
+		if (CropoutGameMode )
+		{
+			OnTaskComplete.AddDynamic(CropoutGameMode, &AUSCropoutGameMode::IslandGencomplete);
+		}
+	}
+	
+
 	DynamicMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	DynamicMeshComponent->SetCollisionResponseToAllChannels(ECR_Block);
 
     SpawnCone();
+	SpawnMarker();
 	AppendBox();
 	MeshSlidify();
 	SmoothMesh();
@@ -39,6 +52,8 @@ void AUSIslandGenerator::BeginPlay()
 	ProjectUvs();
 	ReleaseCompute();
 	SetIslandColor();
+
+	OnTaskComplete.Broadcast();
 }
 
 void AUSIslandGenerator::SpawnCone()
@@ -48,6 +63,8 @@ void AUSIslandGenerator::SpawnCone()
         // 위치 설정
         FVector RandSpawnPoint = UKismetMathLibrary::RandomUnitVector() * (MaxSpawnDistance / 2.0f);
         float Radius = FMath::RandRange(IslandSizeX, IslandSizeY);
+		RandSpawnPoint.Z = 0;
+		SpawnPoints.Add(RandSpawnPoint);
 
         // 변환 설정
         FVector Location(RandSpawnPoint.X, RandSpawnPoint.Y, -800.0f); // Z 값은 고정
@@ -69,6 +86,20 @@ void AUSIslandGenerator::SpawnCone()
 			true
 		);
     }
+}
+
+void AUSIslandGenerator::SpawnMarker()
+{
+	if (SpawnMarkerClass == nullptr)
+		return;
+
+	for (auto SpawnPoint : SpawnPoints)
+	{
+		FVector SpawnLocation = SpawnPoint;
+		FRotator SpawnRotation = FRotator::ZeroRotator;
+		FActorSpawnParameters SpawnParams;
+		GetWorld()->SpawnActor<AActor>(SpawnMarkerClass, SpawnLocation, SpawnRotation, SpawnParams);
+	}	
 }
 
 void AUSIslandGenerator::AppendBox()

@@ -10,6 +10,7 @@
 #include "USCostItem.h"
 #include "Components/SizeBox.h"
 #include "Components/Border.h"
+#include "USBuildConfirm.h"
 
 void UUSBuildItem::NativeConstruct()
 {
@@ -27,8 +28,15 @@ void UUSBuildItem::SetData(FUSResource* Resource)
 	TitleImage->SetBrushFromTexture(Resource->UIIcon);
 	TitleText->SetText(Resource->Title);
 	Border_Color->SetBrushColor(Resource->TabCol);
-	UDataTable* DataTablePointer = LoadObject<UDataTable>(nullptr, TEXT("/Game/Study/Cropout/Spawn/DT_CostTable.DT_CostTable"));
+	
+	InteractableClass = Resource->TargetClass.LoadSynchronous();
 
+	BuildCostItem(Resource);
+}
+
+void UUSBuildItem::BuildCostItem(FUSResource* Resource)
+{
+	UDataTable* DataTablePointer = LoadObject<UDataTable>(nullptr, TEXT("/Game/Study/Cropout/Spawn/DT_CostTable.DT_CostTable"));
 	if (DataTablePointer != nullptr)
 	{
 		TArray<FUSCostIcon*> AllRows;
@@ -64,3 +72,29 @@ void UUSBuildItem::SetData(FUSResource* Resource)
 	}
 }
 
+FReply UUSBuildItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+	
+	BeginBuild();
+	AddUI();
+
+	return FReply::Handled();
+}
+
+void UUSBuildItem::BeginBuild()
+{
+}
+
+void UUSBuildItem::AddUI()
+{
+	TSubclassOf<UUSBuildConfirm> BuildConfirmClass = LoadClass<UUSBuildConfirm>(nullptr, TEXT("/Game/Study/Cropout/UI/WBP_Confirm.WBP_Confirm_C"));
+	if (BuildConfirmClass == nullptr)
+		return;
+
+	UUSBuildConfirm* BuildConfirm = CreateWidget<UUSBuildConfirm>(GetWorld(), BuildConfirmClass);
+	if (BuildConfirm == nullptr)
+		return;
+
+	BuildConfirm->AddToViewport();
+}

@@ -21,6 +21,9 @@ public:
 	void NativeConstruct();
 	void NativeDestruct();
 
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Actor")
 	TObjectPtr<AActor> OwningActor;	 
