@@ -140,11 +140,13 @@ void AUSCropoutPlayer::MoveTracking()
 	// 이동 입력 추가
 	AddMovementInput(WorldDirection, ScaleValue);
 
+	UpdateCursorPosition();
+
 	EdgeMode();
 
 	PositionCollisionOnGroundPlane();
 
-	UpdateCursorPosition();
+	
 }
 
 void AUSCropoutPlayer::EdgeMode()
@@ -330,10 +332,77 @@ void AUSCropoutPlayer::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (OtherActor)
 	{
-		HoverActor = OtherActor; // HoverActor에 설정
+		if (HoverActor == nullptr)
+		{
+			HoverActor = OtherActor;
 
-		// 타이머 시작: ClosestHoverCheck를 0.01초마다 반복적으로 호출
-		//GetWorld()->GetTimerManager().SetTimer(HoverCheckTimerHandle, this, &AYourClassName::ClosestHoverCheck, 0.01f, true);
+			// 타이머 설정 - ClosestHoverCheck 함수를 주기적으로 호출
+			GetWorldTimerManager().SetTimer(
+				TimerHandle_ClosestHoverCheck,            // 타이머 핸들
+				this,                                     // 호출 대상
+				&AUSCropoutPlayer::ClosestHoverCheck,     // 호출할 함수
+				0.01f,                                    // 호출 간격 (0.01초)
+				true                                      // 반복 여부 (true로 설정하면 반복 호출)
+			);
+		}
+
+		
+	}
+}
+
+void AUSCropoutPlayer::NotifyActorEndOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorEndOverlap(OtherActor);
+
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, AActor::StaticClass());
+
+	if (OverlappingActors.IsEmpty())
+	{
+		GetWorldTimerManager().SetTimerForNextTick(this, &AUSCropoutPlayer::ClearHoverActor);
+	}
+}
+void AUSCropoutPlayer::ClearHoverActor()
+{
+	HoverActor = nullptr;
+}
+
+void AUSCropoutPlayer::ClosestHoverCheck()
+{
+	TArray<AActor*> OverlappingActors;
+	if (Collision)
+	{
+		Collision->GetOverlappingActors(OverlappingActors, AActor::StaticClass());
 	}
 
+	if (OverlappingActors.Num() == 0)
+	{
+		GetWorldTimerManager().PauseTimer(TimerHandle_ClosestHoverCheck);
+		ClearHoverActor();
+		return;
+	}
+
+	float ClosestDistance = FLT_MAX;
+	AActor* ClosestActor = nullptr;
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (Actor && Actor != this)
+		{
+			// 거리 계산
+			float Distance = FVector::Dist(Actor->GetActorLocation(), Collision->GetComponentLocation());
+
+			// 가장 가까운 액터를 찾음
+			if (Distance < ClosestDistance)
+			{
+				ClosestDistance = Distance;
+				ClosestActor = Actor;
+			}
+		}
+	}
+
+	if (ClosestActor != HoverActor)
+	{
+		HoverActor = ClosestActor;
+	}	
 }

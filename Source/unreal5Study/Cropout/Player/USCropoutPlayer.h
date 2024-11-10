@@ -45,6 +45,16 @@ public:
 	void UpdateCursorPosition();
 
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
+	virtual void NotifyActorEndOverlap(AActor* OtherActor);
+
+	UFUNCTION()
+	void ClearHoverActor();
+
+	UFUNCTION()
+	void ClosestHoverCheck();
+
+	void FindClosestOverlappingActor();
+
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> BaseInputMappingContext;
@@ -74,6 +84,9 @@ protected:
 	float ZoomValue = 0.5;
 	float EdgeMoveDistance = 50.0f;
 
-	class AActor* HoverActor;
 	FTransform Target;
+
+	UPROPERTY()
+	TObjectPtr<class AActor> HoverActor;
+	FTimerHandle TimerHandle_ClosestHoverCheck;
 };
