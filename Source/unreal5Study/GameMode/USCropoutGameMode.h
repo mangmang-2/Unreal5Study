@@ -29,6 +29,9 @@ public:
 
 	FVector GetSteppedPosition(const FVector& Position, float StepSize);
 
+	FVector GetRandomPointInBounds();
+	void SpawnVillager();
+
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;
@@ -44,4 +47,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<AActor> TownHall;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<APawn> VillagerRef;
+
+	int32 VillagerCount = 0;
 };

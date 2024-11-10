@@ -8,6 +8,9 @@
 #include "Engine/LatentActionManager.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/AssetManager.h"
+#include <Kismet/KismetMathLibrary.h>
+#include "NavigationSystem.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 
 void AUSCropoutGameMode::BeginPlay()
 {
@@ -48,6 +51,7 @@ void AUSCropoutGameMode::OnAsyncLoadComplete()
     }
 
     OnTownHallClassLoaded();
+    SpawnVillager();
 }
 
 void AUSCropoutGameMode::OnTownHallClassLoaded()
@@ -95,4 +99,51 @@ FVector AUSCropoutGameMode::GetSteppedPosition(const FVector& Position, float St
 
     // 새로운 벡터 반환 (Z는 0으로 설정)
     return FVector(SteppedX, SteppedY, 0.0f);
+}
+
+FVector AUSCropoutGameMode::GetRandomPointInBounds()
+{
+    FVector Origin, BoxExtent;
+    TownHall->GetActorBounds(false, Origin, BoxExtent); 
+
+    FVector RandomUnitVector = UKismetMathLibrary::RandomUnitVector();
+
+    FVector CalcVector = (RandomUnitVector * FMath::Min(BoxExtent.X, BoxExtent.Y) * 2.0f) + Origin;
+    CalcVector.Z = 0;
+
+    UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+    FNavLocation NavLocation;
+    if (NavSystem && NavSystem->GetRandomReachablePointInRadius(CalcVector, 500.0f, NavLocation))
+    {
+        return NavLocation.Location;
+    }
+
+    return FVector::ZeroVector;
+}
+
+void AUSCropoutGameMode::SpawnVillager()
+{
+    if (VillagerRef == nullptr)
+        return;
+
+    for (int32 i = 0; i < 3; i++)
+    {
+        FVector SpawnLocation = GetRandomPointInBounds();
+        FRotator SpawnRotation = FRotator::ZeroRotator;
+
+        SpawnLocation.Z += 92.561032;
+
+        APawn* SpawnedVillager = UAIBlueprintHelperLibrary::SpawnAIFromClass(
+            GetWorld(),
+            VillagerRef,
+            nullptr,            // AI에 적용할 Behavior Tree
+            SpawnLocation,
+            SpawnRotation,
+            true                // true로 설정하면 충돌할 경우 실패하지 않고 근처에 스폰 시도
+        );
+
+        if(SpawnedVillager)
+            VillagerCount++;
+    }
+    
 }
