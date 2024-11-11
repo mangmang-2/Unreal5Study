@@ -68,6 +68,12 @@ public:
 	FVector GetRandomPoint();
 	void PickPointsAroundBiomePoints(class UInstancedStaticMeshComponent* Mesh, FVector BiomeCenter, float Radius, int32 BiomeCount, int32 MaxSpawn);
 	FTransform GenerateRandomTransform(FVector Pos, FVector SpawnPos, float Radius);
+
+	UFUNCTION()
+	void SpawnRandom();
+	void SpawnAssets(TSubclassOf<class AActor> ClassToSpawn, struct FSTSpawnData SpawnData);
+	void SpawnActor(TSubclassOf<AActor> ClassToSpawn, struct FSTSpawnData SpawnData, struct FNavLocation SpawnPos);
+	FVector SteppedPosition(FVector NewParam);
 protected:
 	UPROPERTY(EditAnywhere)
     TArray<FSTSpawnData> SpawnTypes;		// 실제 사용하는 자원
@@ -79,4 +85,5 @@ protected:
     bool bAsyncComplete = false;  // 비동기 완료 플래그
 
     int32 ClassRefIndex = 0;  // 클래스 참조 인덱스
+
 };

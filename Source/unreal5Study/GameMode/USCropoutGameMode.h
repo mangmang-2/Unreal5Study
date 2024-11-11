@@ -6,6 +6,10 @@
 #include "GameFramework/GameModeBase.h"
 #include "USCropoutGameMode.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam (FOnUpdateVillagers, int32, VillagerCount);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoadCompleted);
+
 /**
  * 
  */
@@ -26,11 +30,19 @@ public:
 	UFUNCTION()
 	void OnAsyncLoadComplete();
 	void OnTownHallClassLoaded();
-
+	
 	FVector GetSteppedPosition(const FVector& Position, float StepSize);
 
 	FVector GetRandomPointInBounds();
 	void SpawnVillager();
+
+	void SpawnInteractables();
+
+	UFUNCTION()
+	void ReadyToSpawn();
+
+	UFUNCTION()
+	void CheckNavigationBuild();
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -52,4 +64,10 @@ protected:
 	TSubclassOf<APawn> VillagerRef;
 
 	int32 VillagerCount = 0;
+	FTimerHandle NavCheckHandle;
+
+public:
+	FOnUpdateVillagers OnUpdateVillagers;
+	FOnLoadCompleted OnLoadCompleted;
+
 };

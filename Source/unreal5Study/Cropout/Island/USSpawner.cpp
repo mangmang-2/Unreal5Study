@@ -8,6 +8,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "NavigationSystem.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "../../GameMode/USCropoutGameMode.h"
 
 // Sets default values
 AUSSpawner::AUSSpawner()
@@ -21,6 +22,19 @@ void AUSSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	AsyncLoadClasses();
+
+    AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
+    if (GameMode)
+    {
+        AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(GameMode);
+        if (CropoutGameMode)
+        {
+            if (!CropoutGameMode->OnLoadCompleted.IsAlreadyBound(this, &AUSSpawner::SpawnRandom))
+            {
+                CropoutGameMode->OnLoadCompleted.AddDynamic(this, &AUSSpawner::SpawnRandom);
+            }
+        }
+    }
 }
 
 void AUSSpawner::AsyncLoadClasses()
@@ -213,3 +227,74 @@ FTransform AUSSpawner::GenerateRandomTransform(FVector Pos, FVector SpawnPos, fl
     return NewTransform;
 }
 
+void AUSSpawner::SpawnRandom()
+{
+    for (int32 Index = 0; Index < SpawnTypes.Num(); Index++)
+    {
+        TSoftClassPtr<AActor> ClassRef = SpawnTypes[Index].ClassREf;
+        if (ClassRef.IsValid())
+        {
+            SpawnAssets(ClassRef.Get(), SpawnTypes[Index]);
+        }
+    }
+}
+
+
+void AUSSpawner::SpawnAssets(TSubclassOf<AActor> ClassToSpawn, FSTSpawnData SpawnData)
+{
+    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+    FRandomStream RandomStream;
+    for (int32 i = 0; i < SpawnData.BiomeCount; i++)
+    {
+        FVector Origin = FVector(0.0f, 0.0f, 0.0f);
+        FNavLocation Pos;
+        if (NavSys->GetRandomPointInNavigableRadius(Origin, 10000.0f, Pos))
+        {
+            int32 LoopCount = UKismetMathLibrary::RandomIntegerInRangeFromStream(0, SpawnData.SpawnPerBiome, RandomStream);
+            for (int32 Index = 0; Index < LoopCount; Index++)
+            {
+                FNavLocation SpawnPos;
+                if (NavSys->GetRandomPointInNavigableRadius(Pos, SpawnData.BiomeScale, SpawnPos))
+                {
+                    SpawnActor(ClassToSpawn, SpawnData, SpawnPos);
+                }
+            }
+        }
+    }
+}
+
+void AUSSpawner::SpawnActor(TSubclassOf<AActor> ClassToSpawn, FSTSpawnData SpawnData, FNavLocation SpawnPos)
+{
+    FVector Location = SteppedPosition(SpawnPos.Location);
+
+    float RandomYaw = UKismetMathLibrary::RandomFloatInRange(0, SpawnData.RandomRotationRange);
+    FRotator Rotation = FRotator(0.0f, RandomYaw, 0.0f);
+
+    float RandomScale = UKismetMathLibrary::RandomFloatInRange(1.0f, SpawnData.ScaleRange + 1);
+    FVector Scale = FVector(RandomScale, RandomScale, RandomScale);
+
+    FTransform SpawnTransform;
+    SpawnTransform.SetLocation(Location);
+    SpawnTransform.SetRotation(FQuat(Rotation));
+    SpawnTransform.SetScale3D(Scale);
+
+    // 스폰 파라미터 설정
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+
+    // 액터 스폰
+    AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ClassToSpawn, SpawnTransform, SpawnParams);
+    if (SpawnedActor)
+    {
+    }
+}
+
+FVector AUSSpawner::SteppedPosition(FVector NewParam)
+{
+    float SteppedX = FMath::RoundToFloat(NewParam.X / 200.0f) * 200.0f;
+    float SteppedY = FMath::RoundToFloat(NewParam.Y / 200.0f) * 200.0f;
+    float SteppedZ = 0.0f;
+
+    return FVector(SteppedX, SteppedY, SteppedZ);
+}

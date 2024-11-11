@@ -11,6 +11,7 @@
 #include <Kismet/KismetMathLibrary.h>
 #include "NavigationSystem.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void AUSCropoutGameMode::BeginPlay()
 {
@@ -52,6 +53,7 @@ void AUSCropoutGameMode::OnAsyncLoadComplete()
 
     OnTownHallClassLoaded();
     SpawnVillager();
+    SpawnInteractables();
 }
 
 void AUSCropoutGameMode::OnTownHallClassLoaded()
@@ -146,4 +148,31 @@ void AUSCropoutGameMode::SpawnVillager()
             VillagerCount++;
     }
     
+    OnUpdateVillagers.Broadcast(VillagerCount);
+}
+
+void AUSCropoutGameMode::SpawnInteractables()
+{
+    ReadyToSpawn();
+}
+
+void AUSCropoutGameMode::ReadyToSpawn()
+{
+    int32 IndexCounter = 0;
+    // 타이머 설정 (0.5초마다 네비게이션 빌드 상태 확인)
+    GetWorldTimerManager().SetTimer(NavCheckHandle, this, &AUSCropoutGameMode::CheckNavigationBuild, 0.5f, true, -0.5f);
+}
+
+void AUSCropoutGameMode::CheckNavigationBuild()
+{
+    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+
+    if (NavSys && !NavSys->IsNavigationBuildingLocked())
+    {
+        // 네비게이션 빌드가 완료된 경우 타이머 정지
+        GetWorldTimerManager().ClearTimer(NavCheckHandle);
+
+        // 이후 로직 수행 (예: 스폰 작업)
+        OnLoadCompleted.Broadcast();
+    }
 }

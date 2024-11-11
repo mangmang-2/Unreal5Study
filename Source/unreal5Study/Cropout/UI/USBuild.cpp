@@ -23,10 +23,8 @@ void UUSBuild::NativeConstruct()
 
 		for (auto& Row : AllRows)
 		{
-
 			AddItem(Row);
 		}
-
 	}
 }
 

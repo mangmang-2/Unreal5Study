@@ -14,4 +14,10 @@ class UNREAL5STUDY_API UUSLayerGame : public UUSUserWidget
 {
 	GENERATED_BODY()
 	
+
+public:
+	virtual void NativeConstruct();
+
+	UFUNCTION()
+	void UpdateVillagers(int32 VillagerCount);
 };
