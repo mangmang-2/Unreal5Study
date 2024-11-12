@@ -406,3 +406,10 @@ void AUSCropoutPlayer::ClosestHoverCheck()
 		HoverActor = ClosestActor;
 	}	
 }
+
+void AUSCropoutPlayer::BlueprintZoomFunc(float ActionValue)
+{
+	ZoomDirection = ActionValue;
+	UpdateZoom();
+	Dof();
+}

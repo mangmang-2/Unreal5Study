@@ -55,6 +55,8 @@ public:
 
 	void FindClosestOverlappingActor();
 
+	UFUNCTION(BlueprintCallable)
+	void BlueprintZoomFunc(float ActionValue);
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> BaseInputMappingContext;
