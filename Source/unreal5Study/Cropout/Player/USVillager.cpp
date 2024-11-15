@@ -56,3 +56,7 @@ void AUSVillager::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 }
 
+void AUSVillager::Action(class AActor* VillagerAction)
+{
+}
+

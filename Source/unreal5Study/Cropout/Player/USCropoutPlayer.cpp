@@ -9,6 +9,14 @@
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NavigationSystem.h"
+#include "NavigationPath.h"
+#include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "USVillagerInterface.h"
+#include "Components/SceneComponent.h"
+#include "NiagaraComponent.h"
 
 // Sets default values
 AUSCropoutPlayer::AUSCropoutPlayer()
@@ -413,3 +421,152 @@ void AUSCropoutPlayer::BlueprintZoomFunc(float ActionValue)
 	UpdateZoom();
 	Dof();
 }
+
+void AUSCropoutPlayer::BlueprintVillagerModeTriggered()
+{
+	VillagerAction = HoverActor;
+}
+
+void AUSCropoutPlayer::BlueprintVillagerModeStarted()
+{
+	PositionCheck();
+	AActor* OutputActor = VillageOverlapCheck();
+	if (OutputActor)
+	{
+		VillagerSelect(OutputActor);
+	}
+	else
+	{
+		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			if (DragMoveMappingContext)
+			{
+				Subsystem->AddMappingContext(DragMoveMappingContext, 0);
+			}
+		}
+	}
+}
+
+void AUSCropoutPlayer::BlueprintVillagerModeComplete()
+{
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	{
+		if (DragMoveMappingContext)
+		{
+			FModifyContextOptions Options;
+			Options.bIgnoreAllPressedKeysUntilRelease = true;  // 모든 눌린 키를 릴리스할 때까지 무시
+			Options.bForceImmediately = true;                  // 즉시 적용
+			Options.bNotifyUserSettings = false;               // 사용자 설정 알림 비활성화
+
+			Subsystem->RemoveMappingContext(DragMoveMappingContext, Options);
+		}
+	}
+
+	if (Selected)
+	{
+		IUSVillagerInterface* SelectedVillager = Cast<IUSVillagerInterface>(Selected);
+		if (SelectedVillager)
+		{
+			SelectedVillager->Action(VillagerAction);
+		}
+		VillagerRelease();
+	}
+	VillagerAction = nullptr;
+}
+
+void AUSCropoutPlayer::VillagerRelease()
+{
+	if (GetWorld()->GetTimerManager().IsTimerActive(UpdatePathTimerHandle))
+		GetWorld()->GetTimerManager().PauseTimer(UpdatePathTimerHandle);
+
+	if (NSPath)
+	{
+		NSPath->DestroyComponent();
+		NSPath = nullptr;
+	}
+
+	Selected = nullptr;
+}
+
+void AUSCropoutPlayer::PositionCheck()
+{
+	FVector2D ScreenPos;
+	FVector Intersection;
+	bool bMousePostion;
+	ProjectMouseToGroundPlane(ScreenPos, Intersection, bMousePostion);
+
+	TargetHandle = Intersection;
+}
+
+class AActor* AUSCropoutPlayer::VillageOverlapCheck()
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, APawn::StaticClass());
+
+	if (OverlappingActors.Num() > 0) // 배열의 길이가 0보다 큰지 확인
+	{
+		AActor* FirstActor = OverlappingActors[0]; // 첫 번째 요소 가져오기
+		if (IsValid(FirstActor)) // 첫 번째 요소가 유효한지 확인
+		{
+			return FirstActor;
+		}
+	}
+	return nullptr;
+}
+
+void AUSCropoutPlayer::VillagerSelect(AActor* SelectedActor)
+{
+	Selected = SelectedActor;
+
+	if (UNiagaraSystem* NiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Study/Cropout/VFX/NS_Target.NS_Target"))) // 시스템 템플릿 경로를 지정
+	{
+		UNiagaraComponent* NSComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			NiagaraSystem,
+			RootComponent, // 부착할 컴포넌트
+			NAME_None,     // Attach Point 이름
+			FVector::ZeroVector, // 위치
+			FRotator::ZeroRotator, // 회전
+			EAttachLocation::SnapToTargetIncludingScale, // 위치 타입
+			true, // 자동 파괴
+			true  // 자동 활성화
+		);
+
+		NSPath = NSComponent;
+
+		GetWorldTimerManager().SetTimer(
+			UpdatePathTimerHandle,  // 타이머 핸들
+			this,                   // 타겟 객체
+			&AUSCropoutPlayer::UpdatePath, // 호출할 함수
+			0.01f,                  // 시간 간격
+			true                    // 반복 여부 (루핑)
+		);
+	}
+}
+
+void AUSCropoutPlayer::UpdatePath()
+{
+	if (Collision == nullptr || Selected == nullptr)
+		return;
+
+	FVector CollisionLocation = Collision->GetComponentLocation();
+	FVector SelectedLocation = Selected->GetActorLocation();
+
+	TArray<FVector> PathPoints;
+
+	UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(GetWorld(), CollisionLocation, SelectedLocation);
+	if (NavPath && NavPath->IsValid())
+	{
+		PathPoints = NavPath->PathPoints;
+	}
+
+	if (PathPoints.Num() > 0)
+	{
+		PathPoints[0] = CollisionLocation;
+		PathPoints.Last() = SelectedLocation;
+	}
+
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(NSPath, TEXT("TargetPath"), PathPoints);
+}
+

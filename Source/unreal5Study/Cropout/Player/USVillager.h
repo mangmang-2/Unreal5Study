@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "USVillagerInterface.h"
 #include "USVillager.generated.h"
 
 UCLASS()
-class UNREAL5STUDY_API AUSVillager : public APawn
+class UNREAL5STUDY_API AUSVillager : public APawn, public IUSVillagerInterface
 {
 	GENERATED_BODY()
 
@@ -26,6 +27,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+	virtual void Action(class AActor* VillagerAction);
 
 protected:
 	UPROPERTY(Category= Villager, EditAnywhere)

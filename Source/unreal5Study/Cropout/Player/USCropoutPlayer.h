@@ -57,12 +57,26 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void BlueprintZoomFunc(float ActionValue);
+
+	UFUNCTION(BlueprintCallable)
+	void BlueprintVillagerModeTriggered();
+
+	UFUNCTION(BlueprintCallable)
+	void BlueprintVillagerModeStarted();
+	UFUNCTION(BlueprintCallable)
+	void BlueprintVillagerModeComplete();
+
+	void VillagerRelease();
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> BaseInputMappingContext;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> VillagerMappingContext;
+
+		UPROPERTY(EditAnywhere)
+	TObjectPtr<class UInputMappingContext> DragMoveMappingContext;
+
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class USpringArmComponent> SpringArm;
@@ -91,4 +105,25 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class AActor> HoverActor;
 	FTimerHandle TimerHandle_ClosestHoverCheck;
+
+	UPROPERTY()
+	TObjectPtr<class AActor> VillagerAction;
+
+private:
+	FVector TargetHandle;
+
+	UPROPERTY()
+	TObjectPtr<class UNiagaraComponent> NSPath;
+
+	UPROPERTY()
+	TObjectPtr<class AActor> Selected;
+
+	FTimerHandle UpdatePathTimerHandle;;
+public:
+	void PositionCheck();
+	class AActor* VillageOverlapCheck();
+	void VillagerSelect(class AActor* SelectedActor);
+
+	UFUNCTION()
+	void UpdatePath();
 };
