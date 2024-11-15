@@ -67,6 +67,10 @@ public:
 	void BlueprintVillagerModeComplete();
 
 	void VillagerRelease();
+
+	UFUNCTION(BlueprintCallable)
+	void BlueprintDragModeTriggered();
+
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> BaseInputMappingContext;
@@ -119,6 +123,8 @@ private:
 	TObjectPtr<class AActor> Selected;
 
 	FTimerHandle UpdatePathTimerHandle;;
+
+	FVector StoredMove;
 public:
 	void PositionCheck();
 	class AActor* VillageOverlapCheck();
@@ -126,4 +132,7 @@ public:
 
 	UFUNCTION()
 	void UpdatePath();
+
+	void TrackerMove();
+	FVector CalculateCameraOffset();
 };

@@ -490,6 +490,11 @@ void AUSCropoutPlayer::VillagerRelease()
 	Selected = nullptr;
 }
 
+void AUSCropoutPlayer::BlueprintDragModeTriggered()
+{
+	TrackerMove();
+}
+
 void AUSCropoutPlayer::PositionCheck()
 {
 	FVector2D ScreenPos;
@@ -568,5 +573,45 @@ void AUSCropoutPlayer::UpdatePath()
 	}
 
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(NSPath, TEXT("TargetPath"), PathPoints);
+}
+
+void AUSCropoutPlayer::TrackerMove()
+{
+	FVector2D ScreenPos;
+	FVector Intersection;
+	bool bMousePostion;
+	ProjectMouseToGroundPlane(ScreenPos, Intersection, bMousePostion);
+
+	if (bMousePostion)
+	{
+		StoredMove = TargetHandle - Intersection - CalculateCameraOffset();
+
+		AddActorWorldOffset(FVector(StoredMove.X, StoredMove.Y, 0));
+	}
+}
+
+FVector AUSCropoutPlayer::CalculateCameraOffset()
+{
+	if (!SpringArm || !Camera) 
+		return FVector::ZeroVector;
+
+	FVector ForwardVector = SpringArm->GetForwardVector();
+	FVector UpVector = SpringArm->GetForwardVector();
+	float ArmLength = SpringArm->TargetArmLength;
+
+	FVector ArmOffset = SpringArm->SocketOffset;
+
+	FVector ForwardOffset = ForwardVector * (ArmLength - ArmOffset.X) * -1.0f;
+	FVector UpOffset = UpVector * ArmOffset.Z;
+
+	FVector SpringArmWorldLocation = SpringArm->GetComponentLocation();
+
+	FVector Offset = ForwardOffset + UpOffset + SpringArmWorldLocation;
+
+	FVector CameraWorldLocation = Camera->GetComponentLocation();
+
+	FVector FinalOffset = Offset - CameraWorldLocation;
+
+	return FinalOffset;
 }
 

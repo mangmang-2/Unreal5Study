@@ -17,13 +17,13 @@ void UUSUserWidget::NativeConstruct()
     {
         if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
         {
-            PC->bShowMouseCursor = true;
+            //PC->bShowMouseCursor = true;
 
-            FInputModeGameAndUI InputMode;
-            InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-            InputMode.SetWidgetToFocus(TakeWidget()); // 현재 위젯에 포커스를 맞춤
+            //FInputModeGameAndUI InputMode;
+           // InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+            //InputMode.SetWidgetToFocus(TakeWidget()); // 현재 위젯에 포커스를 맞춤
 
-            PC->SetInputMode(InputMode);
+            //PC->SetInputMode(InputMode);
         }
     }
 }
@@ -37,8 +37,8 @@ void UUSUserWidget::NativeDestruct()
     {
         if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
         {
-            PC->bShowMouseCursor = false;
-            PC->SetInputMode(FInputModeGameOnly());
+            //PC->bShowMouseCursor = false;
+            //PC->SetInputMode(FInputModeGameOnly());
         }
     }
 }
