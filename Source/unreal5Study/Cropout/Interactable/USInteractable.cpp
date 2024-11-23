@@ -2,6 +2,7 @@
 
 
 #include "Cropout/Interactable/USInteractable.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 AUSInteractable::AUSInteractable()
@@ -16,12 +17,12 @@ void AUSInteractable::BeginPlay()
 {
 	Super::BeginPlay();
 	
+    FLatentActionInfo LatentInfo;
+    LatentInfo.CallbackTarget = this; // 콜백 대상
+    LatentInfo.ExecutionFunction = "AfterDelay"; // 지연 후 호출할 함수 이름
+    LatentInfo.Linkage = 0; // Latent Action의 고유 ID
+    LatentInfo.UUID = 1; // Unique ID
+
+    // DelayUntilNextTick 호출
+    UKismetSystemLibrary::DelayUntilNextTick(this, LatentInfo);
 }
-
-// Called every frame
-void AUSInteractable::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "../Cropout/Interactable/USResourceInterface.h"
 #include "USCropoutGameMode.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam (FOnUpdateVillagers, int32, VillagerCount);
@@ -14,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoadCompleted);
  * 
  */
 UCLASS()
-class UNREAL5STUDY_API AUSCropoutGameMode : public AGameModeBase
+class UNREAL5STUDY_API AUSCropoutGameMode : public AGameModeBase, public IUSResourceInterface
 {
 	GENERATED_BODY()
 
@@ -44,6 +45,8 @@ public:
 	UFUNCTION()
 	void CheckNavigationBuild();
 
+	virtual void AddResource_Implementation(enum EResourceType Resource, int32 Value) override;
+
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;
@@ -66,6 +69,8 @@ protected:
 	int32 VillagerCount = 0;
 	FTimerHandle NavCheckHandle;
 
+	UPROPERTY(EditAnywhere)
+	TMap<EResourceType, int32> Resources;
 public:
 	FOnUpdateVillagers OnUpdateVillagers;
 	FOnLoadCompleted OnLoadCompleted;

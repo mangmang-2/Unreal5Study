@@ -176,3 +176,11 @@ void AUSCropoutGameMode::CheckNavigationBuild()
         OnLoadCompleted.Broadcast();
     }
 }
+
+void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int32 Value)
+{
+    if (Resources.Find(Resource) == nullptr)
+        return;
+
+    Resources[Resource] += Value;
+}

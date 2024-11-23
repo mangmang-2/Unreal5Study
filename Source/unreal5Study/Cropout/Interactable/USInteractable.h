@@ -4,16 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "USResourceInterface.h"
 #include "USInteractable.generated.h"
 
-UENUM(BlueprintType)
-enum class EResourceType : uint8
-{
-	None UMETA(DisplayName = "None"),
-	Food UMETA(DisplayName = "Food"),
-	Wood UMETA(DisplayName = "Wood"),
-	Stone UMETA(DisplayName = "Stone"),
-};
 
 USTRUCT(BlueprintType)
 struct FUSCostIcon : public FTableRowBase
@@ -52,7 +45,7 @@ public:
 
 
 UCLASS()
-class UNREAL5STUDY_API AUSInteractable : public AActor
+class UNREAL5STUDY_API AUSInteractable : public AActor, public IUSResourceInterface
 {
 	GENERATED_BODY()
 	
@@ -64,8 +57,5 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 };
