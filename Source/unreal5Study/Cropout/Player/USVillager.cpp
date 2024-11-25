@@ -130,7 +130,6 @@ void AUSVillager::ResetJobState()
 
 	if (Tool)
 	{
-		Tool->SetVisibility(false, true);
 		Tool->SetStaticMesh(nullptr);
 	}
 
@@ -142,11 +141,6 @@ void AUSVillager::ResetJobState()
 
 void AUSVillager::StopJob()
 {
-	if (Tool)
-	{
-		Tool->SetVisibility(false, true); // 가시성을 false로 설정
-	}
-
 	if (SkeletalMesh)
 	{
 		UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance();
@@ -208,7 +202,6 @@ void AUSVillager::LoadAndStoreAccessories(FSTJob* Job)
 	if (Tool && ToolMesh)
 	{
 		Tool->SetStaticMesh(ToolMesh);
-		Tool->SetVisibility(true, false);
 	}
 }
 
@@ -251,11 +244,6 @@ void AUSVillager::OnMontageComplete()
 		return;
 
 	AnimInstance->StopAllMontages(0.0f);
-
-	if (Tool)
-	{
-		Tool->SetVisibility(false, false);
-	}
 }
 
 void AUSVillager::UpdateAllVillagers()
@@ -270,8 +258,7 @@ void AUSVillager::AddResource_Implementation(EResourceType Resource, int32 Value
 
 	if (Tool && CratMesh)
 	{
-		Tool->SetVisibility(true, false);
-		Tool->SetStaticMesh(CratMesh);
+		Tool->SetStaticMesh(CratMesh);		
 	}
 }
 
@@ -285,7 +272,7 @@ void AUSVillager::RemoveResource_Implementation(EResourceType& Resource, int32& 
 
 	if (Tool)
 	{
-		Tool->SetVisibility(false, false);
+		Tool->SetStaticMesh(nullptr);
 	}
 }
 

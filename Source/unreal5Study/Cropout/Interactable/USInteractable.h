@@ -44,7 +44,7 @@ public:
 };
 
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class UNREAL5STUDY_API AUSInteractable : public AActor, public IUSResourceInterface
 {
 	GENERATED_BODY()
@@ -56,6 +56,63 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
+	UFUNCTION(BlueprintCallable)
+
+	void PlacementMode();
+
+	UFUNCTION()
+    void AfterDelay();
+
+	void WriteToRenderTarget();
+	void TransformToTexture(FVector2D Size, FVector2D& ReturnValue, FVector2D& ReturnValue2);
+	void CheckForOverlappingActors();
+
+	UFUNCTION(BlueprintCallable)
+	void PlayWobble(FVector NewParam);
+
+	UFUNCTION(BlueprintCallable)
+	void EndWobble();
+
+    UFUNCTION()
+    void HandleTimelineUpdate(float Value);
+
+    UFUNCTION()
+    void HandleTimelineFinished();
+
+	UFUNCTION(BlueprintCallable)
+
+	virtual float Interact();
+
+protected:
+	bool EnableGroundBlend = true;
+	float OutlineDraw = 0.0f;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UTextureRenderTarget2D> RTDraw;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UMaterialInterface> RenderMaterial;
 
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> Scene;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UStaticMeshComponent> Mesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UBoxComponent> Box;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TObjectPtr<UStaticMesh>> MeshList;
+
+	UPROPERTY()
+	TObjectPtr<class UTimelineComponent> WobbleTimeline;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UCurveFloat> WobbleCurve;
+
+	UPROPERTY(EditAnywhere)
+    float CollectionTime = 3.0f;
+	
 };
