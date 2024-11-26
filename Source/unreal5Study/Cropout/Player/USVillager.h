@@ -95,7 +95,7 @@ protected:
 	TObjectPtr<class AActor> TargetRef;
 
 	UPROPERTY(Category= Villager, EditAnywhere)
-	TObjectPtr<class UStaticMeshComponent> TargetTool;
+	TObjectPtr<class UStaticMesh> TargetTool;
 
 	UPROPERTY()
 	TObjectPtr<class UBehaviorTree> ActiveBehavior;

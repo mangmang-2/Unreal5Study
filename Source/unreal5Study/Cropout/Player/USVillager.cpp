@@ -113,6 +113,12 @@ float AUSVillager::PlayDeliverAnim_Implementation()
 void AUSVillager::PlayWorkAnim_Implementation(float Delay)
 {
 	PlayVillagerAnim(WorkAnim, Delay);
+
+	if (Tool && TargetTool)
+	{
+		Tool->SetStaticMesh(TargetTool);
+	}
+
 }
 
 void AUSVillager::ReturnToDefaultBT_Implementation()
@@ -198,10 +204,10 @@ void AUSVillager::LoadAndStoreAccessories(FSTJob* Job)
 		Hat->SetSkeletalMesh(HatMesh);
 	}
 
-	UStaticMesh* ToolMesh = Cast<UStaticMesh>(Job->Tool);
-	if (Tool && ToolMesh)
+	TargetTool = Cast<UStaticMesh>(Job->Tool);
+	if (Tool && TargetTool)
 	{
-		Tool->SetStaticMesh(ToolMesh);
+		Tool->SetStaticMesh(TargetTool);
 	}
 }
 
