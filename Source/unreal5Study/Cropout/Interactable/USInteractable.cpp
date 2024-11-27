@@ -51,6 +51,7 @@ void AUSInteractable::BeginPlay()
         FOnTimelineFloat TimelineUpdate;
         TimelineUpdate.BindUFunction(this, FName("HandleTimelineUpdate"));
         WobbleTimeline->AddInterpFloat(WobbleCurve, TimelineUpdate);
+        WobbleTimeline->SetLooping(true);
     }
 }
 
@@ -82,6 +83,14 @@ void AUSInteractable::OnConstruction(const FTransform& Transform)
     Box->SetBoxExtent(BoxExtent + (BoundGap * 100.0f));
     FRotator Rotation = FRotator::MakeFromEuler(FVector(1.0f, 0.0f, 0.0f));
     Box->SetWorldRotation(Rotation);
+}
+
+void AUSInteractable::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    // Timeline 업데이트
+   // WobbleTimeline->TickTimeline(DeltaTime);
 }
 
 void AUSInteractable::PlacementMode()
@@ -168,11 +177,11 @@ void AUSInteractable::CheckForOverlappingActors()
 void AUSInteractable::PlayWobble(FVector NewParam)
 {
     FVector ActorLocation = GetActorLocation();
-    FVector Direction = (NewParam - ActorLocation).GetSafeNormal();
+    FVector Direction = (NewParam - ActorLocation).GetSafeNormal(0.0001f);
 
     if (Mesh)
     {
-        Mesh->SetVectorParameterValueOnMaterials(TEXT("WobbleVector"), Direction);
+        Mesh->SetVectorParameterValueOnMaterials(TEXT("Wobble Vector"), Direction);
     }
 
     if (WobbleTimeline)
@@ -183,6 +192,11 @@ void AUSInteractable::PlayWobble(FVector NewParam)
 
 void AUSInteractable::EndWobble()
 {
+    if (Mesh)
+    {
+        Mesh->SetVectorParameterValueOnMaterials(TEXT("Wobble Vector"), FVector::ZeroVector);
+    }
+
     if (WobbleTimeline)
     {
         WobbleTimeline->Stop();
