@@ -21,8 +21,8 @@ public:
 	
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 
-	void BeginBuild();
 	void AddUI();
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UImage> TitleImage;
@@ -38,4 +38,8 @@ protected:
 
 	UPROPERTY()
 	TSubclassOf<class AUSInteractable> InteractableClass;
+
+	struct FUSResource* ItemResource = nullptr;
+
+
 };

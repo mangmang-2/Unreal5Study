@@ -7,6 +7,8 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/SizeBox.h"
+#include "Kismet/GameplayStatics.h"
+#include "../Player/USPlayerInterface.h"
 
 void UUSBuild::NativeConstruct()
 {
@@ -26,6 +28,8 @@ void UUSBuild::NativeConstruct()
 			AddItem(Row);
 		}
 	}
+
+	OnActivated();
 }
 
 void UUSBuild::AddItem(struct FUSResource* Resource)
@@ -49,4 +53,32 @@ void UUSBuild::AddItem(struct FUSResource* Resource)
 		NewSlot->SetHorizontalAlignment(HAlign_Center);
 		NewSlot->SetVerticalAlignment(VAlign_Bottom);
 	}
+}
+
+void UUSBuild::OnActivated()
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (PlayerController == nullptr)
+		return;
+
+	FInputModeUIOnly InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetWidgetToFocus(TakeWidget());
+
+	//PlayerController->SetInputMode(InputMode);
+	PlayerController->bShowMouseCursor = true;
+
+
+	APawn* TargetActor = PlayerController->GetPawn();
+	/*if (TargetActor)
+	{
+		TargetActor->SetActorTickEnabled(false);
+		TargetActor->DisableInput(PlayerController);
+	}*/
+
+	IUSPlayerInterface* TargetPlayer = Cast<IUSPlayerInterface>(TargetActor);
+	if (TargetPlayer == nullptr)
+		return;
+	TargetPlayer->SwitchBuildMode(true);
+
 }

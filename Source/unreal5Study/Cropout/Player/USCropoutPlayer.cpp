@@ -17,6 +17,10 @@
 #include "USVillagerInterface.h"
 #include "Components/SceneComponent.h"
 #include "NiagaraComponent.h"
+#include "../Interactable/USInteractable.h"
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 AUSCropoutPlayer::AUSCropoutPlayer()
@@ -615,3 +619,210 @@ FVector AUSCropoutPlayer::CalculateCameraOffset()
 	return FinalOffset;
 }
 
+
+void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClass)
+{
+	FVector SpawnLocation = GetActorLocation();
+
+	if (TargetClass)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		TargetSpawn = Cast<AUSInteractable>(GetWorld()->SpawnActor<AActor>(
+			TargetClass,
+			SpawnLocation,
+			FRotator::ZeroRotator,
+			SpawnParams
+		));
+	}
+
+	if (TargetSpawn)
+	{
+		TargetSpawn->PlacementMode();
+	}
+
+	CreateBuildOvelay();
+}
+
+void AUSCropoutPlayer::CreateBuildOvelay()
+{
+	if (IsValid(SpawnOverlay))
+	{
+		return;
+	}
+
+	FVector Origin, BoxExtent;
+	TargetSpawn->GetActorBounds(false, Origin, BoxExtent);
+	BoxExtent /= 50.0f;
+
+	FVector Location(0.0f, 0.0f, 0.0f);
+	FRotator Rotation(0.0f, 0.0f, 0.0f);
+	FTransform Transform(Rotation, Location, BoxExtent);
+
+	UStaticMeshComponent* NewMeshComp = NewObject<UStaticMeshComponent>(this, TEXT("NewStaticMesh"));
+	if (NewMeshComp)
+	{
+		NewMeshComp->RegisterComponent(); 
+		NewMeshComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		NewMeshComp->SetRelativeTransform(Transform);
+
+		SpawnOverlay = NewMeshComp;
+	}
+
+	SpawnOverlay->AttachToComponent(
+		TargetSpawn->Mesh,
+		FAttachmentTransformRules(
+			EAttachmentRule::SnapToTarget,
+			EAttachmentRule::KeepWorld,
+			EAttachmentRule::KeepWorld,
+			true
+		)
+	);
+
+	UpdateBuildAsset();
+}
+
+void AUSCropoutPlayer::UpdateBuildAsset()
+{
+	if (IsValid(TargetSpawn) == false)
+		return;
+
+	if (MPC_Cropout == nullptr)
+		return;
+	FVector2D ScreenPos;
+	FVector Intersection;
+	bool bMousePostion;
+	ProjectMouseToGroundPlane(ScreenPos, Intersection, bMousePostion);
+
+	if (bMousePostion == false)
+		return;
+
+	FVector CurrentLocation = TargetSpawn->GetActorLocation();
+
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+	FVector NewLocation = UKismetMathLibrary::VInterpTo(
+		CurrentLocation,
+		Intersection,
+		DeltaTime,
+		10.0f
+	);
+
+	TargetSpawn->SetActorLocation(NewLocation, false, nullptr, ETeleportType::None);
+
+	TArray<AActor*> OutOverlappingActors;
+	TargetSpawn->GetOverlappingActors(OutOverlappingActors, AUSInteractable::StaticClass());
+	if (OutOverlappingActors.Num())
+	{
+		CanDrop = CornersInNav();
+	}
+	else
+	{
+		CanDrop = false;
+	}
+	FLinearColor Color;
+	Color.R = NewLocation.X;
+	Color.G = NewLocation.Y;
+	Color.B = NewLocation.Z;
+	Color.A = CanDrop;
+
+	UMaterialParameterCollectionInstance* Instance = GetWorld()->GetParameterCollectionInstance(MPC_Cropout);
+	if (Instance == nullptr)
+		return;
+
+	Instance->SetVectorParameterValue(FName("Target Position"), Color);
+}
+
+bool AUSCropoutPlayer::CornersInNav()
+{
+	if (TargetSpawn == nullptr)
+		return false;
+
+	FVector Origin, BoxExtent;
+	float SphereRadius;
+	UKismetSystemLibrary::GetComponentBounds(TargetSpawn->Box.Get(), Origin, BoxExtent, SphereRadius);
+
+	TArray<FVector> CornerPositions;
+	CornerPositions.Add(Origin + FVector(BoxExtent.X * 1.05f, BoxExtent.Y * 1.05f, 0.0f));
+	CornerPositions.Add(Origin + FVector(BoxExtent.X * 1.05f, -BoxExtent.Y * 1.05f, 0.0f));
+	CornerPositions.Add(Origin + FVector(-BoxExtent.X * 1.05f, BoxExtent.Y * 1.05f, 0.0f));
+	CornerPositions.Add(Origin + FVector(-BoxExtent.X * 1.05f, -BoxExtent.Y * 1.05f, 0.0f));
+
+	TArray<FHitResult> HitResults;
+	FCollisionQueryParams TraceParams(FName(TEXT("MultiLineTrace")), true, this);
+	TraceParams.bTraceComplex = true;
+	TraceParams.AddIgnoredActor(this);
+
+	bool bOnIsland = true;
+	for (const FVector& Positions : CornerPositions)
+	{
+		FVector Start(Positions.X, Positions.Y, 100.0f);
+		FVector End(Positions.X, Positions.Y, -1);
+
+		HitResults.Empty();
+		if (GetWorld()->LineTraceMultiByChannel(HitResults, Start, End, ECC_Visibility, TraceParams))
+		{
+			bool bHitGround = false;
+
+			for (const FHitResult& Hit : HitResults)
+			{
+				if (Hit.bBlockingHit)
+				{
+					bHitGround = true;
+					break;
+				}
+			}
+
+			if (!bHitGround)
+			{
+				bOnIsland = false;
+				break;
+			}
+		}
+		else
+		{
+			bOnIsland = false;
+			break;
+		}
+	}
+
+	return bOnIsland;
+}
+
+void AUSCropoutPlayer::BlueprintMuildMoveComplete()
+{
+
+	FVector NewLocation = GetSteppedPosition(TargetSpawn->GetActorLocation(), 200);
+	TargetSpawn->SetActorLocation(NewLocation);
+}
+
+
+FVector AUSCropoutPlayer::GetSteppedPosition(const FVector& InputPosition, float StepSize)
+{
+	float SnappedX = FMath::RoundToFloat(InputPosition.X / StepSize) * StepSize;
+	float SnappedY = FMath::RoundToFloat(InputPosition.Y / StepSize) * StepSize;
+
+	return FVector(SnappedX, SnappedY, 0.0f);
+}
+
+void AUSCropoutPlayer::SwitchBuildMode(bool BuildMode)
+{
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+	if (EnhancedInputSubsystem == nullptr)
+		return;
+
+	EnhancedInputSubsystem->ClearAllMappings();
+
+	if (BuildMode)
+	{
+		EnhancedInputSubsystem->RemoveMappingContext(VillagerMappingContext);
+		EnhancedInputSubsystem->AddMappingContext(BuildModeMappingContext, 0);
+	}
+	else
+	{
+		EnhancedInputSubsystem->RemoveMappingContext(BuildModeMappingContext);
+		EnhancedInputSubsystem->AddMappingContext(VillagerMappingContext, 0);
+	}
+
+}

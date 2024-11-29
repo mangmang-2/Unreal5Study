@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "USPlayerInterface.h"
 #include "USCropoutPlayer.generated.h"
 
 UCLASS()
-class UNREAL5STUDY_API AUSCropoutPlayer : public APawn
+class UNREAL5STUDY_API AUSCropoutPlayer : public APawn, public IUSPlayerInterface
 {
 	GENERATED_BODY()
 
@@ -78,8 +79,11 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> VillagerMappingContext;
 
-		UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UInputMappingContext> DragMoveMappingContext;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<class UInputMappingContext> BuildModeMappingContext;
 
 
 	UPROPERTY(EditAnywhere)
@@ -135,4 +139,27 @@ public:
 
 	void TrackerMove();
 	FVector CalculateCameraOffset();
+
+public:
+	void BeginBuild(TSubclassOf<AActor> TargetClass);
+	void CreateBuildOvelay();
+	UFUNCTION(BlueprintCallable)
+	void UpdateBuildAsset();
+	bool CornersInNav();
+
+	UFUNCTION(BlueprintCallable)
+	void BlueprintMuildMoveComplete();
+	FVector GetSteppedPosition(const FVector& InputPosition, float StepSize);
+
+	virtual void SwitchBuildMode(bool BuildMode) override;
+public:
+	class AUSInteractable* TargetSpawn = nullptr;
+
+private:
+	class UStaticMeshComponent* SpawnOverlay = nullptr;
+	bool CanDrop = false;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+	TObjectPtr<UMaterialParameterCollection> MPC_Cropout;
 };

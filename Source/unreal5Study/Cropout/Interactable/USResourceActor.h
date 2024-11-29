@@ -25,7 +25,7 @@ public:
 public:
 
 	UPROPERTY(EditAnywhere)
-	float ResouceAmount = 100.f;
+	float ResouceAmount = 10.f;
 	UPROPERTY(EditAnywhere)
 	EResourceType ResourceType;
 	UPROPERTY(EditAnywhere)

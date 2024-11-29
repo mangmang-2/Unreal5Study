@@ -59,9 +59,11 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
 
+public:
 	UFUNCTION(BlueprintCallable)
 	void PlacementMode();
 
+protected:
 	UFUNCTION()
     void AfterDelay();
 
@@ -98,6 +100,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Scene;
 
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UStaticMeshComponent> Mesh;
 

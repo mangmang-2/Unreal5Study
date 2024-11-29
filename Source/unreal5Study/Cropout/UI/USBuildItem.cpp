@@ -11,6 +11,8 @@
 #include "Components/SizeBox.h"
 #include "Components/Border.h"
 #include "USBuildConfirm.h"
+#include "Kismet/GameplayStatics.h"
+#include "../Player/USCropoutPlayer.h"
 
 void UUSBuildItem::NativeConstruct()
 {
@@ -65,6 +67,8 @@ void UUSBuildItem::BuildCostItem(FUSResource* Resource)
 						NewSlot->SetHorizontalAlignment(HAlign_Center);
 						NewSlot->SetVerticalAlignment(VAlign_Center);
 					}
+
+					ItemResource = Resource;
 					break;
 				}
 			}
@@ -75,15 +79,19 @@ void UUSBuildItem::BuildCostItem(FUSResource* Resource)
 FReply UUSBuildItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
-	
-	BeginBuild();
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (PlayerController)
+	{
+		AUSCropoutPlayer* PlayerCharacter = Cast<AUSCropoutPlayer>(PlayerController->GetPawn());
+		if (PlayerCharacter)
+		{
+			PlayerCharacter->BeginBuild(InteractableClass);
+		}
+	}
+
 	AddUI();
 
 	return FReply::Handled();
-}
-
-void UUSBuildItem::BeginBuild()
-{
 }
 
 void UUSBuildItem::AddUI()
@@ -98,3 +106,4 @@ void UUSBuildItem::AddUI()
 
 	BuildConfirm->AddToViewport();
 }
+
