@@ -61,24 +61,9 @@ void UUSBuild::OnActivated()
 	if (PlayerController == nullptr)
 		return;
 
-	FInputModeUIOnly InputMode;
-	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	InputMode.SetWidgetToFocus(TakeWidget());
-
-	//PlayerController->SetInputMode(InputMode);
-	PlayerController->bShowMouseCursor = true;
-
-
 	APawn* TargetActor = PlayerController->GetPawn();
-	/*if (TargetActor)
-	{
-		TargetActor->SetActorTickEnabled(false);
-		TargetActor->DisableInput(PlayerController);
-	}*/
-
 	IUSPlayerInterface* TargetPlayer = Cast<IUSPlayerInterface>(TargetActor);
 	if (TargetPlayer == nullptr)
 		return;
 	TargetPlayer->SwitchBuildMode(true);
-
 }

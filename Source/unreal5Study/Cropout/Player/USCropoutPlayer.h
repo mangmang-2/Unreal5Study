@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "USPlayerInterface.h"
+#include "../Interactable/USResourceInterface.h"
 #include "USCropoutPlayer.generated.h"
 
 UCLASS()
@@ -141,7 +142,7 @@ public:
 	FVector CalculateCameraOffset();
 
 public:
-	void BeginBuild(TSubclassOf<AActor> TargetClass);
+	void BeginBuild(TSubclassOf<AActor> TargetClassParam, TMap<enum EResourceType, int32> CostParam);
 	void CreateBuildOvelay();
 	UFUNCTION(BlueprintCallable)
 	void UpdateBuildAsset();
@@ -152,11 +153,22 @@ public:
 	FVector GetSteppedPosition(const FVector& InputPosition, float StepSize);
 
 	virtual void SwitchBuildMode(bool BuildMode) override;
+
+	void SpawnBuildTarget();
+	void RotateSpawn();
+	void DestroyTargetActor();
+
+	void RemoveResources();
 public:
-	class AUSInteractable* TargetSpawn = nullptr;
+	class AUSInteractable* TargetActor = nullptr;
+	TSubclassOf<class AActor> TargetClass;
+protected:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<class UStaticMeshComponent> SpawnOverlay;
 
 private:
-	class UStaticMeshComponent* SpawnOverlay = nullptr;
+	
+	TMap<enum EResourceType, int32> ResourceCost;
 	bool CanDrop = false;
 
 protected:

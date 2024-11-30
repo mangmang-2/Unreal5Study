@@ -219,3 +219,7 @@ float AUSInteractable::Interact()
 {
     return 0.0f;
 }
+
+void AUSInteractable::SetProgressionsState(float Progression)
+{
+}

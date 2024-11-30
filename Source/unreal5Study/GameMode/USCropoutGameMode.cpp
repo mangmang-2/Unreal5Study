@@ -177,6 +177,21 @@ void AUSCropoutGameMode::CheckNavigationBuild()
     }
 }
 
+void AUSCropoutGameMode::EndGame()
+{
+}
+
+void AUSCropoutGameMode::RemoveTargetResource_Implementation(EResourceType Resource, int32 Value)
+{
+    if (Resources.Find(Resource) == nullptr)
+        return;
+
+    Resources[Resource] -= Value;
+
+    if (Resources[EResourceType::Food] <= 0)
+        EndGame();
+}
+
 void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int32 Value)
 {
     if (Resources.Find(Resource) == nullptr)

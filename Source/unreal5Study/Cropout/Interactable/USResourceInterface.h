@@ -39,4 +39,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AddResource(enum EResourceType Resource, int32 Value);
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void RemoveTargetResource(enum EResourceType Resource, int32 Value);
+
 };

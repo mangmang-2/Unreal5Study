@@ -21,6 +21,7 @@
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
 #include "Components/BoxComponent.h"
+#include "GameMode/USCropoutGameMode.h"
 
 // Sets default values
 AUSCropoutPlayer::AUSCropoutPlayer()
@@ -59,6 +60,10 @@ AUSCropoutPlayer::AUSCropoutPlayer()
 
 	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	Collision->SetupAttachment(RootComponent);
+
+	SpawnOverlay = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpawnOverlay"));
+	SpawnOverlay->SetVisibility(false);
+	
 }
 
 // Called when the game starts or when spawned
@@ -620,16 +625,25 @@ FVector AUSCropoutPlayer::CalculateCameraOffset()
 }
 
 
-void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClass)
+void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClassParam, TMap<enum EResourceType, int32> CostParam)
 {
+	ResourceCost = CostParam;
+
 	FVector SpawnLocation = GetActorLocation();
+	TargetClass = TargetClassParam;
+
+	if (TargetActor != nullptr)
+	{
+		TargetActor->Destroy();
+		TargetActor = nullptr;
+	}
 
 	if (TargetClass)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		TargetSpawn = Cast<AUSInteractable>(GetWorld()->SpawnActor<AActor>(
+		TargetActor = Cast<AUSInteractable>(GetWorld()->SpawnActor<AActor>(
 			TargetClass,
 			SpawnLocation,
 			FRotator::ZeroRotator,
@@ -637,9 +651,9 @@ void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClass)
 		));
 	}
 
-	if (TargetSpawn)
+	if (TargetActor)
 	{
-		TargetSpawn->PlacementMode();
+		TargetActor->PlacementMode();
 	}
 
 	CreateBuildOvelay();
@@ -647,31 +661,24 @@ void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClass)
 
 void AUSCropoutPlayer::CreateBuildOvelay()
 {
-	if (IsValid(SpawnOverlay))
-	{
+	if (IsValid(SpawnOverlay) == false)
 		return;
-	}
+
+	if (TargetActor == nullptr)
+		return;
 
 	FVector Origin, BoxExtent;
-	TargetSpawn->GetActorBounds(false, Origin, BoxExtent);
+	TargetActor->GetActorBounds(false, Origin, BoxExtent);
 	BoxExtent /= 50.0f;
 
 	FVector Location(0.0f, 0.0f, 0.0f);
 	FRotator Rotation(0.0f, 0.0f, 0.0f);
 	FTransform Transform(Rotation, Location, BoxExtent);
 
-	UStaticMeshComponent* NewMeshComp = NewObject<UStaticMeshComponent>(this, TEXT("NewStaticMesh"));
-	if (NewMeshComp)
-	{
-		NewMeshComp->RegisterComponent(); 
-		NewMeshComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		NewMeshComp->SetRelativeTransform(Transform);
-
-		SpawnOverlay = NewMeshComp;
-	}
+	SpawnOverlay->SetVisibility(true);
 
 	SpawnOverlay->AttachToComponent(
-		TargetSpawn->Mesh,
+		TargetActor->Mesh,
 		FAttachmentTransformRules(
 			EAttachmentRule::SnapToTarget,
 			EAttachmentRule::KeepWorld,
@@ -685,7 +692,7 @@ void AUSCropoutPlayer::CreateBuildOvelay()
 
 void AUSCropoutPlayer::UpdateBuildAsset()
 {
-	if (IsValid(TargetSpawn) == false)
+	if (IsValid(TargetActor) == false)
 		return;
 
 	if (MPC_Cropout == nullptr)
@@ -698,7 +705,7 @@ void AUSCropoutPlayer::UpdateBuildAsset()
 	if (bMousePostion == false)
 		return;
 
-	FVector CurrentLocation = TargetSpawn->GetActorLocation();
+	FVector CurrentLocation = TargetActor->GetActorLocation();
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 	FVector NewLocation = UKismetMathLibrary::VInterpTo(
@@ -708,11 +715,11 @@ void AUSCropoutPlayer::UpdateBuildAsset()
 		10.0f
 	);
 
-	TargetSpawn->SetActorLocation(NewLocation, false, nullptr, ETeleportType::None);
+	TargetActor->SetActorLocation(NewLocation, false, nullptr, ETeleportType::None);
 
 	TArray<AActor*> OutOverlappingActors;
-	TargetSpawn->GetOverlappingActors(OutOverlappingActors, AUSInteractable::StaticClass());
-	if (OutOverlappingActors.Num())
+	TargetActor->GetOverlappingActors(OutOverlappingActors, AUSInteractable::StaticClass());
+	if (OutOverlappingActors.Num() == 0)
 	{
 		CanDrop = CornersInNav();
 	}
@@ -735,12 +742,12 @@ void AUSCropoutPlayer::UpdateBuildAsset()
 
 bool AUSCropoutPlayer::CornersInNav()
 {
-	if (TargetSpawn == nullptr)
+	if (TargetActor == nullptr)
 		return false;
 
 	FVector Origin, BoxExtent;
 	float SphereRadius;
-	UKismetSystemLibrary::GetComponentBounds(TargetSpawn->Box.Get(), Origin, BoxExtent, SphereRadius);
+	UKismetSystemLibrary::GetComponentBounds(TargetActor->Box.Get(), Origin, BoxExtent, SphereRadius);
 
 	TArray<FVector> CornerPositions;
 	CornerPositions.Add(Origin + FVector(BoxExtent.X * 1.05f, BoxExtent.Y * 1.05f, 0.0f));
@@ -791,9 +798,12 @@ bool AUSCropoutPlayer::CornersInNav()
 
 void AUSCropoutPlayer::BlueprintMuildMoveComplete()
 {
+	if (TargetActor == nullptr)
+		return;
+	FVector NewLocation = GetSteppedPosition(TargetActor->GetActorLocation(), 200);
+	TargetActor->SetActorLocation(NewLocation);
 
-	FVector NewLocation = GetSteppedPosition(TargetSpawn->GetActorLocation(), 200);
-	TargetSpawn->SetActorLocation(NewLocation);
+	UpdateBuildAsset();
 }
 
 
@@ -824,5 +834,74 @@ void AUSCropoutPlayer::SwitchBuildMode(bool BuildMode)
 		EnhancedInputSubsystem->RemoveMappingContext(BuildModeMappingContext);
 		EnhancedInputSubsystem->AddMappingContext(VillagerMappingContext, 0);
 	}
+}
 
+void AUSCropoutPlayer::SpawnBuildTarget()
+{
+	if (TargetActor == nullptr)
+		return;
+
+	if (CanDrop)
+	{
+		FTransform SpawnTransform = TargetActor->GetActorTransform();
+
+		if (TargetClass)
+		{
+			AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(
+				TargetClass,
+				SpawnTransform
+			);
+
+			if (SpawnedActor)
+			{
+				// 진행 상태 설정
+				AUSInteractable* Interactable = Cast<AUSInteractable>(SpawnedActor);
+				if (Interactable)
+				{
+					Interactable->SetProgressionsState(0.0f);
+				}
+			}
+		}
+
+		RemoveResources();
+	}
+
+	UpdateBuildAsset();
+}
+
+void AUSCropoutPlayer::RotateSpawn()
+{
+	if (TargetActor == nullptr)
+		return;
+
+	FRotator Rotator1 = TargetActor->GetActorRotation();
+	FRotator Rotator2(0.0f, 90.0f, 0.0f);
+
+	TargetActor->SetActorRotation(Rotator1 + Rotator2);
+}
+
+void AUSCropoutPlayer::DestroyTargetActor()
+{
+	if (TargetActor == nullptr)
+		return;
+
+	TargetActor->Destroy();
+	TargetActor = nullptr;
+
+	SpawnOverlay->SetVisibility(false);
+}
+
+void AUSCropoutPlayer::RemoveResources()
+{
+	/*for (const auto& ResourcePair : ResourceCost)
+	{
+		EResourceType ResourceKey = ResourcePair.Key;
+		int32 ResourceAmount = ResourcePair.Value;
+
+		IUSResourceInterface* GameMode = Cast<IUSResourceInterface>(GetWorld()->GetAuthGameMode());
+		if (GameMode)
+		{
+			GameMode->RemoveTargetResource(ResourceKey, ResourceAmount);
+		}
+	}*/
 }

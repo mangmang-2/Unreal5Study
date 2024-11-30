@@ -20,6 +20,16 @@ public:
 	
 	FVector2D GetClampedScreenPosition();
 	void UpdateBorderPosition(float InDeltaTime);
+
+
+	UFUNCTION(BlueprintCallable)
+	void ConfirmBtn();
+
+	UFUNCTION(BlueprintCallable)
+	void RotateBtn();
+
+	UFUNCTION(BlueprintCallable)
+	void CancelBtn();
 private:
 	
 	UPROPERTY(meta = (BindWidget))

@@ -31,7 +31,7 @@ FVector2D UUSBuildConfirm::GetClampedScreenPosition()
     if (TargetActor == nullptr)
         return FVector2D::ZeroVector;
 
-    FVector WorldPosition = TargetActor->TargetSpawn->GetActorLocation();
+    FVector WorldPosition = TargetActor->TargetActor->GetActorLocation();
     FVector2D ScreenPosition;
     PlayerController->ProjectWorldLocationToScreen(WorldPosition, ScreenPosition, true);
 
@@ -76,7 +76,7 @@ void UUSBuildConfirm::UpdateBorderPosition(float InDeltaTime)
         SpringState,                    // 스프링 상태 (캐시 변수)
         Stiffness,                      // 강성 (Stiffness)
         CriticalDampingFactor,          // 댐핑 비율
-        InDeltaTime * 20,   // 델타 타임
+        InDeltaTime * 5,   // 델타 타임
         Mass,                           // 질량
         TargetVelocityAmount            // 목표 속도 비율
     );
@@ -90,4 +90,42 @@ void UUSBuildConfirm::UpdateBorderPosition(float InDeltaTime)
 
     // 변환 설정
     Border->SetRenderTransform(Transform);
+}
+
+void UUSBuildConfirm::ConfirmBtn()
+{
+    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PlayerController == nullptr || PlayerController->GetPawn() == nullptr)
+        return;
+    AUSCropoutPlayer* PlayerCharacter = Cast<AUSCropoutPlayer>(PlayerController->GetPawn());
+    if (PlayerCharacter)
+    {
+        PlayerCharacter->SpawnBuildTarget();
+    }
+}
+
+void UUSBuildConfirm::RotateBtn()
+{
+    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PlayerController == nullptr || PlayerController->GetPawn() == nullptr)
+        return;
+    AUSCropoutPlayer* PlayerCharacter = Cast<AUSCropoutPlayer>(PlayerController->GetPawn());
+    if (PlayerCharacter)
+    {
+        PlayerCharacter->RotateSpawn();
+    }
+}
+
+void UUSBuildConfirm::CancelBtn()
+{
+    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PlayerController == nullptr || PlayerController->GetPawn() == nullptr)
+        return;
+    AUSCropoutPlayer* PlayerCharacter = Cast<AUSCropoutPlayer>(PlayerController->GetPawn());
+    if (PlayerCharacter)
+    {
+        PlayerCharacter->DestroyTargetActor();
+    }
+
+    RemoveFromParent();
 }

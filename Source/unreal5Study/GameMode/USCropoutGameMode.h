@@ -47,6 +47,9 @@ public:
 
 	virtual void AddResource_Implementation(enum EResourceType Resource, int32 Value) override;
 
+	virtual void RemoveTargetResource_Implementation(enum EResourceType Resource, int32 Value) override;
+
+	void EndGame();
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;

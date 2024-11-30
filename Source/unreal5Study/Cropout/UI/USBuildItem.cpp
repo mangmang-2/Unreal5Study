@@ -73,6 +73,7 @@ void UUSBuildItem::BuildCostItem(FUSResource* Resource)
 				}
 			}
 		}
+		Cost = Resource->Cost;
 	}
 }
 
@@ -85,7 +86,7 @@ FReply UUSBuildItem::NativeOnMouseButtonDown(const FGeometry& InGeometry, const 
 		AUSCropoutPlayer* PlayerCharacter = Cast<AUSCropoutPlayer>(PlayerController->GetPawn());
 		if (PlayerCharacter)
 		{
-			PlayerCharacter->BeginBuild(InteractableClass);
+			PlayerCharacter->BeginBuild(InteractableClass, Cost);
 		}
 	}
 
@@ -100,10 +101,12 @@ void UUSBuildItem::AddUI()
 	if (BuildConfirmClass == nullptr)
 		return;
 
-	UUSBuildConfirm* BuildConfirm = CreateWidget<UUSBuildConfirm>(GetWorld(), BuildConfirmClass);
+	UUSBuildConfirm* BuildConfirm = CreateWidget<UUSBuildConfirm>(GetWorld(), BuildConfirmClass, TEXT("USBuildConfirm"));
 	if (BuildConfirm == nullptr)
 		return;
 
+	if (BuildConfirm->IsInViewport())
+		return;
 	BuildConfirm->AddToViewport();
 }
 

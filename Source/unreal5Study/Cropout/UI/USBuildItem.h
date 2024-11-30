@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/UI/USUserWidget.h"
+#include "../Interactable/USResourceInterface.h"
 #include "USBuildItem.generated.h"
 
 /**
@@ -40,6 +41,6 @@ protected:
 	TSubclassOf<class AUSInteractable> InteractableClass;
 
 	struct FUSResource* ItemResource = nullptr;
-
+	TMap<enum EResourceType, int32> Cost;
 
 };

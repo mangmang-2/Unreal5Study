@@ -87,6 +87,9 @@ protected:
 
 	virtual float Interact();
 
+public:
+	void SetProgressionsState(float Progression);
+
 protected:
 	bool EnableGroundBlend = true;
 	float OutlineDraw = 0.0f;
