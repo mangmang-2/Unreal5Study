@@ -16,13 +16,14 @@ class UNREAL5STUDY_API UUSBuildItem : public UUSUserWidget
 	GENERATED_BODY()
 	
 public:
-	virtual void NativeConstruct();
 	void SetData(struct FUSResource* Resource);
 	void BuildCostItem(struct FUSResource* Resource);
 	
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 
 	void AddUI();
+
+	void SetParentBuildUI(class UUSBuild* BuildUI);
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -42,5 +43,7 @@ protected:
 
 	struct FUSResource* ItemResource = nullptr;
 	TMap<enum EResourceType, int32> Cost;
+
+	class UUSBuild* ParentBuildUI = nullptr;
 
 };

@@ -14,12 +14,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "../Player/USCropoutPlayer.h"
 
-void UUSBuildItem::NativeConstruct()
-{
-	Super::NativeConstruct();
-
-}
-
 void UUSBuildItem::SetData(FUSResource* Resource)
 {
 	if (Resource == nullptr)
@@ -107,6 +101,13 @@ void UUSBuildItem::AddUI()
 
 	if (BuildConfirm->IsInViewport())
 		return;
+	BuildConfirm->SetParentBuildUI(ParentBuildUI);
 	BuildConfirm->AddToViewport();
+	
+}
+
+void UUSBuildItem::SetParentBuildUI(UUSBuild* BuildUI)
+{
+	ParentBuildUI = BuildUI;
 }
 

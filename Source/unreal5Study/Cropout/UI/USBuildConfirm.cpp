@@ -8,10 +8,22 @@
 #include "Kismet/KismetMathLibrary.h"
 #include <Cropout/Player/USCropoutPlayer.h>
 #include <Cropout/Interactable/USInteractable.h>
+#include "USBuild.h"
 
 void UUSBuildConfirm::NativeConstruct()
 {
     Super::NativeConstruct();
+    if (ParentBuildUI)
+        ParentBuildUI->SetVisibility(ESlateVisibility::Collapsed);
+
+    UpdateBorderPosition(100000);
+}
+
+void UUSBuildConfirm::NativeDestruct()
+{
+    Super::NativeDestruct();
+    if (ParentBuildUI)
+        ParentBuildUI->SetVisibility(ESlateVisibility::Visible);
 }
 
 void UUSBuildConfirm::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -128,4 +140,9 @@ void UUSBuildConfirm::CancelBtn()
     }
 
     RemoveFromParent();
+}
+
+void UUSBuildConfirm::SetParentBuildUI(UUSBuild* BuildUI)
+{
+    ParentBuildUI = BuildUI;
 }

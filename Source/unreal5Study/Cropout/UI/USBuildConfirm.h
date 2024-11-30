@@ -16,6 +16,7 @@ class UNREAL5STUDY_API UUSBuildConfirm : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime);
 	
 	FVector2D GetClampedScreenPosition();
@@ -30,8 +31,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CancelBtn();
+	void SetParentBuildUI(class UUSBuild* BuildUI);
 private:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UBorder> Border;
+
+
+	class UUSBuild* ParentBuildUI = nullptr;
 };

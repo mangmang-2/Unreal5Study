@@ -822,8 +822,6 @@ void AUSCropoutPlayer::SwitchBuildMode(bool BuildMode)
 	if (EnhancedInputSubsystem == nullptr)
 		return;
 
-	EnhancedInputSubsystem->ClearAllMappings();
-
 	if (BuildMode)
 	{
 		EnhancedInputSubsystem->RemoveMappingContext(VillagerMappingContext);

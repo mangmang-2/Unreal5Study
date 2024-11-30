@@ -16,8 +16,9 @@ class UNREAL5STUDY_API UUSBuild : public UUSUserWidget
 
 public:
 	virtual void NativeConstruct();
+	virtual void NativeDestruct();
 	void AddItem(struct FUSResource* Resource);
-	void OnActivated();
+	void OnActivated(bool bActivated);
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UHorizontalBox> ItemList;

@@ -14,7 +14,7 @@ void UUSBuild::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	SetFocus();
+	//SetFocus();
 
 	UDataTable* DataTablePointer = LoadObject<UDataTable>(nullptr, TEXT("/Game/Study/Cropout/Spawn/DT_Buidables.DT_Buidables"));
 
@@ -29,7 +29,13 @@ void UUSBuild::NativeConstruct()
 		}
 	}
 
-	OnActivated();
+	OnActivated(true);
+}
+
+void UUSBuild::NativeDestruct()
+{
+	Super::NativeDestruct();
+	OnActivated(false);
 }
 
 void UUSBuild::AddItem(struct FUSResource* Resource)
@@ -45,7 +51,7 @@ void UUSBuild::AddItem(struct FUSResource* Resource)
 	if (BuildItem == nullptr)
 		return;
 	BuildItem->SetData(Resource);
-
+	BuildItem->SetParentBuildUI(this);
 	UHorizontalBoxSlot* NewSlot = ItemList->AddChildToHorizontalBox(BuildItem);
 	if (NewSlot)
 	{
@@ -55,7 +61,7 @@ void UUSBuild::AddItem(struct FUSResource* Resource)
 	}
 }
 
-void UUSBuild::OnActivated()
+void UUSBuild::OnActivated(bool bActivated)
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if (PlayerController == nullptr)
@@ -65,5 +71,5 @@ void UUSBuild::OnActivated()
 	IUSPlayerInterface* TargetPlayer = Cast<IUSPlayerInterface>(TargetActor);
 	if (TargetPlayer == nullptr)
 		return;
-	TargetPlayer->SwitchBuildMode(true);
+	TargetPlayer->SwitchBuildMode(bActivated);
 }
