@@ -52,7 +52,8 @@ public:
 
 	void EndGame();
 
-	void SendUIResourceValue(enum EResourceType Resource, int32 Value);
+	void SendUIResourceValue();
+	TMap<EResourceType, int32> GetResources();
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;

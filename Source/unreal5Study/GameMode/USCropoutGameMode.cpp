@@ -57,10 +57,7 @@ void AUSCropoutGameMode::OnAsyncLoadComplete()
     SpawnVillager();
     SpawnInteractables();
 
-    for (auto Resource : Resources)
-    {
-        SendUIResourceValue(Resource.Key, Resource.Value);
-    }
+    SendUIResourceValue();
 }
 
 void AUSCropoutGameMode::OnTownHallClassLoaded()
@@ -197,15 +194,19 @@ void AUSCropoutGameMode::EndGame()
 {
 }
 
-void AUSCropoutGameMode::SendUIResourceValue(EResourceType Resource, int32 Value)
+void AUSCropoutGameMode::SendUIResourceValue()
 {
     FCropoutResourceValueMessageData Message;
     Message.Verb = TAG_Cropout_UI_Message;
-    Message.ResourceType = Resource;
-    Message.Value = Value;
+    Message.Resources = Resources;
 
     UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
     MessageSystem.BroadcastMessage(Message.Verb, Message);
+}
+
+TMap<EResourceType, int32> AUSCropoutGameMode::GetResources()
+{
+    return Resources;
 }
 
 void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Value)
@@ -218,7 +219,7 @@ void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Valu
     if (Resources[EResourceType::Food] <= 0)
         EndGame();
 
-    SendUIResourceValue(Resource, Resources[Resource]);
+    SendUIResourceValue();
 }
 
 void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int32 Value)
@@ -228,5 +229,5 @@ void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int3
 
     Resources[Resource] += Value;
 
-    SendUIResourceValue(Resource, Resources[Resource]);
+    SendUIResourceValue();
 }

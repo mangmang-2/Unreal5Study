@@ -13,6 +13,28 @@
 #include "USBuildConfirm.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Player/USCropoutPlayer.h"
+#include "../../Lyra/GameFramework/GameplayMessageSubsystem.h"
+#include "../../GameMode/USCropoutGameMode.h"
+
+
+void UUSBuildItem::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(this);
+	MessageSubsystem.RegisterListener(TAG_Cropout_UI_Message, this, &ThisClass::ResponseMessage);
+
+	AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
+	if (GameMode)
+	{
+		AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(GameMode);
+		if (CropoutGameMode)
+		{	
+			CheckResource(CropoutGameMode->GetResources());
+		}
+	}
+
+}
 
 void UUSBuildItem::SetData(FUSResource* Resource)
 {
@@ -111,3 +133,23 @@ void UUSBuildItem::SetParentBuildUI(UUSBuild* BuildUI)
 	ParentBuildUI = BuildUI;
 }
 
+void UUSBuildItem::ResponseMessage(FGameplayTag Channel, const FCropoutResourceValueMessageData& Payload)
+{
+	CheckResource(Payload.Resources);
+}
+
+void UUSBuildItem::CheckResource(TMap<enum EResourceType, int32> Resources)
+{
+	for (auto CostData : Cost)
+	{
+		if (Resources[CostData.Key] < CostData.Value)
+		{
+			SetIsEnabled(false);
+			break;
+		}
+		else
+		{
+			SetIsEnabled(true);
+		}
+	}
+}

@@ -36,10 +36,7 @@ struct FCropoutResourceValueMessageData
 	FGameplayTagContainer ContextTags;
 
 	UPROPERTY(BlueprintReadWrite, Category=Gameplay)
-	EResourceType ResourceType;
-
-	UPROPERTY(BlueprintReadWrite, Category=Gameplay)
-	int32 Value;
+	TMap<EResourceType, int32> Resources;
 };
 
 /**

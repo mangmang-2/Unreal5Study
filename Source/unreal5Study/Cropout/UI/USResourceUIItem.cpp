@@ -36,9 +36,6 @@ void UUSResourceUIItem::NativeConstruct()
 
 void UUSResourceUIItem::ResponseMessage(FGameplayTag Channel, const FCropoutResourceValueMessageData& Payload)
 {
-	if (Payload.ResourceType != ResourceType)
-		return;
-
-	FText TextValue = FText::FromString(FString::FromInt(Payload.Value));
+	FText TextValue = FText::FromString(FString::FromInt(Payload.Resources[ResourceType]));
 	TextBlock_Resource->SetText(TextValue);
 }

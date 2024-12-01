@@ -5,7 +5,12 @@
 #include "CoreMinimal.h"
 #include "Character/UI/USUserWidget.h"
 #include "../Interactable/USResourceInterface.h"
+#include "../../Lyra/GameFramework/GameplayMessageSubsystem.h"
+#include "USResourceUIItem.h"
 #include "USBuildItem.generated.h"
+
+
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Cropout_UI_Message);
 
 /**
  * 
@@ -16,6 +21,8 @@ class UNREAL5STUDY_API UUSBuildItem : public UUSUserWidget
 	GENERATED_BODY()
 	
 public:
+	virtual void NativeConstruct() override;
+
 	void SetData(struct FUSResource* Resource);
 	void BuildCostItem(struct FUSResource* Resource);
 	
@@ -25,6 +32,8 @@ public:
 
 	void SetParentBuildUI(class UUSBuild* BuildUI);
 
+	virtual void ResponseMessage(FGameplayTag Channel, const FCropoutResourceValueMessageData& Payload);
+	void CheckResource(TMap<enum EResourceType, int32> Resources);
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UImage> TitleImage;
