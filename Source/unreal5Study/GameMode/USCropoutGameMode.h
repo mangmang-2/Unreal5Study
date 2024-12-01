@@ -45,12 +45,14 @@ public:
 	UFUNCTION()
 	void CheckNavigationBuild();
 
-	virtual void AddResource(enum EResourceType Resource, int32 Value);
+	void AddResource_Implementation(enum EResourceType Resource, int32 Value);
 	virtual void RemoveTargetResource(enum EResourceType Resource, int32 Value);
 	virtual int32 GetCurrentResources(enum EResourceType Resource);
 	void RemoveCurrentUILayer();
 
 	void EndGame();
+
+	void SendUIResourceValue(enum EResourceType Resource, int32 Value);
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;

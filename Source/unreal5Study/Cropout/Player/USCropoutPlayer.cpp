@@ -841,6 +841,9 @@ bool AUSCropoutPlayer::SpawnBuildTarget()
 
 	if (CanDrop)
 	{
+		if (RemoveResources() == false)
+			return false;
+
 		FTransform SpawnTransform = TargetActor->GetActorTransform();
 
 		if (TargetClass)
@@ -860,9 +863,6 @@ bool AUSCropoutPlayer::SpawnBuildTarget()
 				}
 			}
 		}
-
-		if (RemoveResources() == false)
-			return false;
 	}
 
 	UpdateBuildAsset();
@@ -882,29 +882,23 @@ void AUSCropoutPlayer::RotateSpawn()
 
 void AUSCropoutPlayer::DestroyTargetActor()
 {
-	if (TargetActor == nullptr)
-		return;
-
-	TargetActor->Destroy();
-	TargetActor = nullptr;
-
-	SpawnOverlay->SetVisibility(false);
+	if (TargetActor)
+	{
+		TargetActor->Destroy();
+		TargetActor = nullptr;
+	}
+	if (SpawnOverlay)
+	{
+		SpawnOverlay->SetVisibility(false);
+	}
 }
 
 bool AUSCropoutPlayer::RemoveResources()
 {
 	IUSResourceInterface* GameMode = Cast<IUSResourceInterface>(GetWorld()->GetAuthGameMode());
+	if (GameMode == nullptr)
+		return false;
 
-	for (const auto& ResourcePair : ResourceCost)
-	{
-		EResourceType ResourceKey = ResourcePair.Key;
-		int32 ResourceAmount = ResourcePair.Value;
-
-		if (GameMode)
-		{
-			GameMode->RemoveTargetResource(ResourceKey, ResourceAmount);
-		}
-	}
 	for (const auto& ResourcePair : ResourceCost)
 	{
 		EResourceType ResourceKey = ResourcePair.Key;
@@ -919,5 +913,17 @@ bool AUSCropoutPlayer::RemoveResources()
 			return false;
 		}
 	}
+
+	for (const auto& ResourcePair : ResourceCost)
+	{
+		EResourceType ResourceKey = ResourcePair.Key;
+		int32 ResourceAmount = ResourcePair.Value;
+
+		if (GameMode)
+		{
+			GameMode->RemoveTargetResource(ResourceKey, ResourceAmount);
+		}
+	}
+
 	return true;
 }

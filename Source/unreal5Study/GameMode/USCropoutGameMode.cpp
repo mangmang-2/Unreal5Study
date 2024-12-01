@@ -12,6 +12,8 @@
 #include "NavigationSystem.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "../Lyra/GameFramework/GameplayMessageSubsystem.h"
+#include "../Cropout/UI/USResourceUIItem.h"
 
 void AUSCropoutGameMode::BeginPlay()
 {
@@ -54,6 +56,11 @@ void AUSCropoutGameMode::OnAsyncLoadComplete()
     OnTownHallClassLoaded();
     SpawnVillager();
     SpawnInteractables();
+
+    for (auto Resource : Resources)
+    {
+        SendUIResourceValue(Resource.Key, Resource.Value);
+    }
 }
 
 void AUSCropoutGameMode::OnTownHallClassLoaded()
@@ -190,6 +197,17 @@ void AUSCropoutGameMode::EndGame()
 {
 }
 
+void AUSCropoutGameMode::SendUIResourceValue(EResourceType Resource, int32 Value)
+{
+    FCropoutResourceValueMessageData Message;
+    Message.Verb = TAG_Cropout_UI_Message;
+    Message.ResourceType = Resource;
+    Message.Value = Value;
+
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+    MessageSystem.BroadcastMessage(Message.Verb, Message);
+}
+
 void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Value)
 {
     if (Resources.Find(Resource) == nullptr)
@@ -199,12 +217,16 @@ void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Valu
 
     if (Resources[EResourceType::Food] <= 0)
         EndGame();
+
+    SendUIResourceValue(Resource, Resources[Resource]);
 }
 
-void AUSCropoutGameMode::AddResource(EResourceType Resource, int32 Value)
+void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int32 Value)
 {
     if (Resources.Find(Resource) == nullptr)
         return;
 
     Resources[Resource] += Value;
+
+    SendUIResourceValue(Resource, Resources[Resource]);
 }
