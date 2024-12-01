@@ -177,11 +177,20 @@ void AUSCropoutGameMode::CheckNavigationBuild()
     }
 }
 
+int32 AUSCropoutGameMode::GetCurrentResources(enum EResourceType Resource)
+{
+    return Resources[Resource];
+}
+
+void AUSCropoutGameMode::RemoveCurrentUILayer()
+{
+}
+
 void AUSCropoutGameMode::EndGame()
 {
 }
 
-void AUSCropoutGameMode::RemoveTargetResource_Implementation(EResourceType Resource, int32 Value)
+void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Value)
 {
     if (Resources.Find(Resource) == nullptr)
         return;
@@ -192,7 +201,7 @@ void AUSCropoutGameMode::RemoveTargetResource_Implementation(EResourceType Resou
         EndGame();
 }
 
-void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int32 Value)
+void AUSCropoutGameMode::AddResource(EResourceType Resource, int32 Value)
 {
     if (Resources.Find(Resource) == nullptr)
         return;

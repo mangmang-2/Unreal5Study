@@ -39,7 +39,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AddResource(enum EResourceType Resource, int32 Value);
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void RemoveTargetResource(enum EResourceType Resource, int32 Value);
+	virtual void RemoveTargetResource(enum EResourceType Resource, int32 Value) {};
+	virtual int32 GetCurrentResources(enum EResourceType Resource) { return 0; };
+	virtual void RemoveCurrentUILayer() {};
 
 };

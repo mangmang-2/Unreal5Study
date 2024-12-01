@@ -112,7 +112,8 @@ void UUSBuildConfirm::ConfirmBtn()
     AUSCropoutPlayer* PlayerCharacter = Cast<AUSCropoutPlayer>(PlayerController->GetPawn());
     if (PlayerCharacter)
     {
-        PlayerCharacter->SpawnBuildTarget();
+        if (PlayerCharacter->SpawnBuildTarget() == false)
+            CancelBtn();
     }
 }
 

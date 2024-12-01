@@ -154,11 +154,11 @@ public:
 
 	virtual void SwitchBuildMode(bool BuildMode) override;
 
-	void SpawnBuildTarget();
+	bool SpawnBuildTarget();
 	void RotateSpawn();
 	void DestroyTargetActor();
 
-	void RemoveResources();
+	bool RemoveResources();
 public:
 	class AUSInteractable* TargetActor = nullptr;
 	TSubclassOf<class AActor> TargetClass;

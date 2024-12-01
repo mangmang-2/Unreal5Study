@@ -45,9 +45,10 @@ public:
 	UFUNCTION()
 	void CheckNavigationBuild();
 
-	virtual void AddResource_Implementation(enum EResourceType Resource, int32 Value) override;
-
-	virtual void RemoveTargetResource_Implementation(enum EResourceType Resource, int32 Value) override;
+	virtual void AddResource(enum EResourceType Resource, int32 Value);
+	virtual void RemoveTargetResource(enum EResourceType Resource, int32 Value);
+	virtual int32 GetCurrentResources(enum EResourceType Resource);
+	void RemoveCurrentUILayer();
 
 	void EndGame();
 protected:
