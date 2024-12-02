@@ -63,6 +63,8 @@ AUSCropoutPlayer::AUSCropoutPlayer()
 
 	SpawnOverlay = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpawnOverlay"));
 	SpawnOverlay->SetVisibility(false);
+	SpawnOverlay->SetCanEverAffectNavigation(false);
+
 	
 }
 
@@ -288,6 +290,7 @@ void AUSCropoutPlayer::PositionCollisionOnGroundPlane()
 	bool bSweep = true;
 
 	Collision->SetWorldLocation(Intersection, bSweep, &SweepHitResult);
+	return;
 }
 
 void AUSCropoutPlayer::UpdateCursorPosition()
@@ -338,7 +341,7 @@ void AUSCropoutPlayer::UpdateCursorPosition()
 	FTransform CursorTransform = Cursor->GetComponentToWorld();
 	FTransform NewTransform = UKismetMathLibrary::TInterpTo(CursorTransform, Target, DeltaTime, 12.0f);
 	FVector Location = NewTransform.GetLocation();
-	Location.Z += 0.5;
+	//Location.Z += 0.5;
 	NewTransform.SetLocation(Location);
 	Cursor->SetWorldTransform(NewTransform);
 }
@@ -628,13 +631,13 @@ FVector AUSCropoutPlayer::CalculateCameraOffset()
 void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClassParam, TMap<enum EResourceType, int32> CostParam)
 {
 	ResourceCost = CostParam;
-
+	
 	FVector SpawnLocation = GetActorLocation();
 	TargetClass = TargetClassParam;
 
 	if (TargetActor != nullptr)
 	{
-		TargetActor->Destroy();
+		TargetActor->DoDestroy();
 		TargetActor = nullptr;
 	}
 
@@ -645,8 +648,7 @@ void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClassParam, TMap<enu
 
 		TargetActor = Cast<AUSInteractable>(GetWorld()->SpawnActor<AActor>(
 			TargetClass,
-			SpawnLocation,
-			FRotator::ZeroRotator,
+			GetTransform(),
 			SpawnParams
 		));
 	}
@@ -727,6 +729,13 @@ void AUSCropoutPlayer::UpdateBuildAsset()
 	{
 		CanDrop = false;
 	}
+	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+	FNavLocation SpawnPos;
+	if (NavSystem->ProjectPointToNavigation(NewLocation, SpawnPos) == false)
+	{
+		CanDrop = false;
+	}
+
 	FLinearColor Color;
 	Color.R = NewLocation.X;
 	Color.G = NewLocation.Y;
@@ -845,16 +854,23 @@ bool AUSCropoutPlayer::SpawnBuildTarget()
 			return false;
 
 		FTransform SpawnTransform = TargetActor->GetActorTransform();
-
+		FVector NewTranslation =  SpawnTransform.GetTranslation();
 		if (TargetClass)
 		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(
 				TargetClass,
-				SpawnTransform
+				SpawnTransform,
+				SpawnParams
 			);
 
 			if (SpawnedActor)
 			{
+				/*FVector CurrentLocation = SpawnedActor->GetActorLocation();
+				CurrentLocation.X += 0.005f;
+				SpawnedActor->SetActorLocation(CurrentLocation);*/
+
 				// 진행 상태 설정
 				AUSInteractable* Interactable = Cast<AUSInteractable>(SpawnedActor);
 				if (Interactable)
@@ -884,7 +900,7 @@ void AUSCropoutPlayer::DestroyTargetActor()
 {
 	if (TargetActor)
 	{
-		TargetActor->Destroy();
+		TargetActor->DoDestroy();
 		TargetActor = nullptr;
 	}
 	if (SpawnOverlay)
@@ -907,7 +923,7 @@ bool AUSCropoutPlayer::RemoveResources()
 		if (Cost < ResourceAmount)
 		{
 			GameMode->RemoveCurrentUILayer();
-			TargetActor->Destroy();
+			TargetActor->DoDestroy();
 			TargetActor = nullptr;
 			SpawnOverlay->SetVisibility(false);
 			return false;

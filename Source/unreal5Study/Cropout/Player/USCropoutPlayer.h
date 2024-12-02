@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "USPlayerInterface.h"
 #include "../Interactable/USResourceInterface.h"
+#include "../Island/USSpawner.h"
 #include "USCropoutPlayer.generated.h"
 
 UCLASS()
