@@ -62,41 +62,6 @@ void AUSSpawner::AsyncLoadClasses()
             //ClassRef->GenerateFunctionList()
         }
     }
-    /* 이런 방법으로 사용해야함
-    * TSoftClassPtr<AActor> ClassRef = TSoftClassPtr<AActor>(FSoftObjectPath("/Game/Blueprints/BP_Tree.BP_Tree"));
-
-if (ClassRef.IsValid())
-{
-    // 자산이 이미 로드되어 있다면 UClass*로 변환
-    UClass* LoadedClass = ClassRef.Get();
-
-    // UClass*가 ATree의 서브클래스인지 확인하고 캐스팅
-    if (LoadedClass->IsChildOf(ATree::StaticClass()))
-    {
-        // 안전하게 ATree 클래스로 변환
-        TSubclassOf<ATree> TreeClass = LoadedClass;
-
-        // TreeClass로 작업 진행
-        ATree* SpawnedTree = GetWorld()->SpawnActor<ATree>(TreeClass);
-    }
-}
-else
-{
-    // 비동기 로드
-    ClassRef.LoadAsync(FStreamableDelegate::CreateLambda([=]()
-    {
-        UClass* LoadedClass = ClassRef.Get();
-        if (LoadedClass && LoadedClass->IsChildOf(ATree::StaticClass()))
-        {
-            // 안전하게 ATree 클래스로 변환
-            TSubclassOf<ATree> TreeClass = LoadedClass;
-
-            // TreeClass로 작업 진행
-            ATree* SpawnedTree = GetWorld()->SpawnActor<ATree>(TreeClass);
-        }
-    }));
-}
-    */
 }
 
 void AUSSpawner::OnAsyncLoadComplete()
@@ -196,7 +161,7 @@ void AUSSpawner::PickPointsAroundBiomePoints(class UInstancedStaticMeshComponent
         return;
 
     FRandomStream RandomStream;
-    int32 LoopCount = RandomStream.RandRange(0, MaxSpawn);
+    int32 LoopCount = RandomStream.RandRange(MaxSpawn / 2, MaxSpawn);
 
     for (int32 i = 0; i < LoopCount; i++)
     {
