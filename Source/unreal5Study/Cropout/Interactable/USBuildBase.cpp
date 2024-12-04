@@ -70,7 +70,7 @@ float AUSBuildBase::Interact()
 {
     Super::Interact();
 
-    return ProgressConstruct(0.4f);
+    return ProgressConstruct(1.0f);
 }
 
 void AUSBuildBase::SpawnInBuildMode()
