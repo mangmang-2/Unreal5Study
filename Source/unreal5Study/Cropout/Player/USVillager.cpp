@@ -94,8 +94,15 @@ void AUSVillager::ChangeJob(FName NewJob)
 
 	if (Tags.Contains(NewJob))
 		return;
-	Tags.Reset(1);
-	Tags.Insert(NewJob, 0);
+
+	if (Tags.Num() > 1)
+	{
+		Tags[0] = NewJob;
+	}
+	else
+	{
+		Tags.Insert(NewJob, 0);
+	}
 
 	ResetJobState();
 

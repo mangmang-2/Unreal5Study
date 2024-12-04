@@ -229,4 +229,21 @@ float AUSInteractable::Interact()
 
 void AUSInteractable::SetProgressionsState(float Progression)
 {
+    if (RequireBuild == false)
+        return;
+
+    ProgressionState = Progression;
+    Tags.Add(FName("Build"));
+
+    int32 MeshIndex = FMath::TruncToInt(ProgressionState);
+
+    if (MeshList.IsValidIndex(MeshIndex))
+    {
+        UStaticMesh* NewMesh = MeshList[MeshIndex];
+
+        if (Mesh)
+        {
+            Mesh->SetStaticMesh(NewMesh);
+        }
+    }
 }

@@ -19,7 +19,7 @@ public:
 
 	float ProgressConstruct(float InvestedTime);
 	void BuildCompletion();
-	void ConstructComplete();
+	virtual void ConstructComplete();
 
 	void UpdateBuildProgress();
 
@@ -29,6 +29,6 @@ public:
 
 
 protected:
-	float ProgressionState = 0;
+
 	float BuildDifficulty = 1.0f;
 };

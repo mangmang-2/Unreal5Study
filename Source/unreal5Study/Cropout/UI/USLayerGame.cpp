@@ -3,6 +3,7 @@
 
 #include "Cropout/UI/USLayerGame.h"
 #include "../../GameMode/USCropoutGameMode.h"
+#include "Components/TextBlock.h"
 
 void UUSLayerGame::NativeConstruct()
 {
@@ -24,4 +25,5 @@ void UUSLayerGame::NativeConstruct()
 
 void UUSLayerGame::UpdateVillagers(int32 VillagerCount)
 {
+	TextBlock_VillagerCount->SetText(FText::AsNumber(VillagerCount));
 }

@@ -54,7 +54,10 @@ void AUSCropoutGameMode::OnAsyncLoadComplete()
     }
 
     OnTownHallClassLoaded();
-    SpawnVillager();
+    for (int32 i = 0; i < 3; i++)
+    {
+        SpawnVillager();
+    }
     SpawnInteractables();
 
     SendUIResourceValue();
@@ -132,25 +135,22 @@ void AUSCropoutGameMode::SpawnVillager()
     if (VillagerRef == nullptr)
         return;
 
-    for (int32 i = 0; i < 3; i++)
-    {
-        FVector SpawnLocation = GetRandomPointInBounds();
-        FRotator SpawnRotation = FRotator::ZeroRotator;
+    FVector SpawnLocation = GetRandomPointInBounds();
+    FRotator SpawnRotation = FRotator::ZeroRotator;
 
-        SpawnLocation.Z += 92.561032;
+    SpawnLocation.Z += 92.561032;
 
-        APawn* SpawnedVillager = UAIBlueprintHelperLibrary::SpawnAIFromClass(
-            GetWorld(),
-            VillagerRef,
-            nullptr,            // AI에 적용할 Behavior Tree
-            SpawnLocation,
-            SpawnRotation,
-            true                // true로 설정하면 충돌할 경우 실패하지 않고 근처에 스폰 시도
-        );
+    APawn* SpawnedVillager = UAIBlueprintHelperLibrary::SpawnAIFromClass(
+        GetWorld(),
+        VillagerRef,
+        nullptr,            // AI에 적용할 Behavior Tree
+        SpawnLocation,
+        SpawnRotation,
+        true                // true로 설정하면 충돌할 경우 실패하지 않고 근처에 스폰 시도
+    );
 
-        if(SpawnedVillager)
-            VillagerCount++;
-    }
+    if(SpawnedVillager)
+        VillagerCount++;
     
     OnUpdateVillagers.Broadcast(VillagerCount);
 }

@@ -20,4 +20,8 @@ public:
 
 	UFUNCTION()
 	void UpdateVillagers(int32 VillagerCount);
+
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TextBlock_VillagerCount;
 };

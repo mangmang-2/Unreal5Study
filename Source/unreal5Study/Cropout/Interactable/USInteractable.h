@@ -90,7 +90,7 @@ protected:
 	virtual float Interact();
 
 public:
-	void SetProgressionsState(float Progression);
+	virtual void SetProgressionsState(float Progression);
 
 protected:
 	bool EnableGroundBlend = true;
@@ -105,6 +105,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Scene;
 
+	float ProgressionState = 0;
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UStaticMeshComponent> Mesh;
@@ -124,4 +125,6 @@ public:
 	UPROPERTY(EditAnywhere)
     float CollectionTime = 3.0f;
 	
+	UPROPERTY(EditAnywhere)
+    bool RequireBuild = false;
 };
