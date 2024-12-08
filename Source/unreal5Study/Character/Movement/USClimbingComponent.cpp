@@ -93,7 +93,7 @@ void UUSClimbingComponent::ClimbingLocation(float DeltaTime)
 		return;
 	if (bIsClimbing)
 	{
-		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 100;
+		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 50;
 		FVector StartPoint = owner->GetCapsuleComponent()->GetComponentLocation();
 
 		FVector MiddleEndPoint = StartPoint + ForwardVector;

@@ -33,7 +33,7 @@ void UUSParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	IsParkourable();
+	//IsParkourable();
 }
 
 bool UUSParkourComponent::IsParkourable()
