@@ -14,6 +14,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Animation/USCharacterAnimInstance.h"
 #include "ModularCharacter/USModularCharacterComponent.h"
+#include "Movement/USParkourComponent.h"
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -33,7 +34,7 @@ AUSCharacterBase::AUSCharacterBase()
 	{
 		MoveComp->bOrientRotationToMovement = true;
 		MoveComp->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-		MoveComp->JumpZVelocity = 500.f;
+		MoveComp->JumpZVelocity = 310.f;
 		MoveComp->AirControl = 0.35f;
 		MoveComp->MaxWalkSpeed = 500.f;
 		MoveComp->MinAnalogWalkSpeed = 20.f;
@@ -62,10 +63,12 @@ AUSCharacterBase::AUSCharacterBase()
 	EquipShield->SetIsReplicated(true);
 
 	//ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
-
+	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+	ParkourComponent = CreateDefaultSubobject<UUSParkourComponent>(TEXT("ParkourComponent"));
 	ClimbingComponent = CreateDefaultSubobject<UUSClimbingComponent>(TEXT("ClimbingComponent"));
 
 	ModularCharacterComponent = CreateDefaultSubobject<UUSModularCharacterComponent>(TEXT("ModularCharacterComponent"));
+	
 }
 
 // Called when the game starts or when spawned

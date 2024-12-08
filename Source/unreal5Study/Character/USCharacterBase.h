@@ -89,8 +89,19 @@ public:
 
 	virtual void SetDeathEvent();
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UMotionWarpingComponent> MotionWarping;
+
+public:
+	class UMotionWarpingComponent* GetMotionWarping() {return MotionWarping;}
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UUSModularCharacterComponent> ModularCharacterComponent;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UUSParkourComponent> ParkourComponent;
 };
 

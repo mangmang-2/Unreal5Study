@@ -24,6 +24,7 @@
 #include "Ability/Attribute/USChracterAttributeSet.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "../Item/USInventory.h"
+#include "Movement/USParkourComponent.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -258,6 +259,10 @@ void AUSPlayer::Jump()
 
 
 		return;
+	}
+	else if (ParkourComponent && ParkourComponent->IsParkourable())
+	{
+		ParkourComponent->Start();
 	}
 	Super::Jump();
 }

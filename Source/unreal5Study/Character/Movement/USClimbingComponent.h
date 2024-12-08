@@ -51,8 +51,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UAnimMontage> ClimbingOutSideTurnCornerRMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UMotionWarpingComponent> MotionWarping;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//TObjectPtr<class UMotionWarpingComponent> MotionWarping;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	uint8 bClimbOn : 1;

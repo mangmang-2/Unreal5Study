@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
+#include "../USCharacterBase.h"
 
 // Sets default values for this component's properties
 UUSClimbingComponent::UUSClimbingComponent()
@@ -14,7 +15,7 @@ UUSClimbingComponent::UUSClimbingComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+	//MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 }
 
 
@@ -22,10 +23,6 @@ UUSClimbingComponent::UUSClimbingComponent()
 void UUSClimbingComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	
-	
-	
 }
 
 
@@ -173,6 +170,8 @@ void UUSClimbingComponent::ClimbingUp()
 		FHitResult CapsuleRadiusHitResult;
 		if (CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult) == false)
 		{
+			AUSCharacterBase* CharacterBase = Cast<AUSCharacterBase>(owner);
+			UMotionWarpingComponent* MotionWarping = CharacterBase->GetMotionWarping();
 			if(MotionWarping)
 				MotionWarping->AddOrUpdateWarpTargetFromLocation(TEXT("Warp1"), HitResult.ImpactPoint);
 
@@ -271,6 +270,8 @@ void UUSClimbingComponent::ClimbingCorner(FVector StartPoint, FVector EndPoint, 
 			{
 				bIsClimbingMontage = true;
 				FVector LookDirection = -HitResult.Normal;
+				AUSCharacterBase* CharacterBase = Cast<AUSCharacterBase>(owner);
+				UMotionWarpingComponent* MotionWarping = CharacterBase->GetMotionWarping();
 				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("TurnCorner"), HitResult.ImpactPoint + HitResult.Normal * (CapsuleRadius), FRotationMatrix::MakeFromX(LookDirection).Rotator());
 
 				AnimInstance->Montage_Play(Montage, 1.0);
@@ -309,6 +310,8 @@ void UUSClimbingComponent::ClimbingOutSideCorner(FVector StartPoint, FVector End
 			{
 				bIsClimbingMontage = true;
 				FVector LookDirection = -HitResult.Normal;
+				AUSCharacterBase* CharacterBase = Cast<AUSCharacterBase>(owner);
+				UMotionWarpingComponent* MotionWarping = CharacterBase->GetMotionWarping();
 				MotionWarping->AddOrUpdateWarpTargetFromLocation(TEXT("OutSide1"), EndPoint);
 				MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(TEXT("OutSide2"), HitResult.ImpactPoint, LookDirection.Rotation());
 
