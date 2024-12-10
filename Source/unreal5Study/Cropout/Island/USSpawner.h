@@ -74,6 +74,13 @@ public:
 	void SpawnAssets(TSubclassOf<class AActor> ClassToSpawn, struct FSTSpawnData SpawnData);
 	void SpawnActor(TSubclassOf<AActor> ClassToSpawn, struct FSTSpawnData SpawnData, struct FNavLocation SpawnPos);
 	FVector SteppedPosition(FVector NewParam);
+
+	UFUNCTION()
+	void ReadyToSpawn();
+
+	UFUNCTION()
+	void CheckNavigationBuild();
+
 protected:
 	UPROPERTY(EditAnywhere)
     TArray<FSTSpawnData> SpawnTypes;		// 실제 사용하는 자원
@@ -86,4 +93,8 @@ protected:
 
     int32 ClassRefIndex = 0;  // 클래스 참조 인덱스
 
+	UPROPERTY(EditAnywhere)
+    TObjectPtr<class ANavigationData> NavData;
+
+	FTimerHandle NavCheckHandle;
 };

@@ -22,19 +22,6 @@ void AUSSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	AsyncLoadClasses();
-
-    AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
-    if (GameMode)
-    {
-        AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(GameMode);
-        if (CropoutGameMode)
-        {
-            if (!CropoutGameMode->OnLoadCompleted.IsAlreadyBound(this, &AUSSpawner::SpawnRandom))
-            {
-                CropoutGameMode->OnLoadCompleted.AddDynamic(this, &AUSSpawner::SpawnRandom);
-            }
-        }
-    }
 }
 
 void AUSSpawner::AsyncLoadClasses()
@@ -75,6 +62,8 @@ void AUSSpawner::OnAsyncLoadComplete()
         // 모든 클래스가 로드되었으면 이제 스폰을 생성함
         SpawnInstances();
     }
+
+    ReadyToSpawn();
 }
 
 void AUSSpawner::SpawnInstances()
@@ -92,73 +81,27 @@ void AUSSpawner::SpawnInstances()
         PickPointsAroundBiomePoints(InstancedMeshComponent, CenterPos, SpawnInstance[IndexCounter].BiomeScale, SpawnInstance[IndexCounter].BiomeCount, SpawnInstance[IndexCounter].SpawnPerBiome);
         
 	}
-    //int32 BiomeCount = 3;
-    //int32 MaxSpawn = 3;
-    //for (int32 IndexCounter = 0; IndexCounter < BiomeCount; ++IndexCounter)
-    //{
-    //    UInstancedStaticMeshComponent* InstancedMeshComponent = NewObject<UInstancedStaticMeshComponent>(this);
-    //    if (InstancedMeshComponent)
-    //    {
-    //        InstancedMeshComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-    //        InstancedMeshComponent->RegisterComponent();
-
-    //        UStaticMesh* NewMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Path/To/YourMesh.YourMesh"));
-    //        if (NewMesh)
-    //        {
-    //            InstancedMeshComponent->SetStaticMesh(NewMesh);
-    //        }
-
-    //        for (int32 SpawnIndex = 0; SpawnIndex < MaxSpawn; ++SpawnIndex)
-    //        {
-    //            FTransform InstanceTransform;
-    //            InstanceTransform.SetLocation(FVector::ZeroVector);
-    //            //InstanceTransform.SetScale3D(FVector(BiomeScale)); 
-
-    //            InstancedMeshComponent->AddInstance(InstanceTransform);
-    //        }
-    //    }
-    //}
-
-    //FActorSpawnParameters SpawnParams;
-    //SpawnParams.Owner = this;
-    //if (ClassRef)
-    //{
-    //    for (int32 i = 0; i < BiomeCount; ++i)
-    //    {
-    //        FVector SpawnLocation = FVector(i * 100.0f, 0.0f, 0.0f); // Adjust spawn location as needed
-    //        FRotator SpawnRotation = FRotator::ZeroRotator;
-
-    //        AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ClassRef, SpawnLocation, SpawnRotation, SpawnParams);
-    //        if (SpawnedActor)
-    //        {
-
-    //        }
-    //    }
-    //}
 }
 
 FVector AUSSpawner::GetRandomPoint()
 {
-    UWorld * World = GetWorld();
-    UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(World);
-
-    if (NavSystem == nullptr)
+    if(NavData == nullptr)
         return FVector::ZeroVector;
+    UWorld * World = GetWorld();
     FVector Origin = { 0.0f, 0.0f, 0.0f };
     float Radius = 1000.0;
     FNavLocation RandomLocation;
-    bool bSuccess = NavSystem->GetRandomReachablePointInRadius(Origin, Radius, RandomLocation);
-    NavSystem->GetRandomPoint(RandomLocation);
+    bool bSuccess = NavData->GetRandomReachablePointInRadius(Origin, Radius, RandomLocation);
+    //RandomLocation = NavData->GetRandomPoint();
     return bSuccess ? RandomLocation.Location : RandomLocation;
 }
 
 void AUSSpawner::PickPointsAroundBiomePoints(class UInstancedStaticMeshComponent* Mesh, FVector BiomeCenter, float Radius, int32 BiomeCount, int32 MaxSpawn)
 {
-    UWorld* World = GetWorld();
-
-    UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(World);
-    if (NavSystem == nullptr) 
+    if (NavData == nullptr)
         return;
+
+    UWorld* World = GetWorld();
 
     FRandomStream RandomStream;
     int32 LoopCount = RandomStream.RandRange(MaxSpawn / 2, MaxSpawn);
@@ -166,7 +109,7 @@ void AUSSpawner::PickPointsAroundBiomePoints(class UInstancedStaticMeshComponent
     for (int32 i = 0; i < LoopCount; i++)
     {
         FNavLocation RandomLocation;
-        bool bSuccess = NavSystem->GetRandomReachablePointInRadius(BiomeCenter, Radius, RandomLocation);
+        bool bSuccess = NavData->GetRandomReachablePointInRadius(BiomeCenter, Radius, RandomLocation);
 
         if (bSuccess)
         {
@@ -204,22 +147,23 @@ void AUSSpawner::SpawnRandom()
     }
 }
 
-
 void AUSSpawner::SpawnAssets(TSubclassOf<AActor> ClassToSpawn, FSTSpawnData SpawnData)
 {
-    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+    if (NavData == nullptr)
+        return;
+
     FRandomStream RandomStream;
     for (int32 i = 0; i < SpawnData.BiomeCount; i++)
     {
         FVector Origin = FVector(0.0f, 0.0f, 0.0f);
         FNavLocation Pos;
-        if (NavSys->GetRandomPointInNavigableRadius(Origin, 10000.0f, Pos))
+        if (NavData->GetRandomPointInNavigableRadius(Origin, 10000.0f, Pos))
         {
             int32 LoopCount = UKismetMathLibrary::RandomIntegerInRangeFromStream(0, SpawnData.SpawnPerBiome, RandomStream);
             for (int32 Index = 0; Index < LoopCount; Index++)
             {
                 FNavLocation SpawnPos;
-                if (NavSys->GetRandomPointInNavigableRadius(Pos, SpawnData.BiomeScale, SpawnPos))
+                if (NavData->GetRandomPointInNavigableRadius(Pos, SpawnData.BiomeScale, SpawnPos))
                 {
                     SpawnActor(ClassToSpawn, SpawnData, SpawnPos);
                 }
@@ -262,4 +206,25 @@ FVector AUSSpawner::SteppedPosition(FVector NewParam)
     float SteppedZ = 0.0f;
 
     return FVector(SteppedX, SteppedY, SteppedZ);
+}
+
+void AUSSpawner::ReadyToSpawn()
+{
+    int32 IndexCounter = 0;
+    // 타이머 설정 (0.5초마다 네비게이션 빌드 상태 확인)
+    GetWorldTimerManager().SetTimer(NavCheckHandle, this, &AUSSpawner::CheckNavigationBuild, 0.5f, true, -0.5f);
+}
+
+void AUSSpawner::CheckNavigationBuild()
+{
+    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+
+    if (NavSys && !NavSys->IsNavigationBuildingLocked())
+    {
+        // 네비게이션 빌드가 완료된 경우 타이머 정지
+        GetWorldTimerManager().ClearTimer(NavCheckHandle);
+
+        // 이후 로직 수행 (예: 스폰 작업)
+        SpawnRandom();
+    }
 }

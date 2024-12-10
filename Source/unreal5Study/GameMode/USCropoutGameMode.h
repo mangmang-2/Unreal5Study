@@ -9,8 +9,6 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam (FOnUpdateVillagers, int32, VillagerCount);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoadCompleted);
-
 /**
  * 
  */
@@ -36,14 +34,6 @@ public:
 
 	FVector GetRandomPointInBounds();
 	void SpawnVillager();
-
-	void SpawnInteractables();
-
-	UFUNCTION()
-	void ReadyToSpawn();
-
-	UFUNCTION()
-	void CheckNavigationBuild();
 
 	void AddResource_Implementation(enum EResourceType Resource, int32 Value);
 	virtual void RemoveTargetResource(enum EResourceType Resource, int32 Value);
@@ -74,12 +64,10 @@ protected:
 	TSubclassOf<APawn> VillagerRef;
 
 	int32 VillagerCount = 0;
-	FTimerHandle NavCheckHandle;
+	
 
 	UPROPERTY(EditAnywhere)
 	TMap<EResourceType, int32> Resources;
 public:
 	FOnUpdateVillagers OnUpdateVillagers;
-	FOnLoadCompleted OnLoadCompleted;
-
 };

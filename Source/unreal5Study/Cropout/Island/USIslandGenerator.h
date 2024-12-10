@@ -32,10 +32,16 @@ protected:
 	void ProjectUvs();
 	void ReleaseCompute();
 	void SetIslandColor();
+
 private:
+
+	UPROPERTY(EditAnywhere)
 	int32 Islands = 20; // 만들어질 지형 개수
+	UPROPERTY(EditAnywhere)
 	float MaxSpawnDistance = 9776.351562;
+	UPROPERTY(EditAnywhere)
 	float IslandSizeX = 800.0;
+	UPROPERTY(EditAnywhere)
 	float IslandSizeY = 5000.0;
 
 	FOnTaskComplete OnTaskComplete;
