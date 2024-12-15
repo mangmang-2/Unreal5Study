@@ -72,10 +72,11 @@ AUSCropoutPlayer::AUSCropoutPlayer()
 void AUSCropoutPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	RootComponent->SetWorldLocation(FVector(0.0f, 0.0f, 0.0f));
-	RootComponent->SetWorldRotation(FRotator(0.0f, 0.0f, 0.0f));
 	
 	UpdateZoom();
+
+	FRotator RotationDelta(0.f, -45.0f, 0.0f);
+	AddActorLocalRotation(RotationDelta);
 }
 
 // Called every frame

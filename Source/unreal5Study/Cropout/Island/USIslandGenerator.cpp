@@ -51,7 +51,7 @@ void AUSIslandGenerator::BeginPlay()
 	MeshPlaneCut();
 	ProjectUvs();
 	ReleaseCompute();
-	SetIslandColor();
+	//SetIslandColor();
 
 	OnTaskComplete.Broadcast();
 }
