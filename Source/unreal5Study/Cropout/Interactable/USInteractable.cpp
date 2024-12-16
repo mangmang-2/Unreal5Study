@@ -171,9 +171,9 @@ void AUSInteractable::CheckForOverlappingActors()
         {
             FVector OtherLocation = OverlappingActor->GetActorLocation();
             FVector SelfLocation = GetActorLocation();
-            bool Equal = UKismetMathLibrary::EqualEqual_VectorVector(OtherLocation, SelfLocation, 5.0f);
+            bool Equal = UKismetMathLibrary::EqualEqual_VectorVector(OtherLocation, SelfLocation, 5.0);
 
-            if (Equal && OverlappingActor->ActorHasTag("PlacementMode") == false)
+            if (Equal && ActorHasTag("PlacementMode") == false)
             {
                 Destroy();
             }

@@ -526,9 +526,13 @@ class AActor* AUSCropoutPlayer::VillageOverlapCheck()
 	if (OverlappingActors.Num() > 0) // 배열의 길이가 0보다 큰지 확인
 	{
 		AActor* FirstActor = OverlappingActors[0]; // 첫 번째 요소 가져오기
-		if (IsValid(FirstActor)) // 첫 번째 요소가 유효한지 확인
+		if (IsValid(FirstActor) && IsValid(HoverActor)) // 첫 번째 요소가 유효한지 확인
 		{
-			return FirstActor;
+			bool Equal = UKismetMathLibrary::EqualEqual_VectorVector(FirstActor->GetActorLocation(), HoverActor->GetActorLocation(), 10.0f);
+			if (Equal)
+			{
+				return FirstActor;
+			}
 		}
 	}
 	return nullptr;
@@ -644,12 +648,15 @@ void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClassParam, TMap<enu
 
 	if (TargetClass)
 	{
+		FTransform SpawnTransform = GetActorTransform();
+		SpawnTransform.SetRotation(FRotator::ZeroRotator.Quaternion());
+
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 		TargetActor = Cast<AUSInteractable>(GetWorld()->SpawnActor<AActor>(
 			TargetClass,
-			GetTransform(),
+			SpawnTransform,
 			SpawnParams
 		));
 	}
@@ -808,7 +815,7 @@ bool AUSCropoutPlayer::CornersInNav()
 
 void AUSCropoutPlayer::BlueprintMuildMoveComplete()
 {
-	if (TargetActor == nullptr)
+	if (IsValid(TargetActor) == false)
 		return;
 	FVector NewLocation = GetSteppedPosition(TargetActor->GetActorLocation(), 200);
 	TargetActor->SetActorLocation(NewLocation);
