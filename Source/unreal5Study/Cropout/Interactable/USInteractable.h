@@ -91,10 +91,13 @@ protected:
 
 public:
 	virtual void SetProgressionsState(float Progression);
+	void SetEnableGroundBlend(bool bEnable);
 
 protected:
-	bool EnableGroundBlend = true;
-	float OutlineDraw = 0.0f;
+	UPROPERTY(EditAnywhere)
+	bool EnableGroundBlend = false;
+
+	float OutlineDraw = 1.5f;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UTextureRenderTarget2D> RTDraw;
 

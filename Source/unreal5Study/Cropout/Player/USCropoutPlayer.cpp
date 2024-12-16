@@ -659,6 +659,7 @@ void AUSCropoutPlayer::BeginBuild(TSubclassOf<AActor> TargetClassParam, TMap<enu
 			SpawnTransform,
 			SpawnParams
 		));
+		TargetActor->SetEnableGroundBlend(false);
 	}
 
 	if (TargetActor)

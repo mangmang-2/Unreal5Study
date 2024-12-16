@@ -102,7 +102,6 @@ void AUSInteractable::DoDestroy()
 
 void AUSInteractable::PlacementMode()
 {
-    EnableGroundBlend = false;
     if (MeshList.IsValidIndex(0))
     {
         Mesh->SetStaticMesh(MeshList[0]);
@@ -122,8 +121,8 @@ void AUSInteractable::WriteToRenderTarget()
     if (EnableGroundBlend == false)
         return;
 
-    //if (RTDraw == nullptr || RenderMaterial == nullptr)
-    //    return;
+    if (RTDraw == nullptr || RenderMaterial == nullptr)
+        return;
 
     UCanvas* Canvas;
     FVector2D Size;
@@ -144,6 +143,8 @@ void AUSInteractable::WriteToRenderTarget()
         FVector2D PivotPoint(0.5f, 0.5f);
         
         Canvas->K2_DrawMaterial(RenderMaterial, ScreenPosition, ScreenSize, CoordinatePosition, CoordinateSize, Rotation, PivotPoint);
+
+        UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(GetWorld(), Context);
     }
 }
 
@@ -156,6 +157,7 @@ void AUSInteractable::TransformToTexture(FVector2D Size, FVector2D& ReturnValue,
     ReturnValue2.Y = OutlineDrawValue;
 
     ReturnValue = FVector2D((GetActorLocation() + 10000.0) / 20000.0f * Size.X - (OutlineDrawValue / 2.0f));
+    return;
 }
 
 void AUSInteractable::CheckForOverlappingActors()
@@ -246,4 +248,9 @@ void AUSInteractable::SetProgressionsState(float Progression)
             Mesh->SetStaticMesh(NewMesh);
         }
     }
+}
+
+void AUSInteractable::SetEnableGroundBlend(bool bEnable)
+{
+    EnableGroundBlend = bEnable;
 }
