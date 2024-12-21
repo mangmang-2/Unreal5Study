@@ -14,6 +14,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "../Lyra/GameFramework/GameplayMessageSubsystem.h"
 #include "../Cropout/UI/USResourceUIItem.h"
+#include "NavigationPath.h"
 
 void AUSCropoutGameMode::BeginPlay()
 {
@@ -41,6 +42,7 @@ void AUSCropoutGameMode::BeginAsyncSpawning()
 {
     FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
     Streamable.RequestAsyncLoad(TownHallRef.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &AUSCropoutGameMode::OnAsyncLoadComplete));
+
 }
 
 void AUSCropoutGameMode::OnAsyncLoadComplete()
@@ -54,6 +56,7 @@ void AUSCropoutGameMode::OnAsyncLoadComplete()
     }
 
     OnTownHallClassLoaded();
+    OnMonsterHallClassLoaded();
     for (int32 i = 0; i < 3; i++)
     {
         SpawnVillager();
@@ -96,6 +99,52 @@ void AUSCropoutGameMode::OnTownHallClassLoaded()
             TownHall = SpawnedTownHall;
         }
 
+    }
+}
+
+void AUSCropoutGameMode::OnMonsterHallClassLoaded()
+{
+    //MonsterHall
+
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), SpawnMarkerClass, FoundActors);
+    if (FoundActors.Num() <= 0)
+        return;
+
+    UNavigationSystemV1* NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+    if (NavSystem == nullptr)
+        return;
+
+    FVector TownHallLocation = TownHall->GetActorLocation();
+    float MaxDistance = 0.0f;
+    AActor* FarthestActor = nullptr;
+    for (auto& Actor : FoundActors)
+    {
+        FVector ActorLocation = Actor->GetActorLocation();
+
+        UNavigationPath* NavPath = NavSystem->FindPathToLocationSynchronously(GetWorld(), TownHallLocation, ActorLocation);
+        if (NavPath && NavPath->IsValid())
+        {
+            float PathLength = NavPath->GetPathLength();
+            if (PathLength > MaxDistance)
+            {
+                MaxDistance = PathLength;
+                FarthestActor = Actor;
+            }
+        }
+    }
+
+    if (FarthestActor)
+    {
+        FVector SpawnLocation = FarthestActor->GetActorLocation();
+        FRotator SpawnRotation = FarthestActor->GetActorRotation();
+
+        FActorSpawnParameters SpawnParams;
+        AActor* MonsterTownHall = GetWorld()->SpawnActor<AActor>(MonsterHallClass, SpawnLocation, SpawnRotation, SpawnParams);
+        if (MonsterTownHall)
+        {
+            MonsterHall = MonsterTownHall;
+        }
     }
 }
 

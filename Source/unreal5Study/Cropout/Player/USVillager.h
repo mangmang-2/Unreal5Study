@@ -115,4 +115,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UStaticMesh> CratMesh;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<class UAbilitySystemComponent> ASC;
+	
+	UPROPERTY()
+	TObjectPtr<class UUSCropoutStat> AttributeSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UUSCropoutWidgetComponent> HPBarWidgetComponent;
 };

@@ -29,6 +29,7 @@ public:
 	UFUNCTION()
 	void OnAsyncLoadComplete();
 	void OnTownHallClassLoaded();
+	void OnMonsterHallClassLoaded();
 	
 	FVector GetSteppedPosition(const FVector& Position, float StepSize);
 
@@ -59,6 +60,12 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<AActor> TownHall;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> MonsterHallClass;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<AActor> MonsterHall;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<APawn> VillagerRef;

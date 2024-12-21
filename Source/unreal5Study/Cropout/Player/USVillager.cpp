@@ -10,6 +10,8 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "../Interactable/USResourceInterface.h"
+#include "../UI/USCropoutWidgetComponent.h"
+#include "../Stat/USCropoutStat.h"
 
 // Sets default values
 AUSVillager::AUSVillager()
@@ -36,13 +38,19 @@ AUSVillager::AUSVillager()
 
 	Decal = CreateDefaultSubobject<UDecalComponent>(TEXT("VillagerDecal"));
 	Decal->SetupAttachment(SkeletalMesh);
+
+	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+	AttributeSet = CreateDefaultSubobject<UUSCropoutStat>(TEXT("AttributeSet"));
+
+	HPBarWidgetComponent = CreateDefaultSubobject<UUSCropoutWidgetComponent>(TEXT("Widget"));
+	HPBarWidgetComponent->SetupAttachment(SkeletalMesh);
+	HPBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 240.0f));
 }
 
 // Called when the game starts or when spawned
 void AUSVillager::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
