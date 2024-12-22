@@ -31,10 +31,14 @@ void UUSCropoutHpbar::SetAbilitySystemComponent(AActor* InOwner)
 
 void UUSCropoutHpbar::OnHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
+	CurrentHealth = ChangeData.NewValue;
+	UpdateHpBar();
 }
 
 void UUSCropoutHpbar::OnMaxHealthChanged(const FOnAttributeChangeData& ChangeData)
 {
+	CurrentMaxHealth = ChangeData.NewValue;
+	UpdateHpBar();
 }
 
 void UUSCropoutHpbar::UpdateHpBar()

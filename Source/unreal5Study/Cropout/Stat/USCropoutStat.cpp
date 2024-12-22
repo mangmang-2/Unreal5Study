@@ -34,11 +34,7 @@ bool UUSCropoutStat::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Da
 	{
 		if (Data.EvaluatedData.Magnitude > 0.0f)
 		{
-			/*if (Data.Target.HasMatchingGameplayTag(ABTAG_CHARACTER_INVINSIBLE))
-			{
-				Data.EvaluatedData.Magnitude = 0.0f;
-				return false;
-			}*/
+
 		}
 	}
 
@@ -51,23 +47,21 @@ void UUSCropoutStat::PostGameplayEffectExecute(const FGameplayEffectModCallbackD
 
 	float MinimumHealth = 0.0f;
 
-	/*if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		ABGAS_LOG(LogABGAS, Warning, TEXT("Direct Health Access : %f"), GetHealth());
 		SetHealth(FMath::Clamp(GetHealth(), MinimumHealth, GetMaxHealth()));
 	}
 	else if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
-		ABGAS_LOG(LogABGAS, Log, TEXT("Damage : %f"), GetDamage());
 		SetHealth(FMath::Clamp(GetHealth() - GetDamage(), MinimumHealth, GetMaxHealth()));
 		SetDamage(0.0f);
 	}
 
-	if ((GetHealth() <= 0.0f) && !bOutOfHealth)
-	{
-		Data.Target.AddLooseGameplayTag(ABTAG_CHARACTER_ISDEAD);
-		OnOutOfHealth.Broadcast();
-	}
+	//if ((GetHealth() <= 0.0f) && !bOutOfHealth)
+	//{
+	//	Data.Target.AddLooseGameplayTag(ABTAG_CHARACTER_ISDEAD);
+	//	OnOutOfHealth.Broadcast();
+	//}
 
-	bOutOfHealth = (GetHealth() <= 0.0f);*/
+	//bOutOfHealth = (GetHealth() <= 0.0f);
 }

@@ -60,7 +60,8 @@ public:
 	void PlayVillagerAnim(class UAnimMontage* Montage, float Length);
 	void OnMontageComplete();
 
-
+	UFUNCTION()
+	void OnHealthChange();
 protected:
 	UPROPERTY(Category= Villager, EditAnywhere)
 	TObjectPtr<class UCapsuleComponent> CapsuleComponent;
@@ -89,8 +90,11 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UBehaviorTree> ActiveBehavior;
 
-		UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
+
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
 
 	UPROPERTY()
 	TObjectPtr<class UUSCropoutStat> AttributeSet;

@@ -51,6 +51,19 @@ void AUSCropoutPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	int32 AbilityCount = 0;
+	for (const auto& StartAbility : StartAbilities)
+	{
+		FGameplayAbilitySpec StartSpec(StartAbility);
+		StartSpec.InputID = AbilityCount++;
+		ASC->GiveAbility(StartSpec);
+	}
+
+	const UUSCropoutStat* CropoutStat = ASC->GetSet<UUSCropoutStat>();
+	if (CropoutStat)
+	{
+		//CropoutStat->OnHealthChange.AddDynamic(this, &ThisClass::OnHealthChange);
+	}
 }
 
 // Called every frame
@@ -255,6 +268,10 @@ void AUSCropoutPawn::OnMontageComplete()
 		return;
 
 	AnimInstance->StopAllMontages(0.0f);
+}
+
+void AUSCropoutPawn::OnHealthChange()
+{
 }
 
 

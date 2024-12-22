@@ -15,6 +15,7 @@ class UNREAL5STUDY_API AUSBuildBase : public AUSInteractable
 	GENERATED_BODY()
 
 public:
+	AUSBuildBase();
 	virtual void BeginPlay() override;
 
 	float ProgressConstruct(float InvestedTime);
@@ -31,4 +32,19 @@ public:
 protected:
 
 	float BuildDifficulty = 1.0f;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<class UAbilitySystemComponent> ASC;
+
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
+
+	UPROPERTY()
+	TObjectPtr<class UUSCropoutStat> AttributeSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UUSCropoutWidgetComponent> HPBarWidgetComponent;
+
+	UPROPERTY(EditAnywhere)
+	float HPBarHeight = 240.0f;
 };

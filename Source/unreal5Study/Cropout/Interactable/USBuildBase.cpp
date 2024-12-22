@@ -3,6 +3,20 @@
 
 #include "Cropout/Interactable/USBuildBase.h"
 #include "Math/UnrealPlatformMathSSE.h"
+#include "../UI/USCropoutWidgetComponent.h"
+#include "GameplayAbilitySpec.h"
+#include "AbilitySystemComponent.h"
+#include "../Stat/USCropoutStat.h"
+
+AUSBuildBase::AUSBuildBase()
+{
+    ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+    AttributeSet = CreateDefaultSubobject<UUSCropoutStat>(TEXT("AttributeSet"));
+
+    HPBarWidgetComponent = CreateDefaultSubobject<UUSCropoutWidgetComponent>(TEXT("Widget"));
+    HPBarWidgetComponent->SetupAttachment(Mesh);
+   
+}
 
 void AUSBuildBase::BeginPlay()
 {
@@ -12,6 +26,16 @@ void AUSBuildBase::BeginPlay()
 
     Tags.AddUnique(TEXT("All Resources"));
     ProgressConstruct(0.4);
+
+    int32 AbilityCount = 0;
+    for (const auto& StartAbility : StartAbilities)
+    {
+        FGameplayAbilitySpec StartSpec(StartAbility);
+        StartSpec.InputID = AbilityCount++;
+        ASC->GiveAbility(StartSpec);
+    }
+
+    HPBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, HPBarHeight));
 }
 
 float AUSBuildBase::ProgressConstruct(float InvestedTime)
