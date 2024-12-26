@@ -2,21 +2,54 @@
 
 
 #include "Cropout/Player/USCropoutMonster.h"
+#include "Kismet/GameplayStatics.h"
 
-void AUSCropoutMonster::Action(AActor* VillagerAction)
+void AUSCropoutMonster::Tick(float DeltaTime)
 {
-	if (VillagerAction == nullptr)
+	Super::Tick(DeltaTime);
+
+	static float AccTime = 0.0f;
+	AccTime += DeltaTime;
+
+	if (AccTime <= 3.0f)
 		return;
 
-	TargetRef = VillagerAction;
+	AccTime = 0;
 
-	if (TargetRef && TargetRef->IsValidLowLevel())
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("Player"), FoundActors);
+	for (const auto& Actor : FoundActors)
 	{
-		if (TargetRef->Tags.IsValidIndex(0))
+		if (Actor == nullptr)
+			continue;
+
+		float DistToPawn = FVector::Distance(Actor->GetActorLocation(), GetActorLocation());
+
+		if (DistToPawn < 300)
 		{
-			FName NewJob = TargetRef->Tags[0];
-			ChangeJob(NewJob);
-			UpdateAllPawn();
+			Tags[0] = TEXT("");
+			ChangeJob(TEXT("Monster"));
+			Tags[0] = TEXT("Attack");
+			break;
 		}
+	}
+}
+
+void AUSCropoutMonster::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	ChangeJob(TEXT("Monster"));
+	Tags[0] = TEXT("Attack");
+	Tags.AddUnique("Monster");
+	
+}
+
+void AUSCropoutMonster::PlayWorkAnim_Implementation(float Delay)
+{
+	PlayVillagerAnim(WorkAnim, Delay);
+
+	if (Tool && TargetTool)
+	{
+		Tool->SetStaticMesh(TargetTool);
 	}
 }

@@ -18,14 +18,23 @@ void UUSCropout_SimpleAttackCheck::ActivateAbility(const FGameplayAbilitySpecHan
 
     AActor* OwnerActor = Cast<AActor>(ActorInfo->AvatarActor.Get());
     if (OwnerActor == nullptr)
+    {
+        Super::EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
         return;
+     }
 
     UWorld* World = OwnerActor->GetWorld();
     if (World == nullptr)
+    {
+        Super::EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
         return;
+    }
 
     if(GameplayEffectClass == nullptr)
+    {
+        Super::EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
         return;
+    }
 
     FVector ForwardVector = OwnerActor->GetActorForwardVector();
     FVector Start = OwnerActor->GetActorLocation() + ForwardVector * AttackRange;
@@ -34,48 +43,54 @@ void UUSCropout_SimpleAttackCheck::ActivateAbility(const FGameplayAbilitySpecHan
 
     FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(AttackCheck), false, OwnerActor);
 
-    FHitResult HitResult;
-    bool bHit = World->SweepSingleByChannel(
-        HitResult,
+    TArray<FHitResult> HitResults;
+    bool bHit = World->SweepMultiByChannel(
+        HitResults,
         Start,
         End,
-        FQuat::Identity, 
-        ECC_Visibility,
+        FQuat::Identity,
+        ECC_Visibility, 
         FCollisionShape::MakeSphere(AttackRange),
         TraceParams
     );
 
-    if (bHit)
+    if (bHit && HitResults.Num() > 0)
     {
-        AActor* HitActor = HitResult.GetActor();
-        if (HitActor)
-        {       
-            UAbilitySystemComponent* HitASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
-            if (HitASC)
+        FVector Center = (Start + End) * 0.5f;
+
+        for (const FHitResult& Hit : HitResults)
+        {
+            AActor* HitActor = Hit.GetActor();
+            if (HitActor)
             {
-                FGameplayEffectContextHandle EffectContext = HitASC->MakeEffectContext();
-                EffectContext.AddSourceObject(ActorInfo->AvatarActor.Get());
-                FGameplayEffectSpecHandle EffectSpecHandle = HitASC->MakeOutgoingSpec(GameplayEffectClass, 1, EffectContext);
-                if (EffectSpecHandle.IsValid())
+                UAbilitySystemComponent* HitASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
+                if (HitASC)
                 {
-                    HitASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+                    FGameplayEffectContextHandle EffectContext = HitASC->MakeEffectContext();
+                    EffectContext.AddSourceObject(ActorInfo->AvatarActor.Get());
+
+                    FGameplayEffectSpecHandle EffectSpecHandle = HitASC->MakeOutgoingSpec(GameplayEffectClass, 1, EffectContext);
+                    if (EffectSpecHandle.IsValid())
+                    {
+                        // Gameplay Effect Àû¿ë
+                        HitASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+                    }
                 }
             }
-
-            FVector Center = (Start + End) * 0.5f;
-            FColor LineColor = bHit ? FColor::Red : FColor::Green;
-            DrawDebugSphere(
-                World,
-                Center,
-                AttackRange,
-                12,
-                FColor::Red,
-                false,
-                2.0f
-            );
         }
     }
 
+    FVector Center = (Start + End) * 0.5f;
+    FColor LineColor = bHit ? FColor::Red : FColor::Green;
+    DrawDebugSphere(
+        World,
+        Center,
+        AttackRange,
+        12,
+        FColor::Red,
+        false,
+        2.0f
+    );
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
 }
 

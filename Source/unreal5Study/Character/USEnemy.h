@@ -32,6 +32,7 @@ public:
 	virtual float GetAIDetectRange();
 	virtual float GetAIAttackRange();
 	virtual float GetAITurnSpeed();
+	virtual float GetAICollisionRange() {return 0;};
 
 	FAICharacterAttackFinished OnAttackFinished;
 	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished);

@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "USVillagerInterface.h"
 #include "../Interactable/USResourceInterface.h"
+#include "../../Interface/USCharacterAIInterface.h"
 #include "USCropoutPawn.generated.h"
 
 USTRUCT(BlueprintType)
@@ -28,7 +29,7 @@ struct FSTJob : public FTableRowBase
 
 
 UCLASS()
-class UNREAL5STUDY_API AUSCropoutPawn : public APawn, public IUSVillagerInterface, public IUSResourceInterface
+class UNREAL5STUDY_API AUSCropoutPawn : public APawn, public IUSVillagerInterface, public IUSResourceInterface, public IUSCharacterAIInterface
 {
 	GENERATED_BODY()
 
@@ -121,4 +122,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UStaticMesh> CratMesh;
+
+	UPROPERTY(EditAnywhere)
+	float AICollisionRange = 200.0f;
+
+public:
+	virtual float GetAIPatrolRadius() { return 0.0f; };
+	virtual float GetAIDetectRange() { return 0.0f; };
+	virtual float GetAIAttackRange() { return 100.0f; };
+	virtual float GetAITurnSpeed() { return 0.0f; };
+	virtual float GetAICollisionRange() { return AICollisionRange; };
+	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) {};
 };

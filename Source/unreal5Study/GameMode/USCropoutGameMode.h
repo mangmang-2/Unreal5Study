@@ -33,7 +33,7 @@ public:
 	
 	FVector GetSteppedPosition(const FVector& Position, float StepSize);
 
-	FVector GetRandomPointInBounds();
+	FVector GetRandomPointInBounds(AActor* Hall);
 	void SpawnVillager();
 
 	void AddResource_Implementation(enum EResourceType Resource, int32 Value);
@@ -45,6 +45,8 @@ public:
 
 	void SendUIResourceValue();
 	TMap<EResourceType, int32> GetResources();
+
+	void SpawnMonster(TSubclassOf<APawn> MonsterClass);
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;

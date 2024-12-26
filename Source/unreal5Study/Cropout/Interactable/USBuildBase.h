@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Cropout/Interactable/USInteractable.h"
+#include "../../Interface/USCharacterAIInterface.h"
 #include "USBuildBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UNREAL5STUDY_API AUSBuildBase : public AUSInteractable
+class UNREAL5STUDY_API AUSBuildBase : public AUSInteractable, public IUSCharacterAIInterface
 {
 	GENERATED_BODY()
 
@@ -47,4 +48,16 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float HPBarHeight = 240.0f;
+
+	UPROPERTY(EditAnywhere)
+	float AICollisionRange = 100.0f;
+
+public:
+
+	virtual float GetAIPatrolRadius() { return 0.0f; };
+	virtual float GetAIDetectRange() { return 0.0f; };
+	virtual float GetAIAttackRange() { return 100.0f; };
+	virtual float GetAITurnSpeed() { return 0.0f; };
+	virtual float GetAICollisionRange() { return AICollisionRange; };
+	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) {};
 };

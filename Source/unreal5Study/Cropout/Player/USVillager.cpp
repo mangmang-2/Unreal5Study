@@ -17,6 +17,8 @@ AUSVillager::AUSVillager()
 void AUSVillager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Tags.Add(FName("Player"));
 }
 
 // Called every frame

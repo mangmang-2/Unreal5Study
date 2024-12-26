@@ -158,10 +158,10 @@ FVector AUSCropoutGameMode::GetSteppedPosition(const FVector& Position, float St
     return FVector(SteppedX, SteppedY, 0.0f);
 }
 
-FVector AUSCropoutGameMode::GetRandomPointInBounds()
+FVector AUSCropoutGameMode::GetRandomPointInBounds(AActor* Hall)
 {
     FVector Origin, BoxExtent;
-    TownHall->GetActorBounds(false, Origin, BoxExtent); 
+    Hall->GetActorBounds(false, Origin, BoxExtent);
 
     FVector RandomUnitVector = UKismetMathLibrary::RandomUnitVector();
 
@@ -183,7 +183,7 @@ void AUSCropoutGameMode::SpawnVillager()
     if (VillagerRef == nullptr)
         return;
 
-    FVector SpawnLocation = GetRandomPointInBounds();
+    FVector SpawnLocation = GetRandomPointInBounds(TownHall);
     FRotator SpawnRotation = FRotator::ZeroRotator;
 
     SpawnLocation.Z += 92.561032;
@@ -230,6 +230,26 @@ void AUSCropoutGameMode::SendUIResourceValue()
 TMap<EResourceType, int32> AUSCropoutGameMode::GetResources()
 {
     return Resources;
+}
+
+void AUSCropoutGameMode::SpawnMonster(TSubclassOf<APawn> MonsterClass)
+{
+    if (MonsterClass == nullptr)
+        return;
+
+    FVector SpawnLocation = GetRandomPointInBounds(MonsterHall);
+    FRotator SpawnRotation = FRotator::ZeroRotator;
+
+    SpawnLocation.Z += 92.561032;
+
+    APawn* SpawnedVillager = UAIBlueprintHelperLibrary::SpawnAIFromClass(
+        GetWorld(),
+        MonsterClass,
+        nullptr,            // AI에 적용할 Behavior Tree
+        SpawnLocation,
+        SpawnRotation,
+        true                // true로 설정하면 충돌할 경우 실패하지 않고 근처에 스폰 시도
+    );
 }
 
 void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Value)

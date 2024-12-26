@@ -33,8 +33,15 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(UBehaviorTreeCompone
 		return false;
 	}
 
+	IUSCharacterAIInterface* AITargetPawn = Cast<IUSCharacterAIInterface>(Target);
+	if (AITargetPawn == nullptr)
+	{
+		return false;
+	}
+
 	float DistanceToTarget = ControllingPawn->GetDistanceTo(Target);
 	float AttackRangeWithRadius = AIPawn->GetAIAttackRange();
-	bResult = (DistanceToTarget <= AttackRangeWithRadius);
+	float TargetRadius = AITargetPawn->GetAICollisionRange();
+	bResult = (DistanceToTarget <= (AttackRangeWithRadius + TargetRadius));
 	return bResult;
 }

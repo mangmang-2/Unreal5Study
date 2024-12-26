@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "USCropoutPawn.h"
-#include "../../Interface/USCharacterAIInterface.h"
 #include "USVillager.generated.h"
 
 
 UCLASS()
-class UNREAL5STUDY_API AUSVillager : public AUSCropoutPawn, public IUSCharacterAIInterface
+class UNREAL5STUDY_API AUSVillager : public AUSCropoutPawn
 {
 	GENERATED_BODY()
 
@@ -36,10 +35,4 @@ public:
 	virtual void RemoveResource_Implementation(enum EResourceType& Resource, int32& Value)override;
 	virtual void AddResource_Implementation(enum EResourceType Resource, int32 Value)override;
 
-
-	virtual float GetAIPatrolRadius() { return 0.0f; };
-	virtual float GetAIDetectRange() { return 0.0f; };
-	virtual float GetAIAttackRange() { return 600.0f; };
-	virtual float GetAITurnSpeed() { return 0.0f; };
-	virtual void SetAIAttackDelegate(const FAICharacterAttackFinished& InOnAttackFinished) {};
 };

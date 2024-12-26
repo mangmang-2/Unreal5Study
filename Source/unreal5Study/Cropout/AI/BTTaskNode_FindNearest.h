@@ -29,7 +29,7 @@ protected:
     FBlackboardKeySelector Target;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
-    FBlackboardKeySelector NearestTo;
+    FBlackboardKeySelector TargetLocation;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
     TArray<AActor*> PossibleActors;
@@ -37,9 +37,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
     bool bPathFound;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
-    AActor* NewTarget;
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Class")
     TSubclassOf<AActor> TargetTownClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
+    FName TargetTagName;
 };

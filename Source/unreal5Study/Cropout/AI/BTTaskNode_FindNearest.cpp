@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
 #include "AIController.h"
+#include "../../Interface/USCharacterAIInterface.h"
 
 EBTNodeResult::Type UBTTaskNode_FindNearest::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -25,8 +26,7 @@ EBTNodeResult::Type UBTTaskNode_FindNearest::ExecuteTask(UBehaviorTreeComponent&
 
 	// Target.SelectedKeyName
 	// Blackboard->SetValueAsObject(Target.SelectedKeyName, object)
-	// FVector CurrentLocation = BlackboardComp->GetValueAsVector(TargetKey.SelectedKeyName);
-
+	
 	AActor* TargetTownObject = UGameplayStatics::GetActorOfClass(GetWorld(), TargetTownClass);
 	if(TargetTownObject == nullptr)
 		return EBTNodeResult::Failed;
@@ -36,29 +36,52 @@ EBTNodeResult::Type UBTTaskNode_FindNearest::ExecuteTask(UBehaviorTreeComponent&
 	if(PawnToTownDist < 100.0f)
 		return EBTNodeResult::Succeeded;
 
-	float BestDistance = MAX_flt;
+	float BestDistance = PawnToTownDist;
 	AActor* BestActor = TargetTownObject;
 
 	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Monster"), FoundActors);
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TargetTagName, FoundActors);
+	FoundActors.Add(TargetTownObject);
 	for (const auto& Actor : FoundActors)
 	{
-		if (Actor == nullptr) continue;
+		if (Actor == nullptr) 
+			continue;
 
 		float DistToPawn = FVector::Distance(Actor->GetActorLocation(), Pawn->GetActorLocation());
 
-		if (DistToPawn < PawnToTownDist)
+		if(DistToPawn > 300)
+			continue;
+
+		// 가장 가까운 액터를 추적
+		if (DistToPawn < BestDistance)
 		{
-			// 가장 가까운 액터를 추적
-			if (DistToPawn < BestDistance)
-			{
-				BestDistance = DistToPawn;
-				BestActor = Actor;
-			}
+			BestDistance = DistToPawn;
+			BestActor = Actor;
+		}
+	}
+	AActor* CurrentTargetObject = Cast<AActor>(Blackboard->GetValueAsObject(Target.SelectedKeyName));
+	if (CurrentTargetObject != nullptr)
+	{
+		if (BestActor == CurrentTargetObject)
+		{
+			return EBTNodeResult::Succeeded;
 		}
 	}
 
+	IUSCharacterAIInterface* BestActorAI = Cast<IUSCharacterAIInterface>(BestActor);
+	if (BestActorAI == nullptr)
+		return EBTNodeResult::Failed;
+
+	float TargetRadius = BestActorAI->GetAICollisionRange();
+	FVector Center = BestActor->GetActorLocation();
+	FVector PawnLoc = Pawn->GetActorLocation();
+
+	FVector Dir = PawnLoc - Center;
+	Dir = Dir.GetSafeNormal();
+	FVector FinalLocation = Center + Dir * TargetRadius;
+
 	Blackboard->SetValueAsObject(Target.SelectedKeyName, BestActor);
+	Blackboard->SetValueAsVector(TargetLocation.SelectedKeyName, FinalLocation);
 
 	return EBTNodeResult::Succeeded;
 }

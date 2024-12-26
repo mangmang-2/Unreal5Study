@@ -21,4 +21,5 @@ void AUSBuildHouse::ConstructComplete()
 {
 	Super::ConstructComplete();
 	SpawnVillagers();
+	Tags.Add(FName("Player"));
 }

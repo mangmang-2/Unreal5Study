@@ -16,5 +16,8 @@ class UNREAL5STUDY_API AUSCropoutMonster : public AUSCropoutPawn
 	
 
 public:
-	virtual void Action(class AActor* VillagerAction);
+	virtual void Tick(float DeltaTime) override;
+
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void PlayWorkAnim_Implementation(float Delay) override;
 };
