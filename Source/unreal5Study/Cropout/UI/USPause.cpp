@@ -3,6 +3,7 @@
 
 #include "Cropout/UI/USPause.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../GameMode/USCropoutGameMode.h"
 
 void UUSPause::NativeConstruct()
 {
@@ -29,6 +30,12 @@ void UUSPause::Resume()
 
 void UUSPause::Restart()
 {
+	AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(GetWorld()->GetAuthGameMode());
+	if (CropoutGameMode)
+	{
+		CropoutGameMode->ClearGame();
+	}
+
 	UGameplayStatics::SetGamePaused(GetWorld(), false);
 }
 

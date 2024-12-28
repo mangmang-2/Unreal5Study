@@ -7,6 +7,8 @@
 #include "GameplayAbilitySpec.h"
 #include "AbilitySystemComponent.h"
 #include "../Stat/USCropoutStat.h"
+#include "../../GameMode/USCropoutGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 AUSBuildBase::AUSBuildBase()
 {
@@ -51,6 +53,13 @@ float AUSBuildBase::ProgressConstruct(float InvestedTime)
     {
         UpdateBuildProgress();
     }
+
+    AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(UGameplayStatics::GetGameMode(this));
+    if (CropoutGameMode)
+    {
+        CropoutGameMode->UpdateAllInteractables();
+    }
+
     float RemainingConstructionTime = static_cast<float>(LastIndex) - ProgressionState;
     return RemainingConstructionTime;
 }

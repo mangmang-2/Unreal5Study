@@ -886,6 +886,12 @@ bool AUSCropoutPlayer::SpawnBuildTarget()
 				{
 					Interactable->SetProgressionsState(0.0f);
 				}
+
+				AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(UGameplayStatics::GetGameMode(this));
+				if (CropoutGameMode)
+				{
+					CropoutGameMode->UpdateAllInteractables();
+				}
 			}
 		}
 	}

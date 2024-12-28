@@ -15,6 +15,9 @@
 #include "../Lyra/GameFramework/GameplayMessageSubsystem.h"
 #include "../Cropout/UI/USResourceUIItem.h"
 #include "NavigationPath.h"
+#include "../Data/USCropoutSaveGame.h"
+#include "../Cropout/Interactable/USInteractable.h"
+#include "../Cropout/Player/USVillager.h"
 
 void AUSCropoutGameMode::BeginPlay()
 {
@@ -40,8 +43,28 @@ void AUSCropoutGameMode::IslandGencomplete()
 
 void AUSCropoutGameMode::BeginAsyncSpawning()
 {
-    FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-    Streamable.RequestAsyncLoad(TownHallRef.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &AUSCropoutGameMode::OnAsyncLoadComplete));
+    if (IsSaveData() == false && bGameModeMain == false)
+    {
+        FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+        Streamable.RequestAsyncLoad(TownHallRef.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &AUSCropoutGameMode::OnAsyncLoadComplete));
+    }
+
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AUSSpawner::StaticClass(), FoundActors);
+
+    if (FoundActors.Num() > 0)
+    {
+        AUSSpawner* Spawner = Cast<AUSSpawner>(FoundActors[0]);
+        if (Spawner)
+        {
+            if(bGameModeMain == false && IsSaveData())
+                BuildSaveData();
+            else
+                Spawner->AsyncLoadClasses();
+        }
+    }
+
+   
 
 }
 
@@ -56,7 +79,7 @@ void AUSCropoutGameMode::OnAsyncLoadComplete()
     }
 
     OnTownHallClassLoaded();
-    OnMonsterHallClassLoaded();
+    //OnMonsterHallClassLoaded();
     for (int32 i = 0; i < 3; i++)
     {
         SpawnVillager();
@@ -201,6 +224,8 @@ void AUSCropoutGameMode::SpawnVillager()
         VillagerCount++;
     
     OnUpdateVillagers.Broadcast(VillagerCount);
+
+    UpdateAllVillagers();
 }
 
 
@@ -252,6 +277,168 @@ void AUSCropoutGameMode::SpawnMonster(TSubclassOf<APawn> MonsterClass)
     );
 }
 
+void AUSCropoutGameMode::UpdateAllInteractables()
+{
+    if (bGameModeMain == true)
+        return;
+
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AUSInteractable::StaticClass(), FoundActors);
+    if(FoundActors.Num() <= 0)
+        return;
+
+    Interactables.Empty();
+    for (AActor* Actor : FoundActors)
+    {
+        if (Actor)
+        {
+            FSTSaveInteract NewInteractable;
+            NewInteractable.Location = Actor->GetActorTransform();
+            NewInteractable.Type = Actor->GetClass();
+            
+            if (AUSInteractable* InteractableActor = Cast<AUSInteractable>(Actor))
+            {
+                NewInteractable.Progress = InteractableActor->GetProgressionState();
+                NewInteractable.Tag = InteractableActor->Tags[0];
+            }
+            Interactables.Add(NewInteractable);
+        }
+    }
+    SaveGame();
+}
+
+void AUSCropoutGameMode::UpdateAllResources()
+{
+    if (bGameModeMain == true)
+        return;
+
+    SaveGame();
+}
+
+void AUSCropoutGameMode::UpdateAllVillagers()
+{
+    if (bGameModeMain == true)
+        return;
+
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AUSVillager::StaticClass(), FoundActors);
+    if (FoundActors.Num() <= 0)
+        return;
+
+    Villagers.Empty();
+    for (AActor* Actor : FoundActors)
+    {
+        if (Actor)
+        {
+            FSTVillager Villager;
+            Villager.Location = Actor->GetActorLocation();
+            Villager.Task = Actor->Tags[0];
+            Villagers.Add(Villager);
+        }
+    }
+    SaveGame();
+}
+
+void AUSCropoutGameMode::SaveGame()
+{
+    UUSCropoutSaveGame* SaveGameInstance = Cast<UUSCropoutSaveGame>(UGameplayStatics::CreateSaveGameObject(UUSCropoutSaveGame::StaticClass()));
+
+    if (SaveGameInstance)
+    {
+        SaveGameInstance->Resources = Resources;
+        SaveGameInstance->Interactables = Interactables;
+        SaveGameInstance->Villagers = Villagers;
+        SaveGameInstance->SeedValue = SeedValue;
+        
+        UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("SaveSlot"), 0);
+    }
+}
+
+bool AUSCropoutGameMode::LoadGame()
+{
+    if(IsSaveData() == false)
+        return false;
+
+    UUSCropoutSaveGame* LoadedGame = Cast<UUSCropoutSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("SaveSlot"), 0));
+
+    if (LoadedGame)
+    {
+        Resources = LoadedGame->Resources;
+        Interactables = LoadedGame->Interactables;
+        Villagers = LoadedGame->Villagers;
+        SeedValue = LoadedGame->SeedValue;
+
+        return true;
+    }
+
+    return false;
+}
+
+void AUSCropoutGameMode::ClearGame()
+{
+    if (IsSaveData())
+    {
+        UGameplayStatics::DeleteGameInSlot(TEXT("SaveSlot"), 0);
+    }
+}
+
+bool AUSCropoutGameMode::IsSaveData()
+{
+    return UGameplayStatics::DoesSaveGameExist(TEXT("SaveSlot"), 0);
+}
+
+int32 AUSCropoutGameMode::GetSeed()
+{
+    if(LoadGame())
+        return SeedValue;
+
+    if(SeedValue == 0)
+        SeedValue = FMath::Rand32();
+    return SeedValue;
+}
+
+void AUSCropoutGameMode::BuildSaveData()
+{
+    LoadGame();
+
+    TArray<FSTSaveInteract> TempInteractables = Interactables;
+    for (const FSTSaveInteract& Interact : TempInteractables)
+    {
+        FTransform SpawnTransform;
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        AUSInteractable* SpawnedActor = Cast<AUSInteractable>(GetWorld()->SpawnActor<AActor>(Interact.Type, Interact.Location, SpawnParams));
+        if (SpawnedActor)
+        {
+            SpawnedActor->SetProgressionsState(Interact.Progress);
+            SpawnedActor->Tags.AddUnique(Interact.Tag);
+        }
+    }
+
+    TArray<FSTVillager> TempVillagers = Villagers;;
+    for (const FSTVillager& Villager : TempVillagers)
+    {
+        FVector SpawnLocation = Villager.Location;
+        FRotator SpawnRotation = FRotator::ZeroRotator;
+
+        AUSVillager* SpawnedVillager = Cast<AUSVillager>(UAIBlueprintHelperLibrary::SpawnAIFromClass(
+            GetWorld(),
+            VillagerRef,
+            nullptr,            // AI에 적용할 Behavior Tree
+            SpawnLocation,
+            SpawnRotation,
+            true
+        ));
+        if (SpawnedVillager)
+        {
+            VillagerCount++;
+            SpawnedVillager->ChangeJob(Villager.Task);
+        }
+    }
+
+    OnUpdateVillagers.Broadcast(VillagerCount);
+}
+
 void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Value)
 {
     if (Resources.Find(Resource) == nullptr)
@@ -263,6 +450,7 @@ void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Valu
         EndGame();
 
     SendUIResourceValue();
+    UpdateAllResources();
 }
 
 void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int32 Value)
@@ -273,4 +461,5 @@ void AUSCropoutGameMode::AddResource_Implementation(EResourceType Resource, int3
     Resources[Resource] += Value;
 
     SendUIResourceValue();
+    UpdateAllResources();
 }

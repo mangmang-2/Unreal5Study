@@ -92,7 +92,7 @@ protected:
 public:
 	virtual void SetProgressionsState(float Progression);
 	void SetEnableGroundBlend(bool bEnable);
-
+	float GetProgressionState();
 protected:
 	UPROPERTY(EditAnywhere)
 	bool EnableGroundBlend = false;

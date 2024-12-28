@@ -58,11 +58,19 @@ void AUSIslandGenerator::BeginPlay()
 
 void AUSIslandGenerator::SpawnCone()
 {
+	FRandomStream Stream;
+	AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(GetWorld()->GetAuthGameMode());
+	if (CropoutGameMode)
+	{
+		Stream.Initialize(CropoutGameMode->GetSeed());
+	}
+
     for (int32 i = 0; i < Islands; i++)
     {
+		
         // 위치 설정
-        FVector RandSpawnPoint = UKismetMathLibrary::RandomUnitVector() * (MaxSpawnDistance / 2.0f);
-        float Radius = FMath::RandRange(IslandSizeX, IslandSizeY);
+        FVector RandSpawnPoint = UKismetMathLibrary::RandomUnitVectorFromStream(Stream) * (MaxSpawnDistance / 2.0f);
+        float Radius = UKismetMathLibrary::RandomFloatInRangeFromStream(Stream, IslandSizeX, IslandSizeY);
 		RandSpawnPoint.Z = 0;
 		SpawnPoints.Add(RandSpawnPoint);
 

@@ -231,11 +231,11 @@ float AUSInteractable::Interact()
 
 void AUSInteractable::SetProgressionsState(float Progression)
 {
-    if (RequireBuild == false)
-        return;
+    //if (RequireBuild == false)
+    //    return;
 
     ProgressionState = Progression;
-    Tags.Add(FName("Build"));
+    //Tags.Add(FName("Build"));
 
     int32 MeshIndex = FMath::TruncToInt(ProgressionState);
 
@@ -253,4 +253,9 @@ void AUSInteractable::SetProgressionsState(float Progression)
 void AUSInteractable::SetEnableGroundBlend(bool bEnable)
 {
     EnableGroundBlend = bEnable;
+}
+
+float AUSInteractable::GetProgressionState()
+{
+    return ProgressionState;
 }

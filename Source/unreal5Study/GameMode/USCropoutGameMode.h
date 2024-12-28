@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "../Cropout/Interactable/USResourceInterface.h"
+#include "../Data/USCropoutSaveGame.h"
 #include "USCropoutGameMode.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam (FOnUpdateVillagers, int32, VillagerCount);
@@ -47,6 +48,19 @@ public:
 	TMap<EResourceType, int32> GetResources();
 
 	void SpawnMonster(TSubclassOf<APawn> MonsterClass);
+
+	void UpdateAllInteractables();
+	void UpdateAllResources();
+	void UpdateAllVillagers();
+
+	void SaveGame();
+	bool LoadGame();
+	void ClearGame();
+	bool IsSaveData();
+
+	int32 GetSeed();
+
+	void BuildSaveData();
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;
@@ -77,6 +91,18 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TMap<EResourceType, int32> Resources;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite )
+    TArray<FSTSaveInteract> Interactables;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FSTVillager> Villagers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 SeedValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bGameModeMain = false;
 public:
 	FOnUpdateVillagers OnUpdateVillagers;
 };

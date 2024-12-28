@@ -9,6 +9,8 @@
 #include "NavigationSystem.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "../../GameMode/USCropoutGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "../Interactable/USInteractable.h"
 
 // Sets default values
 AUSSpawner::AUSSpawner()
@@ -21,7 +23,7 @@ AUSSpawner::AUSSpawner()
 void AUSSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	AsyncLoadClasses();
+	//AsyncLoadClasses();
 }
 
 void AUSSpawner::AsyncLoadClasses()
@@ -226,5 +228,12 @@ void AUSSpawner::CheckNavigationBuild()
 
         // 이후 로직 수행 (예: 스폰 작업)
         SpawnRandom();
+
+        AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(UGameplayStatics::GetGameMode(this));
+        if (CropoutGameMode)
+        {
+            CropoutGameMode->UpdateAllInteractables();
+        }
     }
 }
+

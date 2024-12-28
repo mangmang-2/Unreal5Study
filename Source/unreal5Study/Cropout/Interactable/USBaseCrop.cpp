@@ -2,6 +2,8 @@
 
 
 #include "Cropout/Interactable/USBaseCrop.h"
+#include "../../GameMode/USCropoutGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 void AUSBaseCrop::BeginPlay()
 {
@@ -44,6 +46,12 @@ void AUSBaseCrop::FarminProgress(float& Delay, int32& Stage)
 
     Delay = CollectionTime;
     Stage = ProgressionState;
+
+    AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(UGameplayStatics::GetGameMode(this));
+    if (CropoutGameMode)
+    {
+        CropoutGameMode->UpdateAllInteractables();
+    }
 }
 
 void AUSBaseCrop::SwitchStage()

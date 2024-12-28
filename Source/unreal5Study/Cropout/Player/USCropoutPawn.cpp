@@ -12,6 +12,8 @@
 #include "../Interactable/USResourceInterface.h"
 #include "../UI/USCropoutWidgetComponent.h"
 #include "../Stat/USCropoutStat.h"
+#include "../../GameMode/USCropoutGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AUSCropoutPawn::AUSCropoutPawn()
@@ -132,6 +134,12 @@ void AUSCropoutPawn::ChangeJob(FName NewJob)
 
 	BehaviorTreeLoaded(JobRow->BehaviourTree);
 	LoadAndStoreAccessories(JobRow);
+
+	AUSCropoutGameMode* CropoutGameMode = Cast<AUSCropoutGameMode>(UGameplayStatics::GetGameMode(this));
+	if (CropoutGameMode)
+	{
+		CropoutGameMode->UpdateAllVillagers();
+	}
 }
 
 void AUSCropoutPawn::UpdateAllPawn()
