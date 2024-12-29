@@ -18,11 +18,19 @@
 #include "../Data/USCropoutSaveGame.h"
 #include "../Cropout/Interactable/USInteractable.h"
 #include "../Cropout/Player/USVillager.h"
+#include "../Cropout/GameInstance/USCropoutGameInstance.h"
 
 void AUSCropoutGameMode::BeginPlay()
 {
 	Super::BeginPlay();
     GetSpawnRef();
+
+    InitSoundVolume();
+    UUSCropoutGameInstance* GameInstance = Cast<UUSCropoutGameInstance>(GetGameInstance());
+    if (GameInstance)
+    {
+        GameInstance->PlayMusic(SoundBase, CropoutMusicWinLose, CropoutMusicStop, 1.0f, true);
+    }
 }
 
 void AUSCropoutGameMode::GetSpawnRef()
@@ -437,6 +445,17 @@ void AUSCropoutGameMode::BuildSaveData()
     }
 
     OnUpdateVillagers.Broadcast(VillagerCount);
+}
+
+void AUSCropoutGameMode::InitSoundVolume()
+{
+    UUSCropoutGameInstance* GameInstance = Cast<UUSCropoutGameInstance>(GetGameInstance());
+    if (GameInstance)
+    {
+        GameInstance->SetGlobalControlBusMixValue(CropoutMusicPianoVol, 1.0f, 1.0f);
+        GameInstance->SetGlobalControlBusMixValue(CropoutMusicPercVol, 1.0f, 1.0f);
+        GameInstance->SetGlobalControlBusMixValue(CropoutMusicStringsDelay, 1.0f, 1.0f);
+    }
 }
 
 void AUSCropoutGameMode::RemoveTargetResource(EResourceType Resource, int32 Value)

@@ -61,6 +61,8 @@ public:
 	int32 GetSeed();
 
 	void BuildSaveData();
+
+	void InitSoundVolume();
 protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ActorClass;
@@ -103,6 +105,25 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool bGameModeMain = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class USoundControlBus> CropoutMusicPianoVol = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class USoundControlBus> CropoutMusicPercVol = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class USoundControlBus> CropoutMusicStringsDelay = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class USoundBase> SoundBase = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class USoundControlBus> CropoutMusicWinLose = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class USoundControlBus> CropoutMusicStop = nullptr;
+
 public:
 	FOnUpdateVillagers OnUpdateVillagers;
 };
