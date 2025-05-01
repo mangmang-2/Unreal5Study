@@ -15,8 +15,8 @@ AUSBuildBase::AUSBuildBase()
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
     AttributeSet = CreateDefaultSubobject<UUSCropoutStat>(TEXT("AttributeSet"));
 
-    HPBarWidgetComponent = CreateDefaultSubobject<UUSCropoutWidgetComponent>(TEXT("Widget"));
-    HPBarWidgetComponent->SetupAttachment(Mesh);
+   // HPBarWidgetComponent = CreateDefaultSubobject<UUSCropoutWidgetComponent>(TEXT("Widget"));
+    //HPBarWidgetComponent->SetupAttachment(Mesh);
    
 }
 
@@ -37,7 +37,7 @@ void AUSBuildBase::BeginPlay()
         ASC->GiveAbility(StartSpec);
     }
 
-    HPBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, HPBarHeight));
+    //HPBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, HPBarHeight));
 }
 
 float AUSBuildBase::ProgressConstruct(float InvestedTime)

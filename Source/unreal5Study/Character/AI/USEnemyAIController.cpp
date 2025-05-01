@@ -64,7 +64,7 @@ void AUSEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	RunAI();
+	//RunAI();
 }
 
 void AUSEnemyAIController::Tick(float DeltaTime)

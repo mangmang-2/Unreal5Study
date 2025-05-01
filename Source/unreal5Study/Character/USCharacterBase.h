@@ -34,6 +34,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> EquipShield;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UCableComponent> GrapplingCable = nullptr;
+
+public:
+	UCableComponent* GetGrapplingCable() { return GrapplingCable; }
+
 public:
 	FORCEINLINE class UStaticMeshComponent* GetWeaponMesh() { return EquipSword; }
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
@@ -75,6 +81,7 @@ public:
 
 	void ShowSword(bool bShow);
 	void ShowShield(bool bShow);
+	void ShowCable(bool bShow);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
@@ -103,5 +110,8 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UUSParkourComponent> ParkourComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UGrapplingHookComponent> GrapplingHookComponent;
 };
 

@@ -19,6 +19,7 @@
 #include "../Cropout/Interactable/USInteractable.h"
 #include "../Cropout/Player/USVillager.h"
 #include "../Cropout/GameInstance/USCropoutGameInstance.h"
+#include "../Cropout/Interactable/USBuildBase.h"
 
 void AUSCropoutGameMode::BeginPlay()
 {
@@ -387,6 +388,13 @@ void AUSCropoutGameMode::ClearGame()
     if (IsSaveData())
     {
         UGameplayStatics::DeleteGameInSlot(TEXT("SaveSlot"), 0);
+    }
+
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AUSBuildBase::StaticClass(), FoundActors);
+    for (const auto actor : FoundActors)
+    {
+        actor->Destroyed();
     }
 }
 

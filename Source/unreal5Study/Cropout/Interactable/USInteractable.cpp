@@ -85,6 +85,19 @@ void AUSInteractable::OnConstruction(const FTransform& Transform)
     Box->SetWorldRotation(Rotation);
 }
 
+void AUSInteractable::Destroyed()
+{
+    Super::Destroyed();
+    
+    if (EnableGroundBlend == false)
+        return;
+
+    if (RTDraw == nullptr || RenderMaterial == nullptr)
+        return;
+
+    UKismetRenderingLibrary::ClearRenderTarget2D(this, RTDraw);
+}
+
 void AUSInteractable::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);

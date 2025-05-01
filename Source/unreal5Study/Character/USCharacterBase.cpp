@@ -15,6 +15,8 @@
 #include "Animation/USCharacterAnimInstance.h"
 #include "ModularCharacter/USModularCharacterComponent.h"
 #include "Movement/USParkourComponent.h"
+#include "Movement/GrapplingHookComponent.h"
+#include "CableComponent.h"
 
 // Sets default values
 AUSCharacterBase::AUSCharacterBase()
@@ -62,6 +64,12 @@ AUSCharacterBase::AUSCharacterBase()
 	EquipShield->SetCollisionProfileName(TEXT("NoCollision"));
 	EquipShield->SetIsReplicated(true);
 
+	GrapplingCable = CreateDefaultSubobject<UCableComponent>(TEXT("GrapplingCable"));
+	GrapplingCable->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
+	GrapplingCable->SetCollisionProfileName(TEXT("NoCollision"));
+	GrapplingCable->SetIsReplicated(true);
+	GrapplingCable->bAttachEnd = false;
+
 	//ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 	ParkourComponent = CreateDefaultSubobject<UUSParkourComponent>(TEXT("ParkourComponent"));
@@ -69,6 +77,7 @@ AUSCharacterBase::AUSCharacterBase()
 
 	ModularCharacterComponent = CreateDefaultSubobject<UUSModularCharacterComponent>(TEXT("ModularCharacterComponent"));
 	
+	GrapplingHookComponent = CreateDefaultSubobject<UGrapplingHookComponent>(TEXT("GrapplingHookComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -225,6 +234,14 @@ void AUSCharacterBase::ShowShield(bool bShow)
 		EquipShield->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HandSocket_L"));
 	else
 		EquipShield->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("Shield_Holder"));
+}
+
+void AUSCharacterBase::ShowCable(bool bShow)
+{
+	if(GrapplingCable == nullptr)
+		return;
+
+	GrapplingCable->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HandSocket_R"));
 }
 
 UAbilitySystemComponent* AUSCharacterBase::GetAbilitySystemComponent() const

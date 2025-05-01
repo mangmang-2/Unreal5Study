@@ -60,16 +60,16 @@ FGameplayAbilityTargetDataHandle AUSTA_Attack::MakeTargetData() const
 
 		if (ASC->HasMatchingGameplayTag(USTAG_CHARACTER_INVINSIBLE_ATTACKHIT))
 		{
-			DrawDebugLine(
-				GetWorld(),
-				Start,
-				End,
-				FColor::Red,
-				false,  // 지속적으로 그릴 것인지 여부
-				1.0f,   // 지속 시간
-				0,      // DepthPriority
-				1.0f    // 선의 두께
-			);
+			//DrawDebugLine(
+			//	GetWorld(),
+			//	Start,
+			//	End,
+			//	FColor::Red,
+			//	false,  // 지속적으로 그릴 것인지 여부
+			//	1.0f,   // 지속 시간
+			//	0,      // DepthPriority
+			//	1.0f    // 선의 두께
+			//);
 			return FGameplayAbilityTargetDataHandle();
 		}
 
@@ -82,16 +82,16 @@ FGameplayAbilityTargetDataHandle AUSTA_Attack::MakeTargetData() const
 
 	FColor DrawColor = bHit ? FColor::Green : FColor::Red;
 
-	DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		DrawColor,
-		false,  // 지속적으로 그릴 것인지 여부
-		1.0f,   // 지속 시간
-		0,      // DepthPriority
-		1.0f    // 선의 두께
-	);
+	//DrawDebugLine(
+	//	GetWorld(),
+	//	Start,
+	//	End,
+	//	DrawColor,
+	//	false,  // 지속적으로 그릴 것인지 여부
+	//	1.0f,   // 지속 시간
+	//	0,      // DepthPriority
+	//	1.0f    // 선의 두께
+	//);
 
 	return DataHandle;
 }

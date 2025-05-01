@@ -1,0 +1,41 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "GrapplingHookComponent.generated.h"
+
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class UNREAL5STUDY_API UGrapplingHookComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:	
+	// Sets default values for this component's properties
+	UGrapplingHookComponent();
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void HookProgress();
+	void HookRelrease();
+	bool TargetTest();
+	void HookStart(FVector GrabPoint);
+	void OwnerTurn(FVector GrabPoint);
+	void HookEndPostion(FVector GrabPoint);
+	void HookEnd();
+	void SetHookState(bool bState);
+	void HookAction();
+		
+protected:
+	
+	bool bIsGrappling = false;
+	FVector GrabHookPoint;
+};

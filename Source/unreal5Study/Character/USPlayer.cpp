@@ -25,6 +25,9 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "../Item/USInventory.h"
 #include "Movement/USParkourComponent.h"
+#include "USPlayer.h"
+#include "USCharacterBase.h"
+#include "Movement/GrapplingHookComponent.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -115,16 +118,17 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Triggered, this, &ThisClass::Jump);
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::Jump], ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	}
-
+	
 	if (InputActionMap.Contains(EInputKey::MouseLClick))
 	{
-		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseLClick], ETriggerEvent::Triggered, this, &ThisClass::ComboAttack);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseLClick], ETriggerEvent::Started, this, &ThisClass::OnMouseLClickTrigger);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseLClick], ETriggerEvent::Completed, this, &ThisClass::OnMouseLClickComplete);
 	}
 
 	if (InputActionMap.Contains(EInputKey::MouseRClick))
 	{
-		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Triggered, this, &ThisClass::OnShieldActivated);
-		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Completed, this, &ThisClass::OnShieldDeactivated);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Triggered, this, &ThisClass::OnMouseRClickTrigger);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Completed, this, &ThisClass::OnMouseRClickComplete);
 	}
 
 	if (InputActionMap.Contains(EInputKey::LockOn))
@@ -276,6 +280,11 @@ void AUSPlayer::ClickInputClear()
 	}
 }
 
+UCameraComponent* AUSPlayer::GetFollowCamera()
+{
+	return FollowCamera;
+}
+
 void AUSPlayer::LockOnTarget()
 {
 	FVector Start = FollowCamera->GetComponentLocation();
@@ -403,42 +412,67 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 	EquipShield->SetStaticMesh(Equip->GetStaticMesh());
 }
 
-void AUSPlayer::OnShieldActivated()
+void AUSPlayer::OnMouseRClickTrigger()
 {
-	if (ASCComponent->HasMatchingGameplayTag(USTAG_CHARACTER_STATE_SHIELD_ACTIVE))
-		return;
-	UE_LOG(LogTemp, Warning, TEXT("ShieldActivated"));
-	FGameplayEventData PayloadData;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_ACTIVE, PayloadData);
-
-	MoveSetting(false);
-}
-
-void AUSPlayer::OnShieldDeactivated()
-{
-	UE_LOG(LogTemp, Warning, TEXT("ShieldDeactivated"));
-	FGameplayEventData PayloadData;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_DEACTIVE, PayloadData);
-
-	MoveSetting(true);
-}
-
-void AUSPlayer::ComboAttack()
-{
-	if (ASCComponent == nullptr)
-		return;
-	FGameplayAbilitySpec* Spec = ASCComponent->FindAbilitySpecFromInputID(2);
-	if (Spec)
+	if (CharacterInputState == ECharacterInputState::Weapon)
 	{
-		Spec->InputPressed = true;
-		if (Spec->IsActive())
+		if (ASCComponent->HasMatchingGameplayTag(USTAG_CHARACTER_STATE_SHIELD_ACTIVE))
+			return;
+		UE_LOG(LogTemp, Warning, TEXT("ShieldActivated"));
+		FGameplayEventData PayloadData;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_ACTIVE, PayloadData);
+
+		MoveSetting(false);
+	}
+
+}
+
+void AUSPlayer::OnMouseRClickComplete()
+{
+	if (CharacterInputState == ECharacterInputState::Weapon)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ShieldDeactivated"));
+		FGameplayEventData PayloadData;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_DEACTIVE, PayloadData);
+
+		MoveSetting(true);
+	}
+}
+
+void AUSPlayer::OnMouseLClickTrigger()
+{
+	if (CharacterInputState == ECharacterInputState::Weapon)
+	{
+		if (ASCComponent == nullptr)
+			return;
+		FGameplayAbilitySpec* Spec = ASCComponent->FindAbilitySpecFromInputID(2);
+		if (Spec)
 		{
-			ASCComponent->AbilitySpecInputPressed(*Spec);
+			Spec->InputPressed = true;
+			if (Spec->IsActive())
+			{
+				ASCComponent->AbilitySpecInputPressed(*Spec);
+			}
+			else
+			{
+				ASCComponent->TryActivateAbility(Spec->Handle);
+			}
 		}
-		else
+	}
+	else
+	{
+		if (GrapplingHookComponent)
 		{
-			ASCComponent->TryActivateAbility(Spec->Handle);
+			GrapplingHookComponent->HookProgress();
 		}
+	}
+}
+
+void AUSPlayer::OnMouseLClickComplete()
+{
+	if (GrapplingHookComponent)
+	{
+		GrapplingHookComponent->HookEnd();
 	}
 }
 
@@ -465,5 +499,10 @@ void AUSPlayer::MoveSetting(bool bDefault)
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
 		GetCharacterMovement()->MaxWalkSpeed = 250.0f;
 	}
+}
+
+void AUSPlayer::SetCharacterInputState(ECharacterInputState InputState)
+{
+	CharacterInputState = InputState;
 }
 

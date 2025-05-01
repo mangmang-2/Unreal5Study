@@ -43,8 +43,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UUSCropoutStat> AttributeSet;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UUSCropoutWidgetComponent> HPBarWidgetComponent;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//TObjectPtr<class UUSCropoutWidgetComponent> HPBarWidgetComponent;
 
 	UPROPERTY(EditAnywhere)
 	float HPBarHeight = 240.0f;

@@ -27,6 +27,14 @@ enum class EInputKey : uint8
 	LockOn UMETA(DisplayName = "LockOn"),
 };
 
+UENUM(BlueprintType)
+enum class ECharacterInputState : uint8
+{
+	None UMETA(DisplayName = "None"),
+	Weapon UMETA(DisplayName = "Weapon"),
+	Grappling  UMETA(DisplayName = "Grappling"),
+};
+
 /**
  * 
  */
@@ -88,6 +96,9 @@ protected:
 	TMap< EViewType, TObjectPtr<class USceneCaptureComponent2D>> SceneCapture;
 
 public:
+	UCameraComponent* GetFollowCamera();
+
+public:
 	void LockOnTarget();
 	void UnlockTarget();
 	void ToggleLockOn();
@@ -113,9 +124,10 @@ public:
 	void EquipWeaponCallBack(const struct FGameplayEventData* EventData);
 	void EquipShieldCallBack(const struct FGameplayEventData* EventData);
 
-	void OnShieldActivated();
-	void OnShieldDeactivated();
-	void ComboAttack();
+	void OnMouseRClickTrigger();
+	void OnMouseRClickComplete();
+	void OnMouseLClickTrigger();
+	void OnMouseLClickComplete();
 	
 	UFUNCTION()
 	void OnOutOfHealth();
@@ -125,4 +137,17 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere)
     TObjectPtr<class UUSInventory> InventoryComponent;
+
+
+protected:
+
+	UPROPERTY(EditAnywhere)
+    TObjectPtr<class AActor> BPCable;
+
+	UPROPERTY(EditAnywhere)
+	ECharacterInputState CharacterInputState;
+
+public:
+	UFUNCTION()
+	void SetCharacterInputState(ECharacterInputState InputState);
 };

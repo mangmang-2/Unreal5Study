@@ -43,9 +43,9 @@ AUSCropoutPawn::AUSCropoutPawn()
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	AttributeSet = CreateDefaultSubobject<UUSCropoutStat>(TEXT("AttributeSet"));
 
-	HPBarWidgetComponent = CreateDefaultSubobject<UUSCropoutWidgetComponent>(TEXT("Widget"));
-	HPBarWidgetComponent->SetupAttachment(SkeletalMesh);
-	HPBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 240.0f));
+	//HPBarWidgetComponent = CreateDefaultSubobject<UUSCropoutWidgetComponent>(TEXT("Widget"));
+	//HPBarWidgetComponent->SetupAttachment(SkeletalMesh);
+	//HPBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 240.0f));
 }
 
 // Called when the game starts or when spawned
