@@ -132,7 +132,7 @@ public:
 	UFUNCTION()
 	void OnOutOfHealth();
 
-	void MoveSetting(bool bDefault);
+	void MoveSetting(ECharacterInputState CharacterState);
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -145,7 +145,7 @@ protected:
     TObjectPtr<class AActor> BPCable;
 
 	UPROPERTY(EditAnywhere)
-	ECharacterInputState CharacterInputState;
+	ECharacterInputState CharacterInputState = ECharacterInputState::None;
 
 public:
 	UFUNCTION()

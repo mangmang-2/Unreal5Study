@@ -127,7 +127,7 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (InputActionMap.Contains(EInputKey::MouseRClick))
 	{
-		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Triggered, this, &ThisClass::OnMouseRClickTrigger);
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Started, this, &ThisClass::OnMouseRClickTrigger);
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Completed, this, &ThisClass::OnMouseRClickComplete);
 	}
 
@@ -414,6 +414,8 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 
 void AUSPlayer::OnMouseRClickTrigger()
 {
+	SetCharacterInputState(ECharacterInputState::Grappling);
+	MoveSetting(CharacterInputState);
 	if (CharacterInputState == ECharacterInputState::Weapon)
 	{
 		if (ASCComponent->HasMatchingGameplayTag(USTAG_CHARACTER_STATE_SHIELD_ACTIVE))
@@ -421,10 +423,15 @@ void AUSPlayer::OnMouseRClickTrigger()
 		UE_LOG(LogTemp, Warning, TEXT("ShieldActivated"));
 		FGameplayEventData PayloadData;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_ACTIVE, PayloadData);
-
-		MoveSetting(false);
 	}
-
+	else if (CharacterInputState == ECharacterInputState::Grappling)
+	{
+		
+		if (GrapplingHookComponent)
+		{
+			GrapplingHookComponent->HookStart();
+		}
+	}
 }
 
 void AUSPlayer::OnMouseRClickComplete()
@@ -434,9 +441,16 @@ void AUSPlayer::OnMouseRClickComplete()
 		UE_LOG(LogTemp, Warning, TEXT("ShieldDeactivated"));
 		FGameplayEventData PayloadData;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_DEACTIVE, PayloadData);
-
-		MoveSetting(true);
 	}
+	else if (CharacterInputState == ECharacterInputState::Grappling)
+	{
+		if (GrapplingHookComponent)
+		{
+			GrapplingHookComponent->HookEnd();
+		}
+	}
+	SetCharacterInputState(ECharacterInputState::None);
+	MoveSetting(CharacterInputState);
 }
 
 void AUSPlayer::OnMouseLClickTrigger()
@@ -459,13 +473,6 @@ void AUSPlayer::OnMouseLClickTrigger()
 			}
 		}
 	}
-	else
-	{
-		if (GrapplingHookComponent)
-		{
-			GrapplingHookComponent->HookProgress();
-		}
-	}
 }
 
 void AUSPlayer::OnMouseLClickComplete()
@@ -481,9 +488,9 @@ void AUSPlayer::OnOutOfHealth()
 	SetDeathEvent();
 }
 
-void AUSPlayer::MoveSetting(bool bDefault)
+void AUSPlayer::MoveSetting(ECharacterInputState CharacterState)
 {
-	if (bDefault)
+	if (CharacterState == ECharacterInputState::None)
 	{
 		bUseControllerRotationPitch = false;
 		bUseControllerRotationYaw = false;
@@ -492,12 +499,20 @@ void AUSPlayer::MoveSetting(bool bDefault)
 		CameraBoom->bUsePawnControlRotation = true;
 		FollowCamera->bUsePawnControlRotation = false;
 		GetCharacterMovement()->MaxWalkSpeed = 500.f;
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 	}
-	else
+	else if (CharacterState == ECharacterInputState::Grappling)
 	{
 		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
-		GetCharacterMovement()->MaxWalkSpeed = 250.0f;
+		GetCharacterMovement()->MaxWalkSpeed = 500.f;
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+	}
+	else if (CharacterState == ECharacterInputState::Weapon)
+	{
+		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
+		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
+		GetCharacterMovement()->MaxWalkSpeed = 250.f;
 	}
 }
 

@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CableComponent.h"
+#include "../../../../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 
 // Sets default values for this component's properties
 UGrapplingHookComponent::UGrapplingHookComponent()
@@ -23,26 +24,90 @@ void UGrapplingHookComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	if (NSGrapple == nullptr && NiagaraSystemAsset)
+	{
+		// NiagaraComponent 생성
+		NSGrapple = NewObject<UNiagaraComponent>(GetOwner());
+		if (NSGrapple)
+		{
+			NSGrapple->RegisterComponent(); // 반드시 등록
+			NSGrapple->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+			NSGrapple->SetAsset(NiagaraSystemAsset); // 미리 UPROPERTY로 NiagaraSystem 참조 받아둬야 함
+			NSGrapple->SetRelativeLocation(FVector::ZeroVector);
+			NSGrapple->Activate(true);
+		}
+	}
 	
 }
 
+void UGrapplingHookComponent::HookStart()
+{
+	HookState = EHookState::Aim;
+	NSGrapple->Activate(true);
+}
+
+void UGrapplingHookComponent::HookEnd()
+{
+	//OwnerTurn(GrabHookPoint);
+	HookStart(GrabHookPoint);
+	//HookAction();
+	//SetHookState(false);
+	HookRelrease();
+
+	HookState = EHookState::Progress;
+	NSGrapple->Deactivate();
+}
+
+void UGrapplingHookComponent::CameraTargeting(float DeltaTime, float AlignSpeed)
+{
+	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
+	if (Owner == nullptr)
+		return;
+
+	UCameraComponent* FollowCamera = Owner->GetFollowCamera();
+
+	if (!FollowCamera) return;
+
+	// 카메라의 정면 방향 (Z축 제외)
+	FVector CameraForward = FollowCamera->GetForwardVector().GetSafeNormal2D();
+	FRotator TargetRotation = CameraForward.Rotation(); // Yaw만 필요
+
+	FRotator CurrentRotation = Owner->GetActorRotation();
+
+	// 부드럽게 보간 (Yaw만 적용)
+	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, AlignSpeed);
+	NewRotation.Pitch = 0.0f;
+	NewRotation.Roll = 0.0f;
+
+	Owner->SetActorRotation(NewRotation);
+}
 
 // Called every frame
 void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	HookEndPostion(GrabHookPoint);
+	if (HookState == EHookState::Aim)
+	{
+		TargetTest();
+		OnGrappleAimUpdate(GrabHookPoint, true);
+		CameraTargeting(DeltaTime, 5.0f);
+	}
+	if (HookState == EHookState::Progress)
+	{
+		HookAction();
+	}
+
+	//HookEndPostion(GrabHookPoint);
 }
 
 void UGrapplingHookComponent::HookProgress()
 {
-	if (TargetTest())
-	{
-		//OwnerTurn(GrabHookPoint);
-		HookStart(GrabHookPoint);	
-	}
+	//if (TargetTest())
+	//{
+	//	//OwnerTurn(GrabHookPoint);
+	//	HookStart(GrabHookPoint);	
+	//}
 }
 
 void UGrapplingHookComponent::HookRelrease()
@@ -94,15 +159,15 @@ bool UGrapplingHookComponent::TargetTest()
 	);*/
 	if (bHit)
 	{
-		DrawDebugSphere(
-			GetWorld(),
-			HitResult.ImpactPoint,     // 히트 지점
-			16.0f,                     // 반지름
-			12,                        // 세그먼트 수 (둥글기)
-			FColor::Green,             // 색상
-			false,                     // 영구 여부 (true면 안 사라짐)
-			2.0f                       // 지속 시간 (초 단위)
-		);
+		//DrawDebugSphere(
+		//	GetWorld(),
+		//	HitResult.ImpactPoint,     // 히트 지점
+		//	16.0f,                     // 반지름
+		//	12,                        // 세그먼트 수 (둥글기)
+		//	FColor::Green,             // 색상
+		//	false,                     // 영구 여부 (true면 안 사라짐)
+		//	2.0f                       // 지속 시간 (초 단위)
+		//);
 
 		GrabHookPoint = HitResult.ImpactPoint;
 	}
@@ -174,14 +239,6 @@ void UGrapplingHookComponent::HookEndPostion(FVector GrabPoint)
 	CableComponent->EndLocation = LocalLocation;
 }
 
-void UGrapplingHookComponent::HookEnd()
-{
-	OwnerTurn(GrabHookPoint);
-	HookAction();
-	SetHookState(false);
-	HookRelrease();
-}
-
 void UGrapplingHookComponent::SetHookState(bool bState)
 {
 	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
@@ -218,22 +275,28 @@ void UGrapplingHookComponent::HookAction()
 			return;
 
 		FVector ActorLocation = Owner->GetActorLocation();
-		FVector DirectionToGrab = (GrabHookPoint - ActorLocation).GetSafeNormal(); // 단위 방향 벡터
+		FVector LaunchVelocity = (GrabHookPoint - ActorLocation).GetSafeNormal() * 1500.0f;
+		Owner->LaunchCharacter(LaunchVelocity, true, true);
 
-		float MoveRightLeftInput = Owner->GetInputAxisValue("MoveRight");
-		FVector RightVector = Owner->GetActorRightVector();
-		FVector MoveOffset = RightVector * MoveRightLeftInput * 0.7;
+		const float DistanceToTarget = FVector::Dist(ActorLocation, GrabHookPoint);
 
-		FVector CombinedDirection = (DirectionToGrab + MoveOffset).GetSafeNormal();
-
-		FVector TargetLocation = CombinedDirection * 2000;
-		//Owner->GetCharacterMovement()->AddForce(TargetLocation);
-
-		FVector Direction = (TargetLocation - ActorLocation).GetSafeNormal();
-		DrawDebugLine(GetWorld(), ActorLocation, TargetLocation, FColor::Red, false, 2.0f);
-		//bIsGrappling = false;
-
-		Owner->GetCharacterMovement()->AddImpulse(TargetLocation, true);
+		if (DistanceToTarget < 150.0f) // 도착 거리 기준 (적당히 조정)
+		{
+			HookState = EHookState::None;
+		}
 	}
+}
+
+void UGrapplingHookComponent::OnGrappleAimUpdate(FVector Target, bool bIsValidGrapplePoint)
+{
+	if (NSGrapple == nullptr) 
+		return;
+
+	FName BeamEndVarName = TEXT("Beam End");
+	NSGrapple->SetVariableVec3(BeamEndVarName, Target);
+
+	FName ValidTargetVarName = TEXT("Valid Target");
+	float ValidValue = bIsValidGrapplePoint ? 1.0f : 0.0f;
+	NSGrapple->SetVariableFloat(ValidTargetVarName, ValidValue);
 }
 

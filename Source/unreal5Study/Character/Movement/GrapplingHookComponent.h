@@ -12,6 +12,14 @@ class UNREAL5STUDY_API UGrapplingHookComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+public:
+	enum EHookState
+	{
+		None,
+		Aim,
+		TargetOn,
+		Progress,
+	};
 public:	
 	// Sets default values for this component's properties
 	UGrapplingHookComponent();
@@ -23,6 +31,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void HookStart();
+	void HookEnd();
+
+	void CameraTargeting(float DeltaTime, float AlignSpeed);
 
 	void HookProgress();
 	void HookRelrease();
@@ -30,12 +42,22 @@ public:
 	void HookStart(FVector GrabPoint);
 	void OwnerTurn(FVector GrabPoint);
 	void HookEndPostion(FVector GrabPoint);
-	void HookEnd();
+	
 	void SetHookState(bool bState);
 	void HookAction();
+
+	void OnGrappleAimUpdate(FVector Target, bool bIsValidGrapplePoint);
 		
 protected:
 	
 	bool bIsGrappling = false;
 	FVector GrabHookPoint;
+
+	UPROPERTY()
+	TObjectPtr<class UNiagaraComponent> NSGrapple;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<class UNiagaraSystem> NiagaraSystemAsset;
+
+	EHookState HookState = EHookState::None;
 };
