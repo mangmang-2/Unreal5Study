@@ -19,6 +19,7 @@ public:
 		Aim,
 		TargetOn,
 		Progress,
+		Swing,
 	};
 public:	
 	// Sets default values for this component's properties
@@ -33,6 +34,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void HookStart();
 	void HookEnd();
+
+	void SwingStart();
+	void SwingAction(float DeltaTime);
 
 	void CameraTargeting(float DeltaTime, float AlignSpeed);
 
@@ -60,4 +64,19 @@ protected:
 	TObjectPtr<class UNiagaraSystem> NiagaraSystemAsset;
 
 	EHookState HookState = EHookState::None;
+
+	UPROPERTY()
+	TObjectPtr<class USphereComponent> HookTempPoint = nullptr;
+	float TimeAccumulator = 0.f;       // 시간 누적용
+
+	float InitialSwingRadius = 0.0f;
+
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> RopeActorClass;
+
+	TObjectPtr<AActor> RopeActorInstance;
+
+	void AttachRope();
+
 };

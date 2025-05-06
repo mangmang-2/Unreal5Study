@@ -414,7 +414,7 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 
 void AUSPlayer::OnMouseRClickTrigger()
 {
-	SetCharacterInputState(ECharacterInputState::Grappling);
+	SetCharacterInputState(ECharacterInputState::GrapplingTargetOn);
 	MoveSetting(CharacterInputState);
 	if (CharacterInputState == ECharacterInputState::Weapon)
 	{
@@ -424,7 +424,7 @@ void AUSPlayer::OnMouseRClickTrigger()
 		FGameplayEventData PayloadData;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_ACTIVE, PayloadData);
 	}
-	else if (CharacterInputState == ECharacterInputState::Grappling)
+	else if (CharacterInputState == ECharacterInputState::GrapplingTargetOn)
 	{
 		
 		if (GrapplingHookComponent)
@@ -442,11 +442,11 @@ void AUSPlayer::OnMouseRClickComplete()
 		FGameplayEventData PayloadData;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_DEACTIVE, PayloadData);
 	}
-	else if (CharacterInputState == ECharacterInputState::Grappling)
+	else if (CharacterInputState == ECharacterInputState::GrapplingTargetOn)
 	{
 		if (GrapplingHookComponent)
 		{
-			GrapplingHookComponent->HookEnd();
+			GrapplingHookComponent->SwingStart();
 		}
 	}
 	SetCharacterInputState(ECharacterInputState::None);
@@ -471,6 +471,14 @@ void AUSPlayer::OnMouseLClickTrigger()
 			{
 				ASCComponent->TryActivateAbility(Spec->Handle);
 			}
+		}
+	}
+	else if (CharacterInputState == ECharacterInputState::GrapplingTargetOn)
+	{
+		if (GrapplingHookComponent)
+		{
+			SetCharacterInputState(ECharacterInputState::GrapplingSwing);
+			GrapplingHookComponent->SwingStart();
 		}
 	}
 }
@@ -501,7 +509,7 @@ void AUSPlayer::MoveSetting(ECharacterInputState CharacterState)
 		GetCharacterMovement()->MaxWalkSpeed = 500.f;
 		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 	}
-	else if (CharacterState == ECharacterInputState::Grappling)
+	else if (CharacterState == ECharacterInputState::GrapplingTargetOn)
 	{
 		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
@@ -513,6 +521,13 @@ void AUSPlayer::MoveSetting(ECharacterInputState CharacterState)
 		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
 		GetCharacterMovement()->MaxWalkSpeed = 250.f;
+	}
+	else if (CharacterState == ECharacterInputState::GrapplingSwing)
+	{
+		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
+		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
+		GetCharacterMovement()->MaxWalkSpeed = 250.f;
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
 	}
 }
 

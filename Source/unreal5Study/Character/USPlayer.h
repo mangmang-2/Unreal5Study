@@ -32,7 +32,8 @@ enum class ECharacterInputState : uint8
 {
 	None UMETA(DisplayName = "None"),
 	Weapon UMETA(DisplayName = "Weapon"),
-	Grappling  UMETA(DisplayName = "Grappling"),
+	GrapplingTargetOn  UMETA(DisplayName = "GrapplingTargetOn"),
+	GrapplingSwing  UMETA(DisplayName = "GrapplingSwing"),
 };
 
 /**

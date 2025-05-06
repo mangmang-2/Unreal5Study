@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+Ôªø// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/Movement/GrapplingHookComponent.h"
@@ -6,7 +6,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CableComponent.h"
-#include "../../../../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+#include "NiagaraComponent.h"
+#include "Components/SphereComponent.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values for this component's properties
 UGrapplingHookComponent::UGrapplingHookComponent()
@@ -26,18 +29,21 @@ void UGrapplingHookComponent::BeginPlay()
 
 	if (NSGrapple == nullptr && NiagaraSystemAsset)
 	{
-		// NiagaraComponent ª˝º∫
+		// NiagaraComponent ÏÉùÏÑ±
 		NSGrapple = NewObject<UNiagaraComponent>(GetOwner());
 		if (NSGrapple)
 		{
-			NSGrapple->RegisterComponent(); // π›µÂΩ√ µÓ∑œ
+			NSGrapple->RegisterComponent(); // Î∞òÎìúÏãú Îì±Î°ù
 			NSGrapple->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-			NSGrapple->SetAsset(NiagaraSystemAsset); // πÃ∏Æ UPROPERTY∑Œ NiagaraSystem ¬¸¡∂ πﬁæ∆µ÷æﬂ «‘
+			NSGrapple->SetAsset(NiagaraSystemAsset); // ÎØ∏Î¶¨ UPROPERTYÎ°ú NiagaraSystem Ï∞∏Ï°∞ Î∞õÏïÑÎë¨Ïïº Ìï®
 			NSGrapple->SetRelativeLocation(FVector::ZeroVector);
 			NSGrapple->Activate(true);
 		}
 	}
-	
+
+	HookTempPoint = NewObject<USphereComponent>(this, TEXT("GrappleHookPoint"));
+	HookTempPoint->RegisterComponent();
+
 }
 
 void UGrapplingHookComponent::HookStart()
@@ -58,6 +64,24 @@ void UGrapplingHookComponent::HookEnd()
 	NSGrapple->Deactivate();
 }
 
+void UGrapplingHookComponent::SwingStart()
+{
+	TimeAccumulator = 0.0f;
+	HookState = EHookState::Swing;
+	TargetTest();
+	HookStart(GrabHookPoint);
+	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
+	if (Owner == nullptr)
+		return;
+
+	AttachRope();
+}
+
+void UGrapplingHookComponent::SwingAction(float DeltaTime)
+{
+	
+}
+
 void UGrapplingHookComponent::CameraTargeting(float DeltaTime, float AlignSpeed)
 {
 	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
@@ -68,13 +92,13 @@ void UGrapplingHookComponent::CameraTargeting(float DeltaTime, float AlignSpeed)
 
 	if (!FollowCamera) return;
 
-	// ƒ´∏ﬁ∂Û¿« ¡§∏È πÊ«‚ (Z√‡ ¡¶ø‹)
+	// Ïπ¥Î©îÎùºÏùò Ï†ïÎ©¥ Î∞©Ìñ• (ZÏ∂ï Ï†úÏô∏)
 	FVector CameraForward = FollowCamera->GetForwardVector().GetSafeNormal2D();
-	FRotator TargetRotation = CameraForward.Rotation(); // Yaw∏∏ « ø‰
+	FRotator TargetRotation = CameraForward.Rotation(); // YawÎßå ÌïÑÏöî
 
 	FRotator CurrentRotation = Owner->GetActorRotation();
 
-	// ∫ŒµÂ∑¥∞‘ ∫∏∞£ (Yaw∏∏ ¿˚øÎ)
+	// Î∂ÄÎìúÎüΩÍ≤å Î≥¥Í∞Ñ (YawÎßå Ï†ÅÏö©)
 	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, AlignSpeed);
 	NewRotation.Pitch = 0.0f;
 	NewRotation.Roll = 0.0f;
@@ -96,6 +120,11 @@ void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	if (HookState == EHookState::Progress)
 	{
 		HookAction();
+	}
+	if (HookState == EHookState::Swing)
+	{
+		//HookStart(GrabHookPoint);
+		SwingAction(DeltaTime);
 	}
 
 	//HookEndPostion(GrabHookPoint);
@@ -119,7 +148,7 @@ void UGrapplingHookComponent::HookRelrease()
 	if (CableComponent == nullptr)
 		return;
 
-	CableComponent->bAttachEnd = false;
+	//CableComponent->bAttachEnd = false;
 }
 
 bool UGrapplingHookComponent::TargetTest()
@@ -137,7 +166,7 @@ bool UGrapplingHookComponent::TargetTest()
 	FVector Start = CameraLocation;
 	FVector End = CameraLocation + (ForwardVector * TraceDistance);
 	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(Owner); // ¿⁄±‚ ¿⁄Ω≈ π´Ω√
+	Params.AddIgnoredActor(Owner); // ÏûêÍ∏∞ ÏûêÏã† Î¨¥Ïãú
 	Params.bTraceComplex = false;
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(
@@ -161,12 +190,12 @@ bool UGrapplingHookComponent::TargetTest()
 	{
 		//DrawDebugSphere(
 		//	GetWorld(),
-		//	HitResult.ImpactPoint,     // »˜∆Æ ¡ˆ¡°
-		//	16.0f,                     // π›¡ˆ∏ß
-		//	12,                        // ºº±◊∏’∆Æ ºˆ (µ’±€±‚)
-		//	FColor::Green,             // ªˆªÛ
-		//	false,                     // øµ±∏ ø©∫Œ (true∏È æ» ªÁ∂Û¡¸)
-		//	2.0f                       // ¡ˆº” Ω√∞£ (√  ¥‹¿ß)
+		//	HitResult.ImpactPoint,     // ÌûàÌä∏ ÏßÄÏ†ê
+		//	16.0f,                     // Î∞òÏßÄÎ¶Ñ
+		//	12,                        // ÏÑ∏Í∑∏Î®ºÌä∏ Ïàò (Îë•Í∏ÄÍ∏∞)
+		//	FColor::Green,             // ÏÉâÏÉÅ
+		//	false,                     // ÏòÅÍµ¨ Ïó¨Î∂Ä (trueÎ©¥ Ïïà ÏÇ¨ÎùºÏßê)
+		//	2.0f                       // ÏßÄÏÜç ÏãúÍ∞Ñ (Ï¥à Îã®ÏúÑ)
 		//);
 
 		GrabHookPoint = HitResult.ImpactPoint;
@@ -184,7 +213,7 @@ void UGrapplingHookComponent::HookStart(FVector GrabPoint)
 	if (CableComponent == nullptr)
 		return;
 
-	CableComponent->bAttachEnd = true;
+	//CableComponent->bAttachEnd = true;
 	HookEndPostion(GrabPoint);
 
 	SetHookState(true);
@@ -207,8 +236,8 @@ void UGrapplingHookComponent::OwnerTurn(FVector GrabPoint)
 	Owner->SetActorRotation(NewRotation);
 	{
 		FVector Start = Owner->GetActorLocation();
-		FVector ForwardVector = NewRotation.Vector(); // »∏¿¸∞™¿ª πÊ«‚ ∫§≈Õ∑Œ ∫Ø»Ø
-		FVector End = Start + ForwardVector * 500.0f; // 500∏∏≈≠ æ’¿∏∑Œ º±
+		FVector ForwardVector = NewRotation.Vector(); // ÌöåÏ†ÑÍ∞íÏùÑ Î∞©Ìñ• Î≤°ÌÑ∞Î°ú Î≥ÄÌôò
+		FVector End = Start + ForwardVector * 500.0f; // 500ÎßåÌÅº ÏïûÏúºÎ°ú ÏÑ†
 
 		DrawDebugLine(
 			GetWorld(),
@@ -236,7 +265,16 @@ void UGrapplingHookComponent::HookEndPostion(FVector GrabPoint)
 	FTransform ActorTransform = Owner->GetActorTransform();
 	FVector LocalLocation = ActorTransform.InverseTransformPosition(GrabHookPoint);
 
-	CableComponent->EndLocation = LocalLocation;
+	//CableComponent->EndLocation = LocalLocation;
+
+	HookTempPoint->SetWorldLocation(GrabPoint);
+	HookTempPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HookTempPoint->SetSphereRadius(20.f);
+	HookTempPoint->SetVisibility(true);                     // Î†åÎçîÎßÅ on
+	HookTempPoint->SetHiddenInGame(false);
+	HookTempPoint->ShapeColor = FColor::Red;
+
+	//CableComponent->SetAttachEndToComponent(HookPoint);
 }
 
 void UGrapplingHookComponent::SetHookState(bool bState)
@@ -250,20 +288,6 @@ void UGrapplingHookComponent::SetHookState(bool bState)
 		return;
 
 	bIsGrappling = bState;
-
-	/*if (bState)
-	{
-		CharMoveComp->bOrientRotationToMovement = false;
-		CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
-
-		CharMoveComp->bEnablePhysicsInteraction = true;
-
-	}
-	else
-	{
-		CharMoveComp->bOrientRotationToMovement = true;
-		CharMoveComp->SetMovementMode(EMovementMode::MOVE_Falling);
-	}*/
 }
 
 void UGrapplingHookComponent::HookAction()
@@ -280,7 +304,7 @@ void UGrapplingHookComponent::HookAction()
 
 		const float DistanceToTarget = FVector::Dist(ActorLocation, GrabHookPoint);
 
-		if (DistanceToTarget < 150.0f) // µµ¬¯ ∞≈∏Æ ±‚¡ÿ (¿˚¥Á»˜ ¡∂¡§)
+		if (DistanceToTarget < 150.0f) // ÎèÑÏ∞© Í±∞Î¶¨ Í∏∞Ï§Ä (Ï†ÅÎãπÌûà Ï°∞Ï†ï)
 		{
 			HookState = EHookState::None;
 		}
@@ -298,5 +322,77 @@ void UGrapplingHookComponent::OnGrappleAimUpdate(FVector Target, bool bIsValidGr
 	FName ValidTargetVarName = TEXT("Valid Target");
 	float ValidValue = bIsValidGrapplePoint ? 1.0f : 0.0f;
 	NSGrapple->SetVariableFloat(ValidTargetVarName, ValidValue);
+}
+
+void UGrapplingHookComponent::AttachRope()
+{
+	if (!RopeActorClass || !GetOwner()) return;
+
+	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
+	if (Owner == nullptr)
+		return;
+
+	UWorld* World = GetWorld();
+	if (!World ) return;
+
+	if (RopeActorInstance != nullptr)
+	{
+		RopeActorInstance->Destroy();
+	}
+
+	RopeActorInstance = World->SpawnActor<AActor>(RopeActorClass);
+
+	if (!RopeActorInstance) return;
+
+	//RopeActorInstance->AttachToActor(OwnerActor, FAttachmentTransformRules::KeepWorldTransform);
+
+	RopeActorInstance->SetActorLocation(GrabHookPoint);
+
+	UStaticMeshComponent* CableEnd = Cast<UStaticMeshComponent>(
+		RopeActorInstance->GetDefaultSubobjectByName(TEXT("CableEnd"))
+	);
+	if(CableEnd)
+	{
+		//FVector SpawnLocation = GrabHookPoint - FVector(0.f, 0.f, 1000.f);
+		CableEnd->SetWorldLocation(Owner->GetActorLocation() + FVector(0.f, 0.f, 0));
+		//CableEnd->SetWorldLocation(SpawnLocation);
+		
+		
+	}
+
+	UPhysicsConstraintComponent* PhysicsConstraint = Cast<UPhysicsConstraintComponent>(
+		RopeActorInstance->GetDefaultSubobjectByName(TEXT("PhysicsConstraint"))
+	);
+	if (PhysicsConstraint)
+	{
+		float LimitedLength = (GrabHookPoint - Owner->GetActorLocation()).Length();
+		PhysicsConstraint->SetLinearXLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
+		PhysicsConstraint->SetLinearYLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
+		PhysicsConstraint->SetLinearZLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
+	}
+	
+
+	UCapsuleComponent* Capsule = Owner->GetCapsuleComponent();
+
+	Capsule->AttachToComponent(
+		CableEnd,
+		FAttachmentTransformRules(
+			EAttachmentRule::SnapToTarget,     // Location
+			EAttachmentRule::KeepWorld,        // Rotation
+			EAttachmentRule::KeepWorld,     // Scale
+			true                              // WeldSimulatedBodies
+		)
+	);
+
+	//USkeletalMeshComponent* Mesh = OwnerActor->FindComponentByClass<USkeletalMeshComponent>();
+
+	//if (Mesh && CableEnd)
+	//{
+	//	Mesh->AttachToComponent(
+	//		CableEnd,
+	//		FAttachmentTransformRules::SnapToTargetIncludingScale,
+	//		TEXT("HandSocket_R") // Ï∫êÎ¶≠ÌÑ∞ Ï™Ω ÏÜåÏºì Ïù¥Î¶Ñ
+	//	);
+	//}
 }
 
