@@ -179,7 +179,21 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	if (ClimbingComponent && ClimbingComponent->IsClimbing())
+	UCapsuleComponent* Capsule = GetCapsuleComponent();
+
+	if (Capsule && Capsule->IsSimulatingPhysics())
+	{
+		FVector ForwardDir = GetActorForwardVector();
+		FVector RightDir = GetActorRightVector();
+		float ForcePower = 100000.f;
+
+		FVector SwingForce = (ForwardDir * MovementVector.X + RightDir * MovementVector.Y) * ForcePower;
+
+		Capsule->AddForce(SwingForce);
+
+	}
+
+	else if (ClimbingComponent && ClimbingComponent->IsClimbing())
 	{
 		ClimbingComponent->ClimbingUp();
 		AddMovementInput(GetActorUpVector(), MovementVector.X);
