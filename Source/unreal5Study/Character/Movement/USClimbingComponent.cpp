@@ -31,14 +31,6 @@ void UUSClimbingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	ACharacter* Owner = Cast<ACharacter>(GetOwner());
-	if (Owner == nullptr)
-		return;
-
-	UCapsuleComponent* Capsule = Owner->GetCapsuleComponent();
-	if (Capsule && Capsule->IsSimulatingPhysics())
-		return;
-
 	if (bClimbOn == false)
 		return;
 
@@ -54,6 +46,11 @@ void UUSClimbingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 
 	ClimbingLocation(DeltaTime);
 
+	AUSCharacterBase* Owner = Cast<AUSCharacterBase>(GetOwner());
+	if (Owner == nullptr)
+		return;
+	
+	Owner->StopGrapplingHook();
 }
 
 bool UUSClimbingComponent::ClimbingStart()

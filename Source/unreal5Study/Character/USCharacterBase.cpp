@@ -64,12 +64,6 @@ AUSCharacterBase::AUSCharacterBase()
 	EquipShield->SetCollisionProfileName(TEXT("NoCollision"));
 	EquipShield->SetIsReplicated(true);
 
-	GrapplingCable = CreateDefaultSubobject<UCableComponent>(TEXT("GrapplingCable"));
-	GrapplingCable->SetupAttachment(GetMesh(), TEXT("HandSocket_R"));
-	GrapplingCable->SetCollisionProfileName(TEXT("NoCollision"));
-	GrapplingCable->SetIsReplicated(true);
-	GrapplingCable->bAttachEnd = false;
-
 	//ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 	ParkourComponent = CreateDefaultSubobject<UUSParkourComponent>(TEXT("ParkourComponent"));
@@ -236,12 +230,12 @@ void AUSCharacterBase::ShowShield(bool bShow)
 		EquipShield->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("Shield_Holder"));
 }
 
-void AUSCharacterBase::ShowCable(bool bShow)
+void AUSCharacterBase::StopGrapplingHook()
 {
-	if(GrapplingCable == nullptr)
-		return;
-
-	GrapplingCable->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HandSocket_R"));
+	if (GrapplingHookComponent)
+	{
+		GrapplingHookComponent->StopAction();
+	}
 }
 
 UAbilitySystemComponent* AUSCharacterBase::GetAbilitySystemComponent() const

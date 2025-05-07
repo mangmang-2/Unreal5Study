@@ -128,6 +128,7 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (InputActionMap.Contains(EInputKey::MouseRClick))
 	{
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Started, this, &ThisClass::OnMouseRClickTrigger);
+		//EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Triggered, this, &ThisClass::OnMouseRClickTrigger);
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::MouseRClick], ETriggerEvent::Completed, this, &ThisClass::OnMouseRClickComplete);
 	}
 
@@ -271,7 +272,10 @@ void AUSPlayer::Jump()
 	}
 	else if (GrapplingHookComponent && GrapplingHookComponent->IsRopeAction())
 	{
-		GrapplingHookComponent->SwingEnd();
+		if (GrapplingHookComponent->IsAiming() == false)
+		{
+			GrapplingHookComponent->SwingEnd();
+		}
 	}
 	Super::Jump();
 }
@@ -427,6 +431,7 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 
 void AUSPlayer::OnMouseRClickTrigger()
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnMouseRClickTrigger"));
 	SetCharacterInputState(ECharacterInputState::GrapplingTargetOn);
 	MoveSetting(CharacterInputState);
 	if (CharacterInputState == ECharacterInputState::Weapon)
@@ -449,6 +454,7 @@ void AUSPlayer::OnMouseRClickTrigger()
 
 void AUSPlayer::OnMouseRClickComplete()
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnMouseRClickComplete"));
 	if (CharacterInputState == ECharacterInputState::Weapon)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ShieldDeactivated"));

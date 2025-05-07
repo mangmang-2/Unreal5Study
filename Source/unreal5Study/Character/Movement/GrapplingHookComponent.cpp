@@ -34,9 +34,10 @@ void UGrapplingHookComponent::BeginPlay()
 		{
 			NSGrapple->RegisterComponent(); // 반드시 등록
 			NSGrapple->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-			NSGrapple->SetAsset(NiagaraSystemAsset); // 미리 UPROPERTY로 NiagaraSystem 참조 받아둬야 함
-			NSGrapple->SetRelativeLocation(FVector::ZeroVector);
-			NSGrapple->Activate(true);
+			NSGrapple->SetAsset(NiagaraSystemAsset);
+			NSGrapple->Activate(false);
+			NSGrapple->Deactivate();
+			HookState = EHookState::None;
 		}
 	}
 
@@ -206,19 +207,7 @@ void UGrapplingHookComponent::HookEndPostion(FVector GrabPoint)
 	if (Owner == nullptr)
 		return;
 
-	UCableComponent* CableComponent = Owner->GetGrapplingCable();
-	if (CableComponent == nullptr)
-		return;
-
-	FTransform ActorTransform = Owner->GetActorTransform();
-	FVector LocalLocation = ActorTransform.InverseTransformPosition(GrabHookPoint);
-
 	GrappleAnchorPoint->SetWorldLocation(GrabPoint);
-	GrappleAnchorPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GrappleAnchorPoint->SetSphereRadius(20.f);
-	GrappleAnchorPoint->SetVisibility(true);                     // 렌더링 on
-	GrappleAnchorPoint->SetHiddenInGame(false);
-	GrappleAnchorPoint->ShapeColor = FColor::Red;
 }
 
 void UGrapplingHookComponent::HookAction()
@@ -247,6 +236,31 @@ void UGrapplingHookComponent::SetLimitedLength(float LimitedLength)
 		PhysicsConstraint->SetLinearXLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
 		PhysicsConstraint->SetLinearYLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
 		PhysicsConstraint->SetLinearZLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
+	}
+}
+
+void UGrapplingHookComponent::StopAction()
+{
+	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
+	if (Owner == nullptr)
+		return;
+
+	HookState = EHookState::None;
+	if (NSGrapple)
+	{
+		NSGrapple->Activate(false);
+		NSGrapple->Deactivate();
+	}
+
+	UCapsuleComponent* Capsule = Owner->GetCapsuleComponent();
+	if (Capsule)
+	{
+		Capsule->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	}
+
+	if (RopeActorInstance != nullptr)
+	{
+		RopeActorInstance->Destroy();
 	}
 }
 

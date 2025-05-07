@@ -54,6 +54,8 @@ public:
 
 	void SetLimitedLength(float LimitedLength);
 
+	void StopAction();
+
 protected:
 
 	EHookState HookState = EHookState::None;
