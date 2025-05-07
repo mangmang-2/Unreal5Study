@@ -32,51 +32,52 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void HookStart();
-	void HookEnd();
+
+	void BeginAim();
+	void EndAim();
+
+	bool TargetTest();
+	void GrappleNiagaraUpdate(FVector Target, bool bIsValidGrapplePoint);
+
+	bool IsRopeAction();
+	bool IsAiming();
+	void SwingEnd();
 
 	void SwingStart();
-	void SwingAction(float DeltaTime);
+	void SwingStop();
 
-	void CameraTargeting(float DeltaTime, float AlignSpeed);
-
-	void HookProgress();
-	void HookRelrease();
-	bool TargetTest();
-	void HookStart(FVector GrabPoint);
-	void OwnerTurn(FVector GrabPoint);
+	void HookStart();
+	void AttachRope();
+	void HookEnd();
 	void HookEndPostion(FVector GrabPoint);
-	
-	void SetHookState(bool bState);
 	void HookAction();
 
-	void OnGrappleAimUpdate(FVector Target, bool bIsValidGrapplePoint);
-		
-protected:
-	
-	bool bIsGrappling = false;
-	FVector GrabHookPoint;
+	void SetLimitedLength(float LimitedLength);
 
+protected:
+
+	EHookState HookState = EHookState::None;
+	float TraceDistance = 3000.0f;
+	FVector GrabHookPoint;
+	float TimeAccumulator = 0.f;       // 시간 누적용
+	float InitialSwingRadius = 0.0f;
+
+	float CurrentLimitedLength;
+	
 	UPROPERTY()
 	TObjectPtr<class UNiagaraComponent> NSGrapple;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UNiagaraSystem> NiagaraSystemAsset;
 
-	EHookState HookState = EHookState::None;
+	// 로프를 걸기 위한 장소
+	UPROPERTY()
+	TObjectPtr<class USphereComponent> GrappleAnchorPoint = nullptr;
+	
+	// 로프 액터
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AActor> RopeActorClass;
 
 	UPROPERTY()
-	TObjectPtr<class USphereComponent> HookTempPoint = nullptr;
-	float TimeAccumulator = 0.f;       // 시간 누적용
-
-	float InitialSwingRadius = 0.0f;
-
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AActor> RopeActorClass;
-
-	TObjectPtr<AActor> RopeActorInstance;
-
-	void AttachRope();
-
+	TObjectPtr<class AActor> RopeActorInstance;
 };

@@ -136,6 +136,11 @@ void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::LockOn], ETriggerEvent::Triggered, this, &ThisClass::ToggleLockOn);
 	}
 
+	if (InputActionMap.Contains(EInputKey::GrapplingHook))
+	{
+		EnhancedInputComponent->BindAction(InputActionMap[EInputKey::GrapplingHook], ETriggerEvent::Triggered, this, &ThisClass::GrapplingHook);
+	}
+
 	SetInputContextChange(InputMappingContext);
 }
 
@@ -147,8 +152,6 @@ void AUSPlayer::Tick(float DeltaTime)
 	{
 		UpdateCameraLockOn(DeltaTime);
 	}
-
-	
 }
 
 void AUSPlayer::SetInputContextChange(class UInputMappingContext* MappingContext)
@@ -168,7 +171,6 @@ void AUSPlayer::SetInputContextChange(class UInputMappingContext* MappingContext
 
 void AUSPlayer::Move(const FInputActionValue& Value)
 {
-
 	ClickInputClear();
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -181,6 +183,7 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 
 	UCapsuleComponent* Capsule = GetCapsuleComponent();
 
+	// 스윙 상태일 때
 	if (Capsule && Capsule->IsSimulatingPhysics())
 	{
 		FVector ForwardDir = GetActorForwardVector();
@@ -192,7 +195,7 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 		Capsule->AddForce(SwingForce);
 
 	}
-
+	// 클라이밍 상태
 	else if (ClimbingComponent && ClimbingComponent->IsClimbing())
 	{
 		ClimbingComponent->ClimbingUp();
@@ -205,6 +208,7 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 		if (MovementVector.Y > 0)
 			ClimbingComponent->ClimbingCornerRight();
 	}
+	// 평상시
 	else
 	{
 		
@@ -214,26 +218,9 @@ void AUSPlayer::Move(const FInputActionValue& Value)
 		FRotator DeltaRotation = AimRotation - ActorRotation;
 		//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : %f"), DeltaRotation.Yaw);
 
-
-		//if (DeltaRotation.Yaw < 0)
-		//{
-		//	// 오른쪽으로 가는 이벤트
-		//	//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Right"));
-		//	K2_RotateRight(DeltaRotation.Yaw, ActorRotation);
-		//}
-		//else
-		//{
-		//	// 왼쪽으로 가는 이벤트
-		//	//UE_LOG(LogTemp, Warning, TEXT("DeltaRotation : Left"));
-		//	K2_RotateLeft(DeltaRotation.Yaw, ActorRotation);
-		//}
-		
-
 		AddMovementInput(ForwardDirection, MovementVector.X);
 		AddMovementInput(RightDirection, MovementVector.Y);
 	}
-
-	
 }
 
 void AUSPlayer::Look(const FInputActionValue& Value)
@@ -281,6 +268,10 @@ void AUSPlayer::Jump()
 	else if (ParkourComponent && ParkourComponent->IsParkourable())
 	{
 		ParkourComponent->Start();
+	}
+	else if (GrapplingHookComponent && GrapplingHookComponent->IsRopeAction())
+	{
+		GrapplingHookComponent->SwingEnd();
 	}
 	Super::Jump();
 }
@@ -332,6 +323,14 @@ void AUSPlayer::ToggleLockOn()
 	else
 	{
 		LockOnTarget();
+	}
+}
+
+void AUSPlayer::GrapplingHook()
+{
+	if (GrapplingHookComponent && GrapplingHookComponent->IsRopeAction())
+	{
+		GrapplingHookComponent->HookStart();
 	}
 }
 
@@ -443,7 +442,7 @@ void AUSPlayer::OnMouseRClickTrigger()
 		
 		if (GrapplingHookComponent)
 		{
-			GrapplingHookComponent->HookStart();
+			GrapplingHookComponent->BeginAim();
 		}
 	}
 }
@@ -460,7 +459,7 @@ void AUSPlayer::OnMouseRClickComplete()
 	{
 		if (GrapplingHookComponent)
 		{
-			GrapplingHookComponent->SwingStart();
+			GrapplingHookComponent->EndAim();
 		}
 	}
 	SetCharacterInputState(ECharacterInputState::None);
@@ -487,22 +486,11 @@ void AUSPlayer::OnMouseLClickTrigger()
 			}
 		}
 	}
-	else if (CharacterInputState == ECharacterInputState::GrapplingTargetOn)
-	{
-		if (GrapplingHookComponent)
-		{
-			SetCharacterInputState(ECharacterInputState::GrapplingSwing);
-			GrapplingHookComponent->SwingStart();
-		}
-	}
 }
 
 void AUSPlayer::OnMouseLClickComplete()
 {
-	if (GrapplingHookComponent)
-	{
-		GrapplingHookComponent->HookEnd();
-	}
+
 }
 
 void AUSPlayer::OnOutOfHealth()
@@ -528,7 +516,7 @@ void AUSPlayer::MoveSetting(ECharacterInputState CharacterState)
 		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
 		GetCharacterMovement()->MaxWalkSpeed = 500.f;
-		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
+		//UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.1f);
 	}
 	else if (CharacterState == ECharacterInputState::Weapon)
 	{

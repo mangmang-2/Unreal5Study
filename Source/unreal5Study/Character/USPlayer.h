@@ -25,6 +25,7 @@ enum class EInputKey : uint8
 	MouseLClick UMETA(DisplayName = "MouseLClick"),
 	MouseRClick UMETA(DisplayName = "MouseRClick"),
 	LockOn UMETA(DisplayName = "LockOn"),
+	GrapplingHook UMETA(DisplayName = "GrapplingHook"),
 };
 
 UENUM(BlueprintType)
@@ -103,6 +104,7 @@ public:
 	void LockOnTarget();
 	void UnlockTarget();
 	void ToggleLockOn();
+	void GrapplingHook();
 	void UpdateCameraLockOn(float DeltaTime);
 
 private:

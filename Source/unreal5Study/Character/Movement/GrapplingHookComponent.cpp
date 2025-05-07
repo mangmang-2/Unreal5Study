@@ -21,7 +21,6 @@ UGrapplingHookComponent::UGrapplingHookComponent()
 	// ...
 }
 
-
 // Called when the game starts
 void UGrapplingHookComponent::BeginPlay()
 {
@@ -41,69 +40,9 @@ void UGrapplingHookComponent::BeginPlay()
 		}
 	}
 
-	HookTempPoint = NewObject<USphereComponent>(this, TEXT("GrappleHookPoint"));
-	HookTempPoint->RegisterComponent();
+	GrappleAnchorPoint = NewObject<USphereComponent>(this, TEXT("GrappleHookPoint"));
+	GrappleAnchorPoint->RegisterComponent();
 
-}
-
-void UGrapplingHookComponent::HookStart()
-{
-	HookState = EHookState::Aim;
-	NSGrapple->Activate(true);
-}
-
-void UGrapplingHookComponent::HookEnd()
-{
-	//OwnerTurn(GrabHookPoint);
-	HookStart(GrabHookPoint);
-	//HookAction();
-	//SetHookState(false);
-	HookRelrease();
-
-	HookState = EHookState::Progress;
-	NSGrapple->Deactivate();
-}
-
-void UGrapplingHookComponent::SwingStart()
-{
-	TimeAccumulator = 0.0f;
-	HookState = EHookState::Swing;
-	TargetTest();
-	HookStart(GrabHookPoint);
-	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
-	if (Owner == nullptr)
-		return;
-
-	AttachRope();
-}
-
-void UGrapplingHookComponent::SwingAction(float DeltaTime)
-{
-	
-}
-
-void UGrapplingHookComponent::CameraTargeting(float DeltaTime, float AlignSpeed)
-{
-	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
-	if (Owner == nullptr)
-		return;
-
-	UCameraComponent* FollowCamera = Owner->GetFollowCamera();
-
-	if (!FollowCamera) return;
-
-	// 카메라의 정면 방향 (Z축 제외)
-	FVector CameraForward = FollowCamera->GetForwardVector().GetSafeNormal2D();
-	FRotator TargetRotation = CameraForward.Rotation(); // Yaw만 필요
-
-	FRotator CurrentRotation = Owner->GetActorRotation();
-
-	// 부드럽게 보간 (Yaw만 적용)
-	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, AlignSpeed);
-	NewRotation.Pitch = 0.0f;
-	NewRotation.Roll = 0.0f;
-
-	Owner->SetActorRotation(NewRotation);
 }
 
 // Called every frame
@@ -113,60 +52,62 @@ void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 	if (HookState == EHookState::Aim)
 	{
-		TargetTest();
-		OnGrappleAimUpdate(GrabHookPoint, true);
-		CameraTargeting(DeltaTime, 5.0f);
+		if(TargetTest())
+		{
+			GrappleNiagaraUpdate(GrabHookPoint, true);
+		}
+		else
+		{
+			GrappleNiagaraUpdate(GrabHookPoint, false);
+		}
 	}
-	if (HookState == EHookState::Progress)
+	else if (HookState == EHookState::Progress)
 	{
 		HookAction();
 	}
-	if (HookState == EHookState::Swing)
+	else if (HookState == EHookState::Swing)
 	{
-		//HookStart(GrabHookPoint);
-		SwingAction(DeltaTime);
+		float TargetLength = 400.0f;
+		float InterpSpeed = 1.0f;
+
+		CurrentLimitedLength = FMath::FInterpTo(CurrentLimitedLength, TargetLength, DeltaTime, InterpSpeed);
+		SetLimitedLength(CurrentLimitedLength);
 	}
-
-	//HookEndPostion(GrabHookPoint);
 }
 
-void UGrapplingHookComponent::HookProgress()
+void UGrapplingHookComponent::BeginAim()
 {
-	//if (TargetTest())
-	//{
-	//	//OwnerTurn(GrabHookPoint);
-	//	HookStart(GrabHookPoint);	
-	//}
+	HookState = EHookState::Aim;
+	NSGrapple->Activate(true);
 }
 
-void UGrapplingHookComponent::HookRelrease()
+void UGrapplingHookComponent::EndAim()
 {
-	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
-	if (Owner == nullptr)
-		return;
-	UCableComponent* CableComponent = Owner->GetGrapplingCable();
-	if (CableComponent == nullptr)
+	if(IsAiming() == false)
 		return;
 
-	//CableComponent->bAttachEnd = false;
+	HookState = EHookState::None;
+	NSGrapple->Activate(false);
+	NSGrapple->Deactivate();
+
+	SwingStart();
 }
 
 bool UGrapplingHookComponent::TargetTest()
 {
 	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
-	if(Owner == nullptr)
+	if (Owner == nullptr)
 		return false;
 
-	UCameraComponent* CameraComponent =  Owner->GetFollowCamera();
+	UCameraComponent* CameraComponent = Owner->GetFollowCamera();
 	FVector CameraLocation = CameraComponent->GetComponentLocation();
 	FVector ForwardVector = CameraComponent->GetForwardVector();
-	float TraceDistance = 30000.0f;
 
 	FHitResult HitResult;
 	FVector Start = CameraLocation;
 	FVector End = CameraLocation + (ForwardVector * TraceDistance);
 	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(Owner); // 자기 자신 무시
+	Params.AddIgnoredActor(Owner);
 	Params.bTraceComplex = false;
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(
@@ -176,80 +117,87 @@ bool UGrapplingHookComponent::TargetTest()
 		ECC_Visibility,
 		Params
 	);
-	/*DrawDebugLine(
-		GetWorld(),
-		Start,
-		End,
-		FColor::Red,
-		false,
-		1.0f,
-		0,
-		1.0f
-	);*/
+
 	if (bHit)
 	{
-		//DrawDebugSphere(
-		//	GetWorld(),
-		//	HitResult.ImpactPoint,     // 히트 지점
-		//	16.0f,                     // 반지름
-		//	12,                        // 세그먼트 수 (둥글기)
-		//	FColor::Green,             // 색상
-		//	false,                     // 영구 여부 (true면 안 사라짐)
-		//	2.0f                       // 지속 시간 (초 단위)
-		//);
-
 		GrabHookPoint = HitResult.ImpactPoint;
 	}
-	
+	else
+	{
+		GrabHookPoint = End; // 시선 끝 지점
+	}
+
 	return bHit;
 }
 
-void UGrapplingHookComponent::HookStart(FVector GrabPoint)
+void UGrapplingHookComponent::GrappleNiagaraUpdate(FVector Target, bool bIsValidGrapplePoint)
 {
-	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
-	if (Owner == nullptr)
-		return;
-	UCableComponent* CableComponent = Owner->GetGrapplingCable();
-	if (CableComponent == nullptr)
+	if (NSGrapple == nullptr)
 		return;
 
-	//CableComponent->bAttachEnd = true;
-	HookEndPostion(GrabPoint);
+	FName BeamEndVarName = TEXT("Beam End");
+	NSGrapple->SetVariableVec3(BeamEndVarName, Target);
 
-	SetHookState(true);
+	FName ValidTargetVarName = TEXT("Valid Target");
+	float ValidValue = bIsValidGrapplePoint ? 1.0f : 0.0f;
+	NSGrapple->SetVariableFloat(ValidTargetVarName, ValidValue);
 }
 
-void UGrapplingHookComponent::OwnerTurn(FVector GrabPoint)
+bool UGrapplingHookComponent::IsRopeAction()
 {
+	return HookState != EHookState::None;
+}
+
+bool UGrapplingHookComponent::IsAiming()
+{
+	return HookState == EHookState::Aim;
+}
+
+void UGrapplingHookComponent::SwingEnd()
+{
+	SwingStop();
+}
+
+void UGrapplingHookComponent::SwingStart()
+{
+	TimeAccumulator = 0.0f;
+	HookState = EHookState::Swing;
+
+	HookEndPostion(GrabHookPoint);
 	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
 	if (Owner == nullptr)
 		return;
 
-	FVector OwnerLocation = Owner->GetActorLocation();
-	FVector Direction = (GrabPoint - OwnerLocation).GetSafeNormal();
+	AttachRope();
+}
 
-	FRotator TargetRotation = Direction.Rotation();
+void UGrapplingHookComponent::SwingStop()
+{
+	HookState = EHookState::None;
 
-	FRotator NewRotation = Owner->GetActorRotation();
-	NewRotation.Yaw = TargetRotation.Yaw;
-	//Owner->AddActorWorldRotation(NewRotation);
-	Owner->SetActorRotation(NewRotation);
+	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
+	if (Owner == nullptr)
+		return;
+
+	UCapsuleComponent* Capsule = Owner->GetCapsuleComponent();
+
+	if (Capsule)
 	{
-		FVector Start = Owner->GetActorLocation();
-		FVector ForwardVector = NewRotation.Vector(); // 회전값을 방향 벡터로 변환
-		FVector End = Start + ForwardVector * 500.0f; // 500만큼 앞으로 선
-
-		DrawDebugLine(
-			GetWorld(),
-			Start,
-			End,
-			FColor::Green,
-			false,
-			2.0f,
-			0,
-			2.0f
-		);
+		FVector Velocity = Owner->GetVelocity();
+		Capsule->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		Owner->LaunchCharacter(Velocity, true, true);
 	}
+
+	if (RopeActorInstance != nullptr)
+	{
+		RopeActorInstance->Destroy();
+	}
+}
+
+void UGrapplingHookComponent::HookStart()
+{
+	SwingStop();
+	HookState = EHookState::Progress;
 }
 
 void UGrapplingHookComponent::HookEndPostion(FVector GrabPoint)
@@ -265,75 +213,55 @@ void UGrapplingHookComponent::HookEndPostion(FVector GrabPoint)
 	FTransform ActorTransform = Owner->GetActorTransform();
 	FVector LocalLocation = ActorTransform.InverseTransformPosition(GrabHookPoint);
 
-	//CableComponent->EndLocation = LocalLocation;
-
-	HookTempPoint->SetWorldLocation(GrabPoint);
-	HookTempPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HookTempPoint->SetSphereRadius(20.f);
-	HookTempPoint->SetVisibility(true);                     // 렌더링 on
-	HookTempPoint->SetHiddenInGame(false);
-	HookTempPoint->ShapeColor = FColor::Red;
-
-	//CableComponent->SetAttachEndToComponent(HookPoint);
+	GrappleAnchorPoint->SetWorldLocation(GrabPoint);
+	GrappleAnchorPoint->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GrappleAnchorPoint->SetSphereRadius(20.f);
+	GrappleAnchorPoint->SetVisibility(true);                     // 렌더링 on
+	GrappleAnchorPoint->SetHiddenInGame(false);
+	GrappleAnchorPoint->ShapeColor = FColor::Red;
 }
 
-void UGrapplingHookComponent::SetHookState(bool bState)
+void UGrapplingHookComponent::HookAction()
 {
 	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
 	if (Owner == nullptr)
 		return;
 
-	UCharacterMovementComponent* CharMoveComp = Cast<UCharacterMovementComponent>(Owner->GetMovementComponent());
-	if (CharMoveComp == nullptr)
-		return;
+	FVector ActorLocation = Owner->GetActorLocation();
+	FVector LaunchVelocity = (GrabHookPoint - ActorLocation).GetSafeNormal() * 1500.0f;
+	Owner->LaunchCharacter(LaunchVelocity, true, true);
 
-	bIsGrappling = bState;
-}
+	const float DistanceToTarget = FVector::Dist(ActorLocation, GrabHookPoint);
 
-void UGrapplingHookComponent::HookAction()
-{
-	if (bIsGrappling)
+	if (DistanceToTarget < 150.0f) // 도착 거리 기준 (적당히 조정)
 	{
-		AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
-		if (Owner == nullptr)
-			return;
-
-		FVector ActorLocation = Owner->GetActorLocation();
-		FVector LaunchVelocity = (GrabHookPoint - ActorLocation).GetSafeNormal() * 1500.0f;
-		Owner->LaunchCharacter(LaunchVelocity, true, true);
-
-		const float DistanceToTarget = FVector::Dist(ActorLocation, GrabHookPoint);
-
-		if (DistanceToTarget < 150.0f) // 도착 거리 기준 (적당히 조정)
-		{
-			HookState = EHookState::None;
-		}
+		HookState = EHookState::None;
 	}
 }
 
-void UGrapplingHookComponent::OnGrappleAimUpdate(FVector Target, bool bIsValidGrapplePoint)
+void UGrapplingHookComponent::SetLimitedLength(float LimitedLength)
 {
-	if (NSGrapple == nullptr) 
-		return;
-
-	FName BeamEndVarName = TEXT("Beam End");
-	NSGrapple->SetVariableVec3(BeamEndVarName, Target);
-
-	FName ValidTargetVarName = TEXT("Valid Target");
-	float ValidValue = bIsValidGrapplePoint ? 1.0f : 0.0f;
-	NSGrapple->SetVariableFloat(ValidTargetVarName, ValidValue);
+	UPhysicsConstraintComponent* PhysicsConstraint = Cast<UPhysicsConstraintComponent>(RopeActorInstance->GetDefaultSubobjectByName(TEXT("PhysicsConstraint")));
+	if (PhysicsConstraint)
+	{
+		PhysicsConstraint->SetLinearXLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
+		PhysicsConstraint->SetLinearYLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
+		PhysicsConstraint->SetLinearZLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
+	}
 }
 
 void UGrapplingHookComponent::AttachRope()
 {
-	if (!RopeActorClass || !GetOwner()) return;
+	if (RopeActorClass == nullptr || GetOwner() == nullptr)
+		return;
 
 	AUSPlayer* Owner = Cast<AUSPlayer>(GetOwner());
 	if (Owner == nullptr)
 		return;
 
 	UWorld* World = GetWorld();
-	if (!World ) return;
+	if (World == nullptr) 
+		return;
 
 	if (RopeActorInstance != nullptr)
 	{
@@ -342,57 +270,37 @@ void UGrapplingHookComponent::AttachRope()
 
 	RopeActorInstance = World->SpawnActor<AActor>(RopeActorClass);
 
-	if (!RopeActorInstance) return;
-
-	//RopeActorInstance->AttachToActor(OwnerActor, FAttachmentTransformRules::KeepWorldTransform);
+	if (RopeActorInstance == nullptr) 
+		return;
 
 	RopeActorInstance->SetActorLocation(GrabHookPoint);
 
-	UStaticMeshComponent* CableEnd = Cast<UStaticMeshComponent>(
-		RopeActorInstance->GetDefaultSubobjectByName(TEXT("CableEnd"))
-	);
-	if(CableEnd)
-	{
-		//FVector SpawnLocation = GrabHookPoint - FVector(0.f, 0.f, 1000.f);
-		CableEnd->SetWorldLocation(Owner->GetActorLocation() + FVector(0.f, 0.f, 0));
-		//CableEnd->SetWorldLocation(SpawnLocation);
-		
-		
-	}
-
-	UPhysicsConstraintComponent* PhysicsConstraint = Cast<UPhysicsConstraintComponent>(
-		RopeActorInstance->GetDefaultSubobjectByName(TEXT("PhysicsConstraint"))
-	);
-	if (PhysicsConstraint)
-	{
-		float LimitedLength = (GrabHookPoint - Owner->GetActorLocation()).Length();
-		PhysicsConstraint->SetLinearXLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
-		PhysicsConstraint->SetLinearYLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
-		PhysicsConstraint->SetLinearZLimit(ELinearConstraintMotion::LCM_Limited, LimitedLength);
-	}
-	
-
+	UStaticMeshComponent* CableEnd = Cast<UStaticMeshComponent>(RopeActorInstance->GetDefaultSubobjectByName(TEXT("CableEnd")));
 	UCapsuleComponent* Capsule = Owner->GetCapsuleComponent();
 
-	Capsule->AttachToComponent(
-		CableEnd,
-		FAttachmentTransformRules(
-			EAttachmentRule::SnapToTarget,     // Location
-			EAttachmentRule::KeepWorld,        // Rotation
-			EAttachmentRule::KeepWorld,     // Scale
-			true                              // WeldSimulatedBodies
-		)
-	);
+	if(CableEnd && Capsule)
+	{
+		CableEnd->SetWorldLocation(Owner->GetActorLocation() + FVector(0.f, 0.f, 0));		
 
-	//USkeletalMeshComponent* Mesh = OwnerActor->FindComponentByClass<USkeletalMeshComponent>();
+		Capsule->AttachToComponent(
+			CableEnd,
+			FAttachmentTransformRules(
+				EAttachmentRule::SnapToTarget,
+				EAttachmentRule::KeepWorld,
+				EAttachmentRule::KeepWorld,
+				true
+			)
+		);
+	}
 
-	//if (Mesh && CableEnd)
-	//{
-	//	Mesh->AttachToComponent(
-	//		CableEnd,
-	//		FAttachmentTransformRules::SnapToTargetIncludingScale,
-	//		TEXT("HandSocket_R") // 캐릭터 쪽 소켓 이름
-	//	);
-	//}
+	CurrentLimitedLength = (GrabHookPoint - Owner->GetActorLocation()).Length();
+	SetLimitedLength(CurrentLimitedLength);
 }
 
+void UGrapplingHookComponent::HookEnd()
+{
+	HookEndPostion(GrabHookPoint);
+
+	HookState = EHookState::Progress;
+	NSGrapple->Deactivate();
+}
