@@ -56,6 +56,7 @@ public:
 
 	void StopAction();
 
+	FVector GetGrabHookPoint();
 protected:
 
 	EHookState HookState = EHookState::None;

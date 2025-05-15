@@ -318,3 +318,9 @@ void UGrapplingHookComponent::HookEnd()
 	HookState = EHookState::Progress;
 	NSGrapple->Deactivate();
 }
+
+
+FVector UGrapplingHookComponent::GetGrabHookPoint()
+{
+	return GrabHookPoint;
+}

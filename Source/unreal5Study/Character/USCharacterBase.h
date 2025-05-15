@@ -108,5 +108,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UGrapplingHookComponent> GrapplingHookComponent;
+
+public:
+	bool IsHookAim();
+	FVector GetRopePoint();
 };
 

@@ -49,6 +49,8 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		{
 			bIsClimbing = OwnerChracterBase->IsClimbing();
 			bIsClimbingMontage = OwnerChracterBase->IsClimbingMontage();
+			bIsHookAim = OwnerChracterBase->IsHookAim();
+			RopeEndPoint = OwnerChracterBase->GetRopePoint();
 		}
 		ClimbingUP = Velocity.Z * 100.0;
 

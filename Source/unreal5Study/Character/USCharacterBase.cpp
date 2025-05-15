@@ -269,3 +269,12 @@ void AUSCharacterBase::SetDeathEvent()
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_STATE_DEATH, EventData);
 }
 
+bool AUSCharacterBase::IsHookAim()
+{
+	return GrapplingHookComponent->IsRopeAction();
+}
+
+FVector AUSCharacterBase::GetRopePoint()
+{
+	return GrapplingHookComponent->GetGrabHookPoint();
+}

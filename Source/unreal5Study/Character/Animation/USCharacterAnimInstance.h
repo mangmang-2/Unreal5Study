@@ -75,6 +75,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float ClimbingRight;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsHookAim : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	FVector RopeEndPoint;
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
