@@ -148,7 +148,7 @@ protected:
     TObjectPtr<class AActor> BPCable;
 
 	UPROPERTY(EditAnywhere)
-	ECharacterInputState CharacterInputState = ECharacterInputState::None;
+	ECharacterInputState CharacterInputState = ECharacterInputState::Weapon;
 
 public:
 	UFUNCTION()

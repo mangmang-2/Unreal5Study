@@ -432,7 +432,7 @@ void AUSPlayer::EquipShieldCallBack(const FGameplayEventData* EventData)
 void AUSPlayer::OnMouseRClickTrigger()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnMouseRClickTrigger"));
-	SetCharacterInputState(ECharacterInputState::GrapplingTargetOn);
+	
 	MoveSetting(CharacterInputState);
 	if (CharacterInputState == ECharacterInputState::Weapon)
 	{
@@ -444,7 +444,8 @@ void AUSPlayer::OnMouseRClickTrigger()
 	}
 	else if (CharacterInputState == ECharacterInputState::GrapplingTargetOn)
 	{
-		
+		SetCharacterInputState(ECharacterInputState::GrapplingTargetOn);
+		MoveSetting(CharacterInputState);
 		if (GrapplingHookComponent)
 		{
 			GrapplingHookComponent->BeginAim();
@@ -460,6 +461,7 @@ void AUSPlayer::OnMouseRClickComplete()
 		UE_LOG(LogTemp, Warning, TEXT("ShieldDeactivated"));
 		FGameplayEventData PayloadData;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, USTAG_INPUT_SHIELD_DEACTIVE, PayloadData);
+		SetCharacterInputState(ECharacterInputState::Weapon);
 	}
 	else if (CharacterInputState == ECharacterInputState::GrapplingTargetOn)
 	{
@@ -467,18 +469,29 @@ void AUSPlayer::OnMouseRClickComplete()
 		{
 			GrapplingHookComponent->EndAim();
 		}
+		SetCharacterInputState(ECharacterInputState::None);
 	}
-	SetCharacterInputState(ECharacterInputState::None);
+	
 	MoveSetting(CharacterInputState);
 }
 
 void AUSPlayer::OnMouseLClickTrigger()
 {
+	
 	if (CharacterInputState == ECharacterInputState::Weapon)
 	{
 		if (ASCComponent == nullptr)
 			return;
-		FGameplayAbilitySpec* Spec = ASCComponent->FindAbilitySpecFromInputID(2);
+		FGameplayAbilitySpec* Spec = nullptr;
+		if (GetCharacterMovement()->IsFalling())
+		{
+			Spec = ASCComponent->FindAbilitySpecFromInputID(10);
+		}
+		else
+		{
+			Spec = ASCComponent->FindAbilitySpecFromInputID(2);
+		}
+
 		if (Spec)
 		{
 			Spec->InputPressed = true;

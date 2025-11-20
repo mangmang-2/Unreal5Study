@@ -3,6 +3,8 @@
 
 #include "GameplayAbility_Attack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Character.h"
 
 UGameplayAbility_Attack::UGameplayAbility_Attack()
 {
@@ -32,7 +34,7 @@ void UGameplayAbility_Attack::InputPressed(const FGameplayAbilitySpecHandle Hand
 	else
 	{
 		HasNextComboInput = true;
-
+		SetFalling(Handle, ActorInfo, ActivationInfo);
 	}
 }
 
@@ -40,6 +42,7 @@ void UGameplayAbility_Attack::InputPressed(const FGameplayAbilitySpecHandle Hand
 void UGameplayAbility_Attack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+	SetFalling(Handle, ActorInfo, ActivationInfo);
 }
 
 void UGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -48,6 +51,7 @@ void UGameplayAbility_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle
 
 	CurrentCombo = 0;
 	HasNextComboInput = false;
+	SetFalling(Handle, ActorInfo, ActivationInfo);
 }
 
 void UGameplayAbility_Attack::OnCompleteCallback()
@@ -85,5 +89,22 @@ void UGameplayAbility_Attack::CheckComboInput()
 		StartComboTimer();
 		if (CurrentCombo >= ActionMontage->GetNumSections())
 			CurrentCombo = 0;
+	}
+}
+
+void UGameplayAbility_Attack::SetFalling(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
+	if (Character == nullptr)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
+	UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement();
+	if (MovementComp)
+	{
+		MovementComp->SetMovementMode(EMovementMode::MOVE_Falling);
+		UE_LOG(LogTemp, Warning, TEXT("CancelAbility IsFalling%d"), MovementComp->IsFalling());
 	}
 }

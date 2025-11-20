@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../USCharacterBase.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "../USPlayer.h"
 
 UUSCharacterAnimInstance::UUSCharacterAnimInstance()
 {
@@ -45,13 +46,29 @@ void UUSCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
 
+
 		if (OwnerChracterBase)
 		{
 			bIsClimbing = OwnerChracterBase->IsClimbing();
 			bIsClimbingMontage = OwnerChracterBase->IsClimbingMontage();
 			bIsHookAim = OwnerChracterBase->IsHookAim();
 			RopeEndPoint = OwnerChracterBase->GetRopePoint();
+			bToAirMotion = OwnerChracterBase->IsToAirMotion();
+			DistanceToGround = Movement->CurrentFloor.FloorDist;
+
 		}
+
+		if (Cast<AUSPlayer>(GetOwningActor()))
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("bIsFalling%d"), bIsFalling);
+			//UE_LOG(LogTemp, Warning, TEXT("DistanceToGround %f"), DistanceToGround);
+
+			//UE_LOG(LogTemp, Warning, TEXT("bToAirMotion%d"), bToAirMotion);
+			//UE_LOG(LogTemp, Warning, TEXT("bIsJumping%d"), bIsJumping);
+
+			//UE_LOG(LogTemp, Warning, TEXT("%s"), *Movement->GetMovementName());
+		}
+
 		ClimbingUP = Velocity.Z * 100.0;
 
 		if (Owner)

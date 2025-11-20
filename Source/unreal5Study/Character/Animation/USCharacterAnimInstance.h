@@ -80,6 +80,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	FVector RopeEndPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bToAirMotion : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	float DistanceToGround = 0;
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")

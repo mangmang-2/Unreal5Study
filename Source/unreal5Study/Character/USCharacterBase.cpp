@@ -278,3 +278,8 @@ FVector AUSCharacterBase::GetRopePoint()
 {
 	return GrapplingHookComponent->GetGrabHookPoint();
 }
+
+bool AUSCharacterBase::IsToAirMotion()
+{
+	return ASCComponent && ASCComponent->HasMatchingGameplayTag(USTAG_CHARACTER_STATE_TO_AIR_ATTACK);
+}

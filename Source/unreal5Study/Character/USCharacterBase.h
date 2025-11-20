@@ -112,5 +112,7 @@ protected:
 public:
 	bool IsHookAim();
 	FVector GetRopePoint();
+
+	bool IsToAirMotion();
 };
 

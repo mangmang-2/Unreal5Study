@@ -16,5 +16,5 @@
 #define USTAG_INPUT_ATTACK_COMBOATTAC1 FGameplayTag::RequestGameplayTag(FName("Input.Attack.ComboAttack1"))
 #define USTAG_INPUT_SHIELD_ACTIVE FGameplayTag::RequestGameplayTag(FName("Input.Shield.Active"))
 #define USTAG_INPUT_SHIELD_DEACTIVE FGameplayTag::RequestGameplayTag(FName("Input.Shield.Deactive"))
-
+#define USTAG_CHARACTER_STATE_TO_AIR_ATTACK FGameplayTag::RequestGameplayTag(FName("Character.State.ToAirAttack"))
 
