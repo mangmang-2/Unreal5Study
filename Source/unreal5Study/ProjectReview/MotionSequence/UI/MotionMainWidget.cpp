@@ -131,3 +131,8 @@ void UMotionMainWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 		PrevSize = NewSize;
 	}
 }
+
+void UMotionMainWidget::RefreshPostion()
+{
+	OnMainWidgetMoved.Broadcast(GetViewPosition(), GetViewSize());
+}

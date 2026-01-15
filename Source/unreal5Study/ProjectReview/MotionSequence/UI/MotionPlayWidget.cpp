@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionMainWidget.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "../MotionSeqenceSubsystem.h"
 
 void UMotionPlayWidget::NativeOnInitialized()
 {
@@ -48,6 +49,7 @@ void UMotionPlayWidget::OnClickMotionButton()
 
 void UMotionPlayWidget::ClickMotionButton(int32 Index)
 {
+	SelectIndex = Index;
 	ToggleListView();
 }
 
@@ -81,7 +83,18 @@ void UMotionPlayWidget::ToggleListView()
 		if(ParentMainWidget == nullptr)
 			return;
 		ParentMainWidget->OnMainWidgetMoved.AddDynamic(MotionListWidget, &UMotionListWidget::OnMainWidgetMoved);
+		ParentMainWidget->RefreshPostion();
+
+		//MotionListWidget->OnMotinListSelect.AddDynamic(MotionListWidget, &UMotionPlayWidget::OnClickApplyButton);
 	}
 
 
+}
+
+void UMotionPlayWidget::OnClickApplyButton(int32 Index)
+{
+	/*if (UMotionSeqenceSubsystem* SeqenceSubsystem = UGameInstance::GetSubsystem<UMotionSeqenceSubsystem>(GetGameInstance()))
+	{
+		const FMotionItem& MotionItem = SeqenceSubsystem->GetMotionByID(Index);
+	}*/
 }

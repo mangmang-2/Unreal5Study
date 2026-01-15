@@ -31,6 +31,8 @@ protected:
 
 	void ToggleListView();
 
+	UFUNCTION()
+	void OnClickApplyButton(int32 Index);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
 	TSubclassOf<class UMotionListWidget> MotionListWidgetClass;
@@ -38,6 +40,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UMotionListWidget> MotionListWidget;
 
+	int32 SelectIndex = -1;
 public:
 	UPROPERTY()
 	TObjectPtr<class UMotionMainWidget> ParentMainWidget;
