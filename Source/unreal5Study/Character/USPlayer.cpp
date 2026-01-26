@@ -28,6 +28,7 @@
 #include "USPlayer.h"
 #include "USCharacterBase.h"
 #include "Movement/GrapplingHookComponent.h"
+#include "../ProjectReview/MiniMap/USMiniMapComponent.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -68,6 +69,9 @@ AUSPlayer::AUSPlayer()
 	//	UnequipShield->SetStaticMesh(BodyMeshRef.Object);
 	//}
 	InventoryComponent = CreateDefaultSubobject<UUSInventory>(TEXT("Inventory"));
+
+	MiniMapComp = CreateDefaultSubobject<UUSMiniMapComponent>(TEXT("MiniMapComp"));
+	MiniMapComp->SetupAttachment(RootComponent);
 }
 
 
@@ -541,7 +545,7 @@ void AUSPlayer::MoveSetting(ECharacterInputState CharacterState)
 	{
 		bUseControllerRotationYaw = true; // 카메라에 맞춰서 캐릭터를 회전하기 위해서
 		GetCharacterMovement()->bOrientRotationToMovement = false; // 이동시 카메라를 바라보는 방향으로 고정
-		GetCharacterMovement()->MaxWalkSpeed = 250.f;
+		GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	}
 	else if (CharacterState == ECharacterInputState::GrapplingSwing)
 	{

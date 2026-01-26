@@ -153,4 +153,8 @@ protected:
 public:
 	UFUNCTION()
 	void SetCharacterInputState(ECharacterInputState InputState);
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="MiniMap")
+	TObjectPtr<class UUSMiniMapComponent> MiniMapComp;
 };
