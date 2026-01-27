@@ -18,8 +18,8 @@ public:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UImage> MinimapImage = nullptr;
 
-	//UPROPERTY(meta=(BindWidget))
-	//TObjectPtr<class UImage> PlayerArrow = nullptr;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UImage> PlayerArrow = nullptr;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -30,6 +30,4 @@ protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
-
-	void TryBindRenderTarget();
 };
