@@ -11,6 +11,11 @@ void UUSMiniMapWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	APawn* Pawn = GetOwningPlayerPawn();
+	if (Pawn)
+	{
+		MiniMapComponent = Pawn->FindComponentByClass<UUSMiniMapComponent>();
+	}
 }
 
 void UUSMiniMapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -28,4 +33,66 @@ void UUSMiniMapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	FWidgetTransform T = PlayerArrow->GetRenderTransform();
 	T.Angle = Yaw;
 	PlayerArrow->SetRenderTransform(T);
+}
+
+FReply UUSMiniMapWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	float WheelDelta = InMouseEvent.GetWheelDelta();
+
+	// ÁÜ ¼Óµµ
+	float ZoomAmount = WheelDelta * 500.0f;
+
+	if (MiniMapComponent)
+	{
+		MiniMapComponent->SetZoom(ZoomAmount);
+	}
+
+	return FReply::Handled();
+}
+
+FReply UUSMiniMapWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		bDragging = true;
+		LastMousePos = InMouseEvent.GetScreenSpacePosition();
+
+		return FReply::Handled().CaptureMouse(TakeWidget());
+	}
+
+	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+FReply UUSMiniMapWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (bDragging && MiniMapComponent)
+	{
+		FVector2D CurrentPos = InMouseEvent.GetScreenSpacePosition();
+		FVector2D Delta = CurrentPos - LastMousePos;
+
+		LastMousePos = CurrentPos;
+
+		MiniMapComponent->AddPan(FVector2D(Delta.X, Delta.Y));
+
+		return FReply::Handled();
+	}
+
+	return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
+}
+
+FReply UUSMiniMapWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		bDragging = false;
+		return FReply::Handled().ReleaseMouseCapture();
+	}
+
+	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+}
+
+void UUSMiniMapWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	bDragging = false;
+	Super::NativeOnMouseLeave(InMouseEvent);
 }

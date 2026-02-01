@@ -44,10 +44,28 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MiniMap")
 	float CaptureInterval = 0.2f;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MiniMap")
+	float MinZoomWidth = 3000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MiniMap")
+	float MaxZoomWidth = 20000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MiniMap")
+	FVector2D PanOffset = FVector2D::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MiniMap")
+	float MaxPanDistance = 50000.f;
+
+	float Accum = 0.f;
+
 	class UTextureRenderTarget2D* GetRenderTarget() const { return RenderTarget; }
 		
-private:
-	float Accum = 0.f;
+public:
+	
 	void UpdateCaptureTransform();
 	void DoCapture();
+	void AddPan(FVector2D Delta);
+	void SetZoom(float DeltaZoom);
+	void ResetPan();
 };

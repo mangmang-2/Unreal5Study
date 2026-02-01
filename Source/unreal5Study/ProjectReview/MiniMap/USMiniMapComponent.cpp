@@ -30,7 +30,8 @@ void UUSMiniMapComponent::BeginPlay()
 	Super::BeginPlay();
 
 	AActor* Owner = GetOwner();
-	if (!Owner) return;
+	if (Owner == nullptr)
+		return;
 
 	if (RenderTarget)
 	{
@@ -51,7 +52,7 @@ void UUSMiniMapComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	//UpdateCaptureTransform();
 
 	Accum += DeltaTime;
-	if (CaptureInterval > 0.f && Accum >= CaptureInterval)
+	if (CaptureInterval > 0.0f && Accum >= CaptureInterval)
 	{
 		Accum = 0.f;
 		DoCapture();
@@ -61,18 +62,17 @@ void UUSMiniMapComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 void UUSMiniMapComponent::UpdateCaptureTransform()
 {
 	AActor* Owner = GetOwner();
-	if (!Owner) return;
+	if (Owner == nullptr) 
+		return;
 
 	const FVector OwnerLoc = Owner->GetActorLocation();
-	const float Yaw = bRotateWithOwnerYaw ? Owner->GetActorRotation().Yaw : 0.f;
 
-	// 위에서 아래로 내려다보는 회전: Pitch -90
-	const FRotator Rot(-90.f, Yaw, 0.f);
-	const FVector Loc = OwnerLoc + FVector(0, 0, Height);
+	const FRotator Rot(-90.0f, 90.0f, 0.0f);
+
+	const FVector Loc = OwnerLoc + FVector(PanOffset.X, PanOffset.Y, Height);
 
 	SceneCapture->SetWorldLocationAndRotation(Loc, Rot);
 	SceneCapture->OrthoWidth = OrthoWidth;
-
 }
 
 void UUSMiniMapComponent::DoCapture()
@@ -83,3 +83,32 @@ void UUSMiniMapComponent::DoCapture()
 	}
 }
 
+void UUSMiniMapComponent::AddPan(FVector2D Delta)
+{
+	// 이동속도
+	float MoveAmount = 20.0f;
+	PanOffset += (Delta * MoveAmount);
+
+	PanOffset.X = FMath::Clamp(PanOffset.X, -MaxPanDistance, MaxPanDistance);
+	PanOffset.Y = FMath::Clamp(PanOffset.Y, -MaxPanDistance, MaxPanDistance);
+
+	UpdateCaptureTransform();
+	DoCapture();
+}
+
+void UUSMiniMapComponent::SetZoom(float DeltaZoom)
+{
+	OrthoWidth -= DeltaZoom;
+
+	OrthoWidth = FMath::Clamp(OrthoWidth, MinZoomWidth, MaxZoomWidth);
+	SceneCapture->OrthoWidth = OrthoWidth;
+	DoCapture();
+}
+
+void UUSMiniMapComponent::ResetPan()
+{
+	PanOffset = FVector2D::ZeroVector;
+
+	UpdateCaptureTransform();
+	DoCapture();
+}
