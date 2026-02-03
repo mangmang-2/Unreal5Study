@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ProjectReview/MiniMap/Object/USObjectGameInstanceSubsystem.h"
+#include "ProjectReview/MiniMap/Mgr/USObjectGameInstanceSubsystem.h"
 
 void UUSObjectGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -11,18 +11,23 @@ void UUSObjectGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collec
 
 void UUSObjectGameInstanceSubsystem::LoadData()
 {
-    UDataTable* DataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Study/ProjectReview/MiniMap/Data/ObjectData.ObjectData"));
+    UDataTable* DataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Study/ProjectReview/MiniMap/Data/DT_MapObjectData.DT_MapObjectData"));
 
     if (DataTable == nullptr)
     {
         return;
     }
 
-    TArray<FMapObjecter*> AllRows;
+    TArray<FMapObjectDef*> AllRows;
     DataTable->GetAllRows(nullptr, AllRows);
 
     for (auto& Row : AllRows)
     {
         Objects.Add(*Row);
     }
+}
+
+const TArray<FMapObjectDef>& UUSObjectGameInstanceSubsystem::GetObjects() const
+{
+    return Objects;
 }

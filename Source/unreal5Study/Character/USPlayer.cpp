@@ -28,7 +28,7 @@
 #include "USPlayer.h"
 #include "USCharacterBase.h"
 #include "Movement/GrapplingHookComponent.h"
-#include "../ProjectReview/MiniMap/USMiniMapComponent.h"
+#include "../ProjectReview/MiniMap/Object/USMiniMapComponent.h"
 
 AUSPlayer::AUSPlayer()
 {

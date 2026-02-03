@@ -3,31 +3,37 @@
 #include "UObject/Interface.h"
 #include "ObjectData.generated.h"
 
+
+
+
+UENUM()
+enum class EObjectType : uint8
+{
+    NPC,
+    Quest,
+    Boss,
+    Shop
+};
+
 USTRUCT(BlueprintType)
-struct FMapObjecter : public FTableRowBase
+struct FMapObjectDef : public FTableRowBase
 {
     GENERATED_BODY()
 
 public:
-    // 대상 Pawn (NPC)
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TObjectPtr<APawn> TargetPawn = nullptr;
+	TSoftClassPtr<class AUSMapObjectBase> TargetClass;
 
-    // 이름 (표시/디버그용)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UPROPERTY(EditAnywhere)
     FString Name;
 
-    // 마커 아이콘
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TObjectPtr<UTexture2D> MarkerTexture = nullptr;
+    UPROPERTY(EditAnywhere)
+    EObjectType MarkerType;
 
-    // 크기
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float Size = 24.f;
+    UPROPERTY(EditAnywhere)
+    bool bShowOnMiniMap = true;
 
-public:
-    FVector GetWorldLocation() const
-    {
-        return TargetPawn ? TargetPawn->GetActorLocation() : FVector::ZeroVector;
-    }
+    // 초기 생성 위치
+    UPROPERTY(EditAnywhere)
+    FVector ObjectPos;
 };

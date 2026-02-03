@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ProjectReview/MiniMap/USMiniMapComponent.h"
+#include "ProjectReview/MiniMap/Object/USMiniMapComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -61,17 +61,12 @@ void UUSMiniMapComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void UUSMiniMapComponent::UpdateCaptureTransform()
 {
-	AActor* Owner = GetOwner();
-	if (Owner == nullptr) 
+	if (SceneCapture == nullptr)
 		return;
-
-	const FVector OwnerLoc = Owner->GetActorLocation();
 
 	const FRotator Rot(-90.0f, 90.0f, 0.0f);
 
-	const FVector Loc = OwnerLoc + FVector(PanOffset.X, PanOffset.Y, Height);
-
-	SceneCapture->SetWorldLocationAndRotation(Loc, Rot);
+	SceneCapture->SetWorldLocationAndRotation(GetPos(), Rot);
 	SceneCapture->OrthoWidth = OrthoWidth;
 }
 
@@ -111,4 +106,16 @@ void UUSMiniMapComponent::ResetPan()
 
 	UpdateCaptureTransform();
 	DoCapture();
+}
+
+FVector UUSMiniMapComponent::GetPos()
+{
+	AActor* Owner = GetOwner();
+	if (Owner == nullptr)
+		return FVector::ZeroVector;
+
+	const FVector OwnerLoc = Owner->GetActorLocation();
+	const FVector Loc = OwnerLoc + FVector(PanOffset.X, PanOffset.Y, Height);
+
+	return Loc;
 }

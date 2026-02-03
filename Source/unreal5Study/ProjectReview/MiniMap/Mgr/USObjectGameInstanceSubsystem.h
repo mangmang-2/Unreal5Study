@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "ObjectData.h"
+#include "../Object/ObjectData.h"
 #include "USObjectGameInstanceSubsystem.generated.h"
 
 /**
@@ -23,5 +23,8 @@ public:
 
 private:
     UPROPERTY()
-    TArray<FMapObjecter> Objects;
+    TArray<FMapObjectDef> Objects;
+
+public:
+    const TArray<FMapObjectDef>& GetObjects() const;
 };

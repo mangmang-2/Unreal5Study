@@ -33,10 +33,25 @@ protected:
 	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+
 private:
 	UPROPERTY()
 	TObjectPtr<class UUSMiniMapComponent> MiniMapComponent;
 
 	bool bDragging = false;
 	FVector2D LastMousePos;
+
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UCanvasPanel> IconLayer;
+
+	// 중복 생성 방지
+	UPROPERTY()
+	TMap<TObjectPtr<class UUSMiniMapMarkerComponent>, TObjectPtr<UImage>> MarkerIconMap;
+
+public:
+	void DrawMarkers();
+	bool IsInMiniMap(const FVector& WorldPos) const;
+	FVector2D ConvertWorldToMiniMap(const FVector& WorldPos) const;
+	void DrawIcon(class UUSMiniMapMarkerComponent* Marker, FVector2D MiniPos);
 };

@@ -46,7 +46,7 @@ public:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MiniMap")
-	float MinZoomWidth = 3000.f;
+	float MinZoomWidth = 7000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MiniMap")
 	float MaxZoomWidth = 20000.f;
@@ -68,4 +68,6 @@ public:
 	void AddPan(FVector2D Delta);
 	void SetZoom(float DeltaZoom);
 	void ResetPan();
+
+	FVector GetPos();
 };
