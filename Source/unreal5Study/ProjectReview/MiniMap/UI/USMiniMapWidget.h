@@ -51,6 +51,9 @@ protected:
 	UPROPERTY()
 	FVector2D MapSize;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AWorldPingActor> PingActorClass;
+
 public:
 	void DrawMarkers();
 	bool IsInMiniMap(const FVector& WorldPos) const;
@@ -59,4 +62,6 @@ public:
 
 	UFUNCTION()
 	void HandleMarkerClicked(class UUSMiniMapMarkerComponent* Marker);
+
+	void SpawnWorldPing(FVector WorldPos);
 };

@@ -12,6 +12,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/CanvasPanel.h"
 #include "USMiniMapMarkerWidget.h"
+#include "../Actor/WorldPingActor.h"
 
 void UUSMiniMapWidget::NativeConstruct()
 {
@@ -229,4 +230,18 @@ void UUSMiniMapWidget::CreateIcon(UUSMiniMapMarkerComponent* Marker)
 
 void UUSMiniMapWidget::HandleMarkerClicked(UUSMiniMapMarkerComponent* Marker)
 {
+	if(Marker == nullptr)
+		return;
+
+	SpawnWorldPing(Marker->GetWorldLocation());
+}
+
+void UUSMiniMapWidget::SpawnWorldPing(FVector WorldPos)
+{
+	if (PingActorClass == nullptr)
+		return;
+
+	GetWorld()->SpawnActor<AWorldPingActor>(PingActorClass,
+			WorldPos + FVector(0, 0, 0),
+			FRotator::ZeroRotator);
 }
