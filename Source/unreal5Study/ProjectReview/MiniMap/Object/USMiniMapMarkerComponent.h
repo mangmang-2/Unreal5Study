@@ -27,7 +27,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void ApplyIconTexture();
+	void InitMarkerIconClass();
 
 	FVector GetWorldLocation() const;
 
@@ -38,9 +38,11 @@ public:
 	bool bVisible = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UTexture2D> MarkerTexture;
+	TSoftClassPtr<class UUSMiniMapMarkerWidget> MarkerIconClass;
 
 	UPROPERTY(EditAnywhere)
     EObjectType MarkerType;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FText Description;
 };

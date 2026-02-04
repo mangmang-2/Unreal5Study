@@ -4,6 +4,7 @@
 #include "ProjectReview/MiniMap/Object/USMiniMapMarkerComponent.h"
 #include "USMiniMapMarkerComponent.h"
 #include "../Mgr/USMiniMapGameInstanceSubsystem.h"
+#include "../UI/USMiniMapMarkerWidget.h"
 
 // Sets default values for this component's properties
 UUSMiniMapMarkerComponent::UUSMiniMapMarkerComponent()
@@ -46,11 +47,11 @@ void UUSMiniMapMarkerComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	// ...
 }
 
-void UUSMiniMapMarkerComponent::ApplyIconTexture()
+void UUSMiniMapMarkerComponent::InitMarkerIconClass()
 {
 	if (UUSMiniMapGameInstanceSubsystem* Subsystem = UGameInstance::GetSubsystem<UUSMiniMapGameInstanceSubsystem>(GetWorld()->GetGameInstance()))
 	{
-		MarkerTexture = Subsystem->GetIcon(MarkerType);
+		MarkerIconClass = Subsystem->GetIconClass(MarkerType);
 	}
 }
 

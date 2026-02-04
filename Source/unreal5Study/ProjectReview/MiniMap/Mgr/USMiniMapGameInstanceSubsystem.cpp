@@ -23,7 +23,7 @@ void UUSMiniMapGameInstanceSubsystem::LoadIconTable()
 
 	for (auto& Row : AllRows)
 	{
-		IconMapData.Add(Row->Type, Row->Icon);
+		IconMapData.Add(Row->Type, Row->IconClass);
 	}
 }
 
@@ -55,7 +55,7 @@ const TArray<FMiniMapMarkerEntry>& UUSMiniMapGameInstanceSubsystem::GetMarkers()
 	return ActiveMarkers;
 }
 
-UTexture2D* UUSMiniMapGameInstanceSubsystem::GetIcon(EObjectType Type)
+TSoftClassPtr<class UUSMiniMapMarkerWidget> UUSMiniMapGameInstanceSubsystem::GetIconClass(EObjectType Type)
 {
 	if (const auto Found = IconMapData.Find(Type))
 	{

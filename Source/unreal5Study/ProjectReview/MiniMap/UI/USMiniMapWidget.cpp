@@ -8,9 +8,10 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "../Mgr/USMiniMapGameInstanceSubsystem.h"
 #include "../Object/USMiniMapMarkerComponent.h"
-#include "../../../../../../../Source/Runtime/UMG/Public/Components/Widget.h"
-#include "../../../../../../../Source/Runtime/UMG/Public/Components/CanvasPanelSlot.h"
-#include "../../../../../../../Source/Runtime/UMG/Public/Components/CanvasPanel.h"
+#include "Components/Widget.h"
+#include "Components/CanvasPanelSlot.h"
+#include "Components/CanvasPanel.h"
+#include "USMiniMapMarkerWidget.h"
 
 void UUSMiniMapWidget::NativeConstruct()
 {
@@ -20,6 +21,18 @@ void UUSMiniMapWidget::NativeConstruct()
 	if (Pawn)
 	{
 		MiniMapComponent = Pawn->FindComponentByClass<UUSMiniMapComponent>();
+	}
+
+	if (UUSMiniMapGameInstanceSubsystem* Subsystem = UGameInstance::GetSubsystem<UUSMiniMapGameInstanceSubsystem>(GetWorld()->GetGameInstance()))
+	{
+		for (auto& Entry : Subsystem->GetMarkers())
+		{
+			UUSMiniMapMarkerComponent* Marker = Entry.MarkerComp;
+			if (Marker == nullptr)
+				continue;
+
+			CreateIcon(Marker);
+		}
 	}
 }
 
@@ -113,57 +126,29 @@ void UUSMiniMapWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 
 void UUSMiniMapWidget::DrawMarkers()
 {
-	if (UUSMiniMapGameInstanceSubsystem* Subsystem = UGameInstance::GetSubsystem<UUSMiniMapGameInstanceSubsystem>(GetWorld()->GetGameInstance()))
+	for (auto [Marker, IconWidget] : MarkerIconMap)
 	{
-		for (auto& Entry : Subsystem->GetMarkers())
+		if(IsValid(Marker) == false)
+			continue;
+		if (IsValid(IconWidget) == false)
+			continue;
+
+		if(IsInMiniMap(Marker->GetWorldLocation()))
 		{
-			UUSMiniMapMarkerComponent* Marker = Entry.MarkerComp;
-			if (Marker == nullptr)
-				continue;
+			FVector2D Pos = ConvertWorldToMiniMap(Marker->GetWorldLocation());
 
-			if (Marker->IsVisible() == false) 
-				continue;
-
-			FVector WorldPos = Marker->GetWorldLocation();
-
-			if (IsInMiniMap(WorldPos))
+			if (UCanvasPanelSlot* CastSlot = Cast<UCanvasPanelSlot>(IconWidget->Slot))
 			{
-				FVector2D Pos = ConvertWorldToMiniMap(Marker->GetWorldLocation());
-
-				if (auto FoundIcon = MarkerIconMap.Find(Marker))
-				{
-					UImage* Icon = *FoundIcon;
-					if (Icon == nullptr)
-						continue;
-
-					if (UCanvasPanelSlot* CanvasSlot =
-						Cast<UCanvasPanelSlot>(Icon->Slot))
-					{
-						CanvasSlot->SetPosition(Pos);
-					}
-				}
-				else
-				{
-					DrawIcon(Marker, Pos);
-				}
-			}
-			else
-			{
-				if (auto FoundIcon = MarkerIconMap.Find(Marker))
-				{
-					UImage* Icon = *FoundIcon;
-					if (Icon == nullptr)
-						continue;
-
-					if (IsValid(Icon))
-					{
-						Icon->RemoveFromParent();
-					}
-
-					MarkerIconMap.Remove(Marker);
-				}
+				if(IconWidget->IsVisible() == false)
+					IconWidget->SetVisibility(ESlateVisibility::Visible);
+				CastSlot->SetPosition(Pos);
 			}
 		}
+		else
+		{
+			IconWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+		
 	}
 }
 
@@ -187,9 +172,11 @@ bool UUSMiniMapWidget::IsInMiniMap(const FVector& WorldPos) const
 	FVector2D MiniPos;
 	MiniPos.X = NormalizedX * MapSize.X;
 	MiniPos.Y = NormalizedY * MapSize.Y;
+	
+	const double PendingValue = 16.0;
 
-	if (MiniPos.X <= 0 || MiniPos.X >= MapSize.X ||
-		MiniPos.Y <= 0 || MiniPos.Y >= MapSize.Y)
+	if (MiniPos.X <= PendingValue || MiniPos.X >= MapSize.X - PendingValue ||
+		MiniPos.Y <= PendingValue || MiniPos.Y >= MapSize.Y - PendingValue)
 	{
 		return false;
 	}
@@ -222,31 +209,24 @@ FVector2D UUSMiniMapWidget::ConvertWorldToMiniMap(const FVector& WorldPos) const
 	return MiniPos;
 }
 
-void UUSMiniMapWidget::DrawIcon(UUSMiniMapMarkerComponent* Marker, FVector2D MiniPos)
+void UUSMiniMapWidget::CreateIcon(UUSMiniMapMarkerComponent* Marker)
 {
-	if (IconLayer == nullptr)
+	if (MarkerIconMap.Contains(Marker))
 		return;
 
-	if (Marker == nullptr)
-		return;
-	if (Marker->MarkerTexture == nullptr)
-		return;
+	auto Class = Marker->MarkerIconClass.LoadSynchronous();
+	auto IconWidget = CreateWidget<UUSMiniMapMarkerWidget>(GetWorld(), Class);
 
-	UImage* Icon = NewObject<UImage>(this);
-	if (Icon == nullptr)
-		return;
+	IconWidget->Init(Marker);
 
-	Icon->SetBrushFromTexture(Marker->MarkerTexture);
+	// 클릭 콜백 연결
+	IconWidget->OnMarkerClicked.AddDynamic(this, &UUSMiniMapWidget::HandleMarkerClicked);
 
-	UCanvasPanelSlot* CanvasSlot = IconLayer->AddChildToCanvas(Icon);
-	if (CanvasSlot == nullptr)
-		return;
+	IconLayer->AddChild(IconWidget);
 
-	const FVector2D IconSize(20.f, 20.f);
+	MarkerIconMap.Add(Marker, IconWidget);
+}
 
-	CanvasSlot->SetSize(IconSize);
-	CanvasSlot->SetPosition(MiniPos);
-	CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-
-	MarkerIconMap.Add(Marker, Icon);
+void UUSMiniMapWidget::HandleMarkerClicked(UUSMiniMapMarkerComponent* Marker)
+{
 }

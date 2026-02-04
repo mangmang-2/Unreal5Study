@@ -17,7 +17,7 @@ struct FMarkerIconDef : public FTableRowBase
     EObjectType Type;
 
     UPROPERTY(EditAnywhere)
-    TObjectPtr<UTexture2D> Icon;
+	TSoftClassPtr<class UUSMiniMapMarkerWidget> IconClass;
 };
 
 USTRUCT()
@@ -45,11 +45,11 @@ public:
 	void UnregisterMarker(class UUSMiniMapMarkerComponent* Marker);
 
 	const TArray<FMiniMapMarkerEntry>& GetMarkers() const;
-	UTexture2D* GetIcon(EObjectType Type);
+	TSoftClassPtr<class UUSMiniMapMarkerWidget> GetIconClass(EObjectType Type);
 
 private:
 	UPROPERTY()
-	TMap<EObjectType, UTexture2D*> IconMapData;
+	TMap<EObjectType, TSoftClassPtr<class UUSMiniMapMarkerWidget>> IconMapData;
 
 	UPROPERTY()
 	TArray<FMiniMapMarkerEntry> ActiveMarkers;

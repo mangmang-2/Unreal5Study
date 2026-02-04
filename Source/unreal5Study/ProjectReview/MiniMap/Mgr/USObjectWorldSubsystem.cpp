@@ -55,8 +55,8 @@ void UUSObjectWorldSubsystem::SpawnMapObjects()
 
             Marker->MarkerType = data.MarkerType;
             Marker->bVisible = true;
-
-            Marker->ApplyIconTexture();
+            Marker->Description = FText::FromString(*data.Name);
+            Marker->InitMarkerIconClass();
         }
     }
 }

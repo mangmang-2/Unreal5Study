@@ -45,9 +45,8 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UCanvasPanel> IconLayer;
 
-	// 중복 생성 방지
 	UPROPERTY()
-	TMap<TObjectPtr<class UUSMiniMapMarkerComponent>, TObjectPtr<UImage>> MarkerIconMap;
+	TMap<TObjectPtr<class UUSMiniMapMarkerComponent>, TObjectPtr<class UUSMiniMapMarkerWidget>> MarkerIconMap;
 
 	UPROPERTY()
 	FVector2D MapSize;
@@ -56,5 +55,8 @@ public:
 	void DrawMarkers();
 	bool IsInMiniMap(const FVector& WorldPos) const;
 	FVector2D ConvertWorldToMiniMap(const FVector& WorldPos) const;
-	void DrawIcon(class UUSMiniMapMarkerComponent* Marker, FVector2D MiniPos);
+	void CreateIcon(class UUSMiniMapMarkerComponent* Marker);
+
+	UFUNCTION()
+	void HandleMarkerClicked(class UUSMiniMapMarkerComponent* Marker);
 };
