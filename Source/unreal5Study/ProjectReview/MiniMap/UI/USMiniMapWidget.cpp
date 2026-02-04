@@ -27,6 +27,11 @@ void UUSMiniMapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
+	if (IconLayer && MapSize.IsZero())
+	{
+		MapSize = IconLayer->GetCachedGeometry().GetLocalSize();
+	}
+
 	DrawMarkers();
 
 	APawn* Pawn = GetOwningPlayerPawn();
@@ -169,8 +174,6 @@ bool UUSMiniMapWidget::IsInMiniMap(const FVector& WorldPos) const
 	if (IconLayer == nullptr)
 		return false;
 
-	FVector2D MapSize = IconLayer->GetCachedGeometry().GetLocalSize();
-
 	FVector Center = MiniMapComponent->GetPos();
 
 	FVector Offset = WorldPos - Center;
@@ -201,8 +204,6 @@ FVector2D UUSMiniMapWidget::ConvertWorldToMiniMap(const FVector& WorldPos) const
 
 	if (MiniMapComponent == nullptr)
 		return FVector2D::ZeroVector;
-
-	FVector2D MapSize = IconLayer->GetCachedGeometry().GetLocalSize();
 
 	FVector Offset = WorldPos - MiniMapComponent->GetPos();
 

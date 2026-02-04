@@ -49,6 +49,9 @@ protected:
 	UPROPERTY()
 	TMap<TObjectPtr<class UUSMiniMapMarkerComponent>, TObjectPtr<UImage>> MarkerIconMap;
 
+	UPROPERTY()
+	FVector2D MapSize;
+
 public:
 	void DrawMarkers();
 	bool IsInMiniMap(const FVector& WorldPos) const;
