@@ -57,9 +57,49 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	uint8 bClimbOn : 1;
 
+	float ForwardDis = 100.0f;
+	FVector CachedWallNormal = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float TargetWallDistance = 50.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float LocationInterpSpeed = 10.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float RotationInterpSpeed = 10.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float MaxWallAngleChange = 45.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float MaxWallDepthChange = 100.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float TraceDistance = 150.0f;
+
+    FVector PreviousWallNormal = FVector::ZeroVector;
+
+protected:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float NormalSampleRadius = 50.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 NormalSampleGridSize = 3; 
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float NormalSmoothingStrength = 0.7f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bUseSphereTrace = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float SphereTraceRadius = 20.0f;
 public:
 	bool ClimbingStart();
 	void ClimbingLocation(float DeltaTime);
+	bool TraceForWall(FHitResult& OutHit, FVector& OutWallNormal);
+	bool ShouldExitClimbing(const FVector& CurrentWallNormal, float WallDistance);
 
 	bool GetHeadPoint(FHitResult& HitResult);
 	void ClimbingUp();
@@ -80,4 +120,5 @@ public:
 public:
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
+
 };

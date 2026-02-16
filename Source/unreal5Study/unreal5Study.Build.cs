@@ -14,7 +14,7 @@ public class unreal5Study : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Slate", 
             "SlateCore", "NavigationSystem", "Niagara", "AIModule", "LevelSequence" , "MovieScene", "MotionWarping", "ProceduralMeshComponent",
             "GameplayAbilities","GameplayTasks","GameplayTags","GeometryScriptingEditor", "GeometryScriptingCore", "RenderCore", "UMG",
-            "AudioModulation", "CableComponent" }
+            "AudioModulation", "CableComponent", "UnrealEd" }
         );
 
         PrivateDependencyModuleNames.AddRange(new string[] { });

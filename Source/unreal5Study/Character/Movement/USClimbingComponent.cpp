@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+Ôªø// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/Movement/USClimbingComponent.h"
@@ -7,6 +7,41 @@
 #include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
 #include "../USCharacterBase.h"
+
+static bool CalcBestNormalFromPoints(const TArray<FVector>& Points, FVector& OutNormal)
+{
+	if (Points.Num() < 3) return false;
+
+	// Ï§ëÏã¨
+	FVector C = FVector::ZeroVector;
+	for (const FVector& P : Points) C += P;
+	C /= (float)Points.Num();
+
+	// Ï§ëÏã¨ Í∏∞Ï§ÄÏúºÎ°ú ÌçºÏßÑ Î∞©Ìñ• Î≤°ÌÑ∞Îì§ ÎßåÎì§Í≥†, ÏÑúÎ°ú ÌÅ¨Î°úÏä§Ìï¥ÏÑú ÎàÑÏ†Å
+	FVector Acc = FVector::ZeroVector;
+	const int32 N = Points.Num();
+
+	for (int32 i = 0; i < N; ++i)
+	{
+		FVector A = Points[i] - C;
+		for (int32 j = i + 1; j < N; ++j)
+		{
+			FVector B = Points[j] - C;
+
+			FVector Cross = FVector::CrossProduct(A, B);
+			const float Len2 = Cross.SizeSquared();
+			if (Len2 < 1e-6f) continue;
+
+			// ÌÅ∞ ÏÇºÍ∞ÅÌòï(Î©¥Ï†Å ÌÅ∞ Ï°∞Ìï©)Ïóê Í∞ÄÏ§ëÏπò Ï£ºÎ©¥ Îçî ÏïàÏ†ïÏ†Å
+			Acc += Cross;
+		}
+	}
+
+	if (!Acc.Normalize()) return false;
+	OutNormal = Acc;
+	return true;
+}
+
 
 // Sets default values for this component's properties
 UUSClimbingComponent::UUSClimbingComponent()
@@ -37,7 +72,7 @@ void UUSClimbingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	if (bIsClimbingFalling || bIsClimbingMontage)
 		return;
 
-	// ≈¨∂Û¿Ãπ÷ ªÛ≈¬
+	// ÌÅ¥ÎùºÏù¥Î∞ç ÏÉÅÌÉú
 	if (bIsClimbing == false)
 	{
 		if (ClimbingStart() == false)
@@ -61,7 +96,7 @@ bool UUSClimbingComponent::ClimbingStart()
 
 	if (owner->GetCharacterMovement()->IsFalling())
 	{
-		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 100;
+		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * ForwardDis;
 		FVector StartPoint = owner->GetCapsuleComponent()->GetComponentLocation();
 
 		FVector MiddleEndPoint = StartPoint + ForwardVector;
@@ -80,11 +115,7 @@ bool UUSClimbingComponent::ClimbingStart()
 				CharMoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
 			}
 
-			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius() + 10;
-			owner->SetActorLocation(HitResultMiddle.Normal * CapsuleRadius + HitResultMiddle.Location);
-
-			FRotator Rotation = FRotationMatrix::MakeFromX(HitResultMiddle.Normal * -1).Rotator();
-			owner->SetActorRotation(Rotation);
+			ClimbingLocation(0);
 		}
 	}
 
@@ -96,30 +127,248 @@ void UUSClimbingComponent::ClimbingLocation(float DeltaTime)
 	ACharacter* owner = Cast<ACharacter>(GetOwner());
 	if (owner == nullptr)
 		return;
-	if (bIsClimbing)
+	FHitResult HitResult;
+	FVector WallNormal;
+
+	if (TraceForWall(HitResult, WallNormal) == false)
 	{
-		FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 50;
-		FVector StartPoint = owner->GetCapsuleComponent()->GetComponentLocation();
-
-		FVector MiddleEndPoint = StartPoint + ForwardVector;
-		FHitResult HitResultMiddle;
-		bool bHitMiddle = HitCheck(StartPoint, MiddleEndPoint, HitResultMiddle, true, -1.0f, false);
-		if (bHitMiddle)
-		{
-
-			FRotator Rotation = FRotationMatrix::MakeFromX(HitResultMiddle.Normal * -1).Rotator();
-			/*if (TargetRotation == Rotation)
-				return;*/
-
-			//TargetRotation = Rotation;
-			float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
-			owner->SetActorLocation(HitResultMiddle.Normal * CapsuleRadius + HitResultMiddle.Location);
-
-			owner->SetActorRotation(Rotation);
-		}
-		
+		// Î≤ΩÏùÑ Ï∞æÏßÄ Î™ªÌïòÎ©¥ ÌÅ¥ÎùºÏù¥Î∞ç Ï¢ÖÎ£å
+		ClimbingClear();
+		return;
 	}
+
+	float CurrentWallDistance = FVector::Dist(owner->GetActorLocation(), HitResult.ImpactPoint);
+
+	if (ShouldExitClimbing(WallNormal, CurrentWallDistance))
+	{
+		ClimbingClear();
+		return;
+	}
+
+	FVector TargetLocation = HitResult.ImpactPoint + (WallNormal * TargetWallDistance);
+
+	FVector NewLocation = FMath::VInterpTo(
+		owner->GetActorLocation(),
+		TargetLocation,
+		DeltaTime,
+		LocationInterpSpeed
+	);
+
+	owner->SetActorLocation(NewLocation, true);
+
+	FRotator TargetRotation = (-WallNormal).Rotation();
+
+	FRotator NewRotation = FMath::RInterpTo(
+		owner->GetActorRotation(),
+		TargetRotation,
+		DeltaTime,
+		RotationInterpSpeed
+	);
+
+	owner->SetActorRotation(NewRotation);
+
+	PreviousWallNormal = WallNormal;
 }
+
+bool UUSClimbingComponent::TraceForWall(FHitResult& OutHit, FVector& OutWallNormal)
+{
+	ACharacter* owner = Cast<ACharacter>(GetOwner());
+	if (owner == nullptr)
+		return false;
+
+	FVector ForwardVector = owner->GetActorForwardVector();
+	FVector StartLocation = owner->GetActorLocation();
+	FVector RightVector = owner->GetActorRightVector();
+	FVector UpVector = owner->GetActorUpVector();
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(owner);
+	QueryParams.bTraceComplex = true;
+
+	TArray<FHitResult> AllHits;
+	TArray<FVector> ValidNormals;
+	FHitResult CenterHit;
+	bool bHasCenterHit = false;
+
+	FVector CenterStart = StartLocation;
+	FVector CenterEnd = CenterStart + (ForwardVector * TraceDistance);
+
+	if (bUseSphereTrace)
+	{
+		if (GetWorld()->SweepSingleByChannel(
+			CenterHit,
+			CenterStart,
+			CenterEnd,
+			FQuat::Identity,
+			ECC_Visibility,
+			FCollisionShape::MakeSphere(SphereTraceRadius),
+			QueryParams
+		))
+		{
+			bHasCenterHit = true;
+			AllHits.Add(CenterHit);
+		}
+	}
+	else
+	{
+		if (GetWorld()->LineTraceSingleByChannel(
+			CenterHit,
+			CenterStart,
+			CenterEnd,
+			ECC_Visibility,
+			QueryParams
+		))
+		{
+			bHasCenterHit = true;
+			AllHits.Add(CenterHit);
+		}
+	}
+
+	if (!bHasCenterHit)
+	{
+		return false;
+	}
+
+	int32 GridHalf = NormalSampleGridSize / 2;
+	float StepSize = NormalSampleRadius / GridHalf;
+
+	// Ïó¨Îü¨Í∞úÏùò ÏÑ†ÏùÑ Í∑∏Î¶¨Í≥† Í∑∏ Ï§ëÍ∞Ñ Í∞íÏùÑ Ï∑®Ìï®
+	for (int32 x = -GridHalf; x <= GridHalf; x++)
+	{
+		for (int32 y = -GridHalf; y <= GridHalf; y++)
+		{
+			if (x == 0 && y == 0)
+				continue;
+
+			FVector Offset = (RightVector * x * StepSize) + (UpVector * y * StepSize);
+			FVector SampleStart = StartLocation + Offset;
+			FVector SampleEnd = SampleStart + (ForwardVector * TraceDistance);
+
+			FHitResult Hit;
+			bool bHit = false;
+
+			if (bUseSphereTrace)
+			{
+				bHit = GetWorld()->SweepSingleByChannel(
+					Hit,
+					SampleStart,
+					SampleEnd,
+					FQuat::Identity,
+					ECC_Visibility,
+					FCollisionShape::MakeSphere(SphereTraceRadius),
+					QueryParams
+				);
+			}
+			else
+			{
+				bHit = GetWorld()->LineTraceSingleByChannel(
+					Hit,
+					SampleStart,
+					SampleEnd,
+					ECC_Visibility,
+					QueryParams
+				);
+			}
+
+			if (bHit)
+			{
+				AllHits.Add(Hit);
+
+				float NormalUpDot = FVector::DotProduct(Hit.ImpactNormal, FVector::UpVector);
+				if (FMath::Abs(NormalUpDot) < 0.7f)
+				{
+					ValidNormals.Add(Hit.ImpactNormal);
+				}
+			}
+		}
+	}
+
+	FVector AverageNormal = FVector::ZeroVector;
+
+	if (ValidNormals.Num() > 0)
+	{
+		for (const FVector& Normal : ValidNormals)
+		{
+			AverageNormal += Normal;
+		}
+		AverageNormal /= ValidNormals.Num();
+		AverageNormal.Normalize();
+	}
+	else
+	{
+		AverageNormal = CenterHit.ImpactNormal;
+	}
+
+	if (!PreviousWallNormal.IsNearlyZero())
+	{
+		AverageNormal = FMath::Lerp(AverageNormal, PreviousWallNormal, NormalSmoothingStrength);
+		AverageNormal.Normalize();
+	}
+
+	OutHit = CenterHit;
+	OutWallNormal = AverageNormal;
+
+	// ÎîîÎ≤ÑÍ∑∏ Í∑∏Î¶¨Í∏∞
+#if WITH_EDITOR
+	// ÏÉòÌîåÎßÅ Ìè¨Ïù∏Ìä∏Îì§ ÌëúÏãú
+	for (const FHitResult& Hit : AllHits)
+	{
+		DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 5.0f, FColor::Yellow, false, -1, 0);
+		DrawDebugLine(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + (Hit.ImpactNormal * 30), FColor::Red, false, -1, 0, 1.0f);
+	}
+
+	// ÌèâÍ∑† ÎÖ∏Îßê ÌëúÏãú (ÍµµÍ≤å)
+	DrawDebugDirectionalArrow(
+		GetWorld(),
+		CenterHit.ImpactPoint,
+		CenterHit.ImpactPoint + (AverageNormal * 100),
+		50.0f,
+		FColor::Cyan,
+		false,
+		-1,
+		0,
+		5.0f
+	);
+
+	// ÏÉòÌîåÎßÅ ÏòÅÏó≠ ÌëúÏãú
+	DrawDebugSphere(GetWorld(), CenterHit.ImpactPoint, NormalSampleRadius, 12, FColor::Green, false, -1, 0, 1.0f);
+#endif
+
+	return true;
+}
+
+bool UUSClimbingComponent::ShouldExitClimbing(const FVector& CurrentWallNormal, float WallDistance)
+{
+	if (PreviousWallNormal.IsNearlyZero())
+	{
+		return false;
+	}
+
+	float AngleChange = FMath::RadiansToDegrees(
+		FMath::Acos(FVector::DotProduct(PreviousWallNormal, CurrentWallNormal))
+	);
+
+	if (AngleChange > MaxWallAngleChange)
+	{
+		return true;
+	}
+
+	float DistanceDeviation = FMath::Abs(WallDistance - TargetWallDistance);
+
+	if (DistanceDeviation > MaxWallDepthChange)
+	{
+		return true;
+	}
+
+	float NormalUpDot = FVector::DotProduct(CurrentWallNormal, FVector::UpVector);
+	if (FMath::Abs(NormalUpDot) > 0.7f)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 
 bool UUSClimbingComponent::GetHeadPoint(FHitResult& HitResult)
 {
@@ -130,7 +379,7 @@ bool UUSClimbingComponent::GetHeadPoint(FHitResult& HitResult)
 	if (bIsClimbing == false)
 		return false;
 
-	//// ∏”∏Æ »Æ¿Œ
+	//// Î®∏Î¶¨ ÌôïÏù∏
 	FVector UpVector = owner->GetCapsuleComponent()->GetUpVector() * 60;
 	FVector StartPoint = owner->GetCapsuleComponent()->GetComponentLocation();
 	FVector ForwardVector = owner->GetCapsuleComponent()->GetForwardVector() * 80;
@@ -167,7 +416,7 @@ void UUSClimbingComponent::ClimbingUp()
 	FHitResult HitResult;
 	if (GetHeadPoint(HitResult))
 	{
-		// ƒ≥∏Ø≈Õ∞° µÈæÓ∞• ºˆ ¿÷¥¬ ∞˜¿Œ¡ˆ »Æ¿Œ
+		// Ï∫êÎ¶≠ÌÑ∞Í∞Ä Îì§Ïñ¥Í∞à Ïàò ÏûàÎäî Í≥≥Ïù∏ÏßÄ ÌôïÏù∏
 		float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
 		float CapsuleHalfHeight = owner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
@@ -339,7 +588,7 @@ bool UUSClimbingComponent::HitCheck(FVector StartPoint, FVector EndPoint, FHitRe
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex = true;
-	QueryParams.AddIgnoredActor(GetOwner()); // ¿Ã æ◊≈Õ¥¬ ∆Æ∑π¿ÃΩ∫ø°º≠ ¡¶ø‹
+	QueryParams.AddIgnoredActor(GetOwner()); // Ïù¥ Ïï°ÌÑ∞Îäî Ìä∏Î†àÏù¥Ïä§ÏóêÏÑú Ï†úÏô∏
 	bool bHit = GetWorld()->LineTraceSingleByChannel(
 		HitResult,
 		StartPoint,
@@ -348,7 +597,7 @@ bool UUSClimbingComponent::HitCheck(FVector StartPoint, FVector EndPoint, FHitRe
 		QueryParams
 	);
 
-	// ∂Û¿Œ ∆Æ∑π¿ÃΩ∫ ∞Ê∑Œ∏¶ µπˆ±◊øÎ¿∏∑Œ ±◊∏Æ±‚
+	// ÎùºÏù∏ Ìä∏Î†àÏù¥Ïä§ Í≤ΩÎ°úÎ•º ÎîîÎ≤ÑÍ∑∏Ïö©ÏúºÎ°ú Í∑∏Î¶¨Í∏∞
 	if (DrawLine)
 	{
 		if (bHit)
@@ -358,10 +607,10 @@ bool UUSClimbingComponent::HitCheck(FVector StartPoint, FVector EndPoint, FHitRe
 				StartPoint,
 				EndPoint,
 				FColor::Blue,
-				false,  // ¡ˆº”¿˚¿∏∑Œ ±◊∏± ∞Õ¿Œ¡ˆ ø©∫Œ
-				DrawLineTime,   // ¡ˆº” Ω√∞£
+				false,  // ÏßÄÏÜçÏ†ÅÏúºÎ°ú Í∑∏Î¶¥ Í≤ÉÏù∏ÏßÄ Ïó¨Î∂Ä
+				DrawLineTime,   // ÏßÄÏÜç ÏãúÍ∞Ñ
 				0,      // DepthPriority
-				1.0f    // º±¿« µŒ≤≤
+				1.0f    // ÏÑ†Ïùò ÎëêÍªò
 			);
 		}
 		else
@@ -371,10 +620,10 @@ bool UUSClimbingComponent::HitCheck(FVector StartPoint, FVector EndPoint, FHitRe
 				StartPoint,
 				EndPoint,
 				FColor::Red,
-				false,  // ¡ˆº”¿˚¿∏∑Œ ±◊∏± ∞Õ¿Œ¡ˆ ø©∫Œ
-				DrawLineTime,   // ¡ˆº” Ω√∞£
+				false,  // ÏßÄÏÜçÏ†ÅÏúºÎ°ú Í∑∏Î¶¥ Í≤ÉÏù∏ÏßÄ Ïó¨Î∂Ä
+				DrawLineTime,   // ÏßÄÏÜç ÏãúÍ∞Ñ
 				0,      // DepthPriority
-				1.0f    // º±¿« µŒ≤≤
+				1.0f    // ÏÑ†Ïùò ÎëêÍªò
 			);
 		}
 	}
@@ -393,18 +642,18 @@ bool UUSClimbingComponent::CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleR
 
 	const FVector StartPoint = CapsuleOrigin;
 	const FVector EndPoint = StartPoint;
-	FCollisionShape Capsule = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);  // ƒ∏Ω∂ ≈©±‚ º≥¡§: π›¡ˆ∏ß, ≥Ù¿Ã
+	FCollisionShape Capsule = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);  // Ï∫°Ïäê ÌÅ¨Í∏∞ ÏÑ§Ï†ï: Î∞òÏßÄÎ¶Ñ, ÎÜíÏù¥
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex = true;
-	QueryParams.AddIgnoredActor(GetOwner()); // ¿Ã æ◊≈Õ¥¬ ∆Æ∑π¿ÃΩ∫ø°º≠ ¡¶ø‹
+	QueryParams.AddIgnoredActor(GetOwner()); // Ïù¥ Ïï°ÌÑ∞Îäî Ìä∏Î†àÏù¥Ïä§ÏóêÏÑú Ï†úÏô∏
 
 	bool bHit = GetWorld()->SweepSingleByChannel(
 		HitResult,
 		StartPoint,
 		EndPoint,
-		FQuat::Identity,  // »∏¿¸ æ¯¿Ω
-		ECC_PhysicsBody,  // √Êµπ √§≥Œ
+		FQuat::Identity,  // ÌöåÏ†Ñ ÏóÜÏùå
+		ECC_PhysicsBody,  // Ï∂©Îèå Ï±ÑÎÑê
 		Capsule,
 		QueryParams
 	);
