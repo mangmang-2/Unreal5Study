@@ -216,7 +216,11 @@ void UUSMiniMapWidget::CreateIcon(UUSMiniMapMarkerComponent* Marker)
 		return;
 
 	auto Class = Marker->MarkerIconClass.LoadSynchronous();
+	if(Class == nullptr)
+		return;
 	auto IconWidget = CreateWidget<UUSMiniMapMarkerWidget>(GetWorld(), Class);
+	if (IconWidget == nullptr)
+		return;
 
 	IconWidget->Init(Marker);
 

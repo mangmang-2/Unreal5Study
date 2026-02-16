@@ -157,4 +157,8 @@ public:
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="MiniMap")
 	TObjectPtr<class UUSMiniMapComponent> MiniMapComp;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UUSMiniMapMarkerComponent> MiniMapMarkerComponent;
+	
 };

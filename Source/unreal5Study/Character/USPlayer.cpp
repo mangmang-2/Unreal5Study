@@ -29,6 +29,7 @@
 #include "USCharacterBase.h"
 #include "Movement/GrapplingHookComponent.h"
 #include "../ProjectReview/MiniMap/Object/USMiniMapComponent.h"
+#include "../ProjectReview/MiniMap/Object/USMiniMapMarkerComponent.h"
 
 AUSPlayer::AUSPlayer()
 {
@@ -72,6 +73,11 @@ AUSPlayer::AUSPlayer()
 
 	MiniMapComp = CreateDefaultSubobject<UUSMiniMapComponent>(TEXT("MiniMapComp"));
 	MiniMapComp->SetupAttachment(RootComponent);
+
+	MiniMapMarkerComponent = CreateDefaultSubobject<UUSMiniMapMarkerComponent>(TEXT("MiniMapMarkerComponent"));
+	MiniMapMarkerComponent->MarkerType = EObjectType::Player;
+	MiniMapMarkerComponent->bVisible = true;
+	MiniMapMarkerComponent->Description = FText::FromString(TEXT("Player"));
 }
 
 
@@ -87,6 +93,9 @@ void AUSPlayer::BeginPlay()
 
 	if(ClimbingComponent)
 		ClimbingComponent->SetClimb(true);
+
+	if(MiniMapMarkerComponent)
+		MiniMapMarkerComponent->InitMarkerIconClass();
 }
 
 void AUSPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

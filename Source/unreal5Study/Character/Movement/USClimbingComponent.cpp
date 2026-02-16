@@ -318,11 +318,10 @@ bool UUSClimbingComponent::TraceForWall(FHitResult& OutHit, FVector& OutWallNorm
 	}
 
 	// 평균 노말 표시 (굵게)
-	DrawDebugDirectionalArrow(
+	DrawDebugLine(
 		GetWorld(),
 		CenterHit.ImpactPoint,
 		CenterHit.ImpactPoint + (AverageNormal * 100),
-		50.0f,
 		FColor::Cyan,
 		false,
 		-1,
@@ -331,7 +330,7 @@ bool UUSClimbingComponent::TraceForWall(FHitResult& OutHit, FVector& OutWallNorm
 	);
 
 	// 샘플링 영역 표시
-	DrawDebugSphere(GetWorld(), CenterHit.ImpactPoint, NormalSampleRadius, 12, FColor::Green, false, -1, 0, 1.0f);
+	//DrawDebugSphere(GetWorld(), CenterHit.ImpactPoint, NormalSampleRadius, 12, FColor::Green, false, -1, 0, 1.0f);
 #endif
 
 	return true;

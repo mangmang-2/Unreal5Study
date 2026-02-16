@@ -3,16 +3,14 @@
 #include "UObject/Interface.h"
 #include "ObjectData.generated.h"
 
-
-
-
 UENUM()
 enum class EObjectType : uint8
 {
     NPC,
     Quest,
     Boss,
-    Shop
+    Shop,
+    Player
 };
 
 USTRUCT(BlueprintType)

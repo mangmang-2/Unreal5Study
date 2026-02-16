@@ -59,6 +59,9 @@ public:
 
 	float Accum = 0.f;
 
+	FVector SavedBaseLocation;
+	bool bHasSavedBase = false;
+
 	class UTextureRenderTarget2D* GetRenderTarget() const { return RenderTarget; }
 		
 public:

@@ -15,7 +15,8 @@
 				"AIModule",
 				"GameplayAbilities",
 				"GeometryFramework",
-				"Foliage"
+				"Foliage",
+				"Blutility"
 			]
 		}
 	],

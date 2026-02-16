@@ -33,6 +33,9 @@ void UUSMiniMapComponent::BeginPlay()
 	if (Owner == nullptr)
 		return;
 
+	SavedBaseLocation = Owner->GetActorLocation();
+	bHasSavedBase = true;
+
 	if (RenderTarget)
 	{
 		SceneCapture->TextureTarget = RenderTarget;
@@ -114,8 +117,13 @@ FVector UUSMiniMapComponent::GetPos()
 	if (Owner == nullptr)
 		return FVector::ZeroVector;
 
-	const FVector OwnerLoc = Owner->GetActorLocation();
-	const FVector Loc = OwnerLoc + FVector(PanOffset.X, PanOffset.Y, Height);
+	if (bHasSavedBase == false)
+	{
+		SavedBaseLocation = Owner->GetActorLocation();
+		bHasSavedBase = true;
+	}
+
+	const FVector Loc = SavedBaseLocation + FVector(PanOffset.X, PanOffset.Y, Height);
 
 	return Loc;
 }
