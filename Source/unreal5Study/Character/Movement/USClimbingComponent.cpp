@@ -124,6 +124,9 @@ bool UUSClimbingComponent::ClimbingStart()
 
 void UUSClimbingComponent::ClimbingLocation(float DeltaTime)
 {
+	if (bIsClimbingMontage)
+		return;
+
 	ACharacter* owner = Cast<ACharacter>(GetOwner());
 	if (owner == nullptr)
 		return;
@@ -168,6 +171,8 @@ void UUSClimbingComponent::ClimbingLocation(float DeltaTime)
 	owner->SetActorRotation(NewRotation);
 
 	PreviousWallNormal = WallNormal;
+
+	ClimbingUp();
 }
 
 bool UUSClimbingComponent::TraceForWall(FHitResult& OutHit, FVector& OutWallNormal)
@@ -313,21 +318,12 @@ bool UUSClimbingComponent::TraceForWall(FHitResult& OutHit, FVector& OutWallNorm
 	// 샘플링 포인트들 표시
 	for (const FHitResult& Hit : AllHits)
 	{
-		DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 5.0f, FColor::Yellow, false, -1, 0);
-		DrawDebugLine(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + (Hit.ImpactNormal * 30), FColor::Red, false, -1, 0, 1.0f);
+		//DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 5.0f, FColor::Yellow, false, -1, 0);
+		//DrawDebugLine(GetWorld(), Hit.ImpactPoint, Hit.ImpactPoint + (Hit.ImpactNormal * 30), FColor::Red, false, -1, 0, 1.0f);
 	}
 
 	// 평균 노말 표시 (굵게)
-	DrawDebugLine(
-		GetWorld(),
-		CenterHit.ImpactPoint,
-		CenterHit.ImpactPoint + (AverageNormal * 100),
-		FColor::Cyan,
-		false,
-		-1,
-		0,
-		5.0f
-	);
+	//DrawDebugLine(GetWorld(),CenterHit.ImpactPoint,CenterHit.ImpactPoint + (AverageNormal * 100),FColor::Cyan,false,-1,0,5.0f);
 
 	// 샘플링 영역 표시
 	//DrawDebugSphere(GetWorld(), CenterHit.ImpactPoint, NormalSampleRadius, 12, FColor::Green, false, -1, 0, 1.0f);
@@ -359,11 +355,11 @@ bool UUSClimbingComponent::ShouldExitClimbing(const FVector& CurrentWallNormal, 
 		return true;
 	}
 
-	float NormalUpDot = FVector::DotProduct(CurrentWallNormal, FVector::UpVector);
-	if (FMath::Abs(NormalUpDot) > 0.7f)
-	{
-		return true;
-	}
+	//float NormalUpDot = FVector::DotProduct(CurrentWallNormal, FVector::UpVector);
+	//if (FMath::Abs(NormalUpDot) > 0.7f)
+	//{
+	//	return true;
+	//}
 
 	return false;
 }
@@ -413,37 +409,59 @@ void UUSClimbingComponent::ClimbingUp()
 		return;
 
 	FHitResult HitResult;
-	if (GetHeadPoint(HitResult))
+	FVector WallNormal;
+
+	// ★ 개선된 올라가기 지점 감지
+	if (GetClimbUpPoint(HitResult, WallNormal))
 	{
-		// 캐릭터가 들어갈 수 있는 곳인지 확인
+		// ★ 연속 감지 카운터 증가
+		ClimbUpDetectionCounter++;
+		LastClimbUpPoint = HitResult.ImpactPoint;
+
+		// 충분한 프레임 동안 감지되지 않으면 실행 안함
+		if (ClimbUpDetectionCounter < RequiredDetectionFrames)
+		{
+			bReadyToClimbUp = true;
+
+			// 디버그: 준비 중 표시
+			//DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 30.0f, 8, FColor::Yellow, false, 0.1f);
+			return;
+		}
+
+		// ★ 캡슐 공간 체크
 		float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
 		float CapsuleHalfHeight = owner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-		FVector CapsuleOrigin = HitResult.ImpactPoint + owner->GetCapsuleComponent()->GetUpVector() * (CapsuleHalfHeight + 1);
+		// 벽 노말 방향으로 약간 앞으로 오프셋 (벽에서 떨어지도록)
+		FVector CapsuleOrigin = HitResult.ImpactPoint
+			+ FVector::UpVector * (CapsuleHalfHeight + 1)
+			+ WallNormal * (CapsuleRadius + 10.0f); // 벽에서 10cm 떨어진 위치
+
 		FHitResult CapsuleRadiusHitResult;
 		if (CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult) == false)
 		{
-			AUSCharacterBase* CharacterBase = Cast<AUSCharacterBase>(owner);
-			UMotionWarpingComponent* MotionWarping = CharacterBase->GetMotionWarping();
-			if(MotionWarping)
-				MotionWarping->AddOrUpdateWarpTargetFromLocation(TEXT("Warp1"), HitResult.ImpactPoint);
-
-			UAnimInstance* AnimInstance = owner->GetMesh()->GetAnimInstance();
-			if (AnimInstance && ClimbingTopMontage && bIsClimbingMontage == false)
-			{
-				bIsClimbing = false;
-				bIsClimbingMontage = true;
-				AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
-
-				float MontageLength = ClimbingTopMontage->GetPlayLength();
-
-				FTimerHandle TimerHandle;
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([&]() {
-					ClimbingClear();
-					})
-					, MontageLength, false);
-			} 
+			DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 40.f, 16, FColor::Purple, false, 5.f);
+			// ★ 공간 확보됨 - 올라가기 실행
+			ExecuteClimbUp(HitResult.ImpactPoint);
 		}
+		else
+		{
+			// 공간이 없으면 카운터 리셋
+			ClimbUpDetectionCounter = 0;
+			bReadyToClimbUp = false;
+
+			// 디버그: 공간 부족
+			//DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, CapsuleRadius,FQuat::Identity, FColor::Red, false, 0.1f, 0, 2.0f);
+		}
+	}
+	else
+	{
+		// ★ 감지 안되면 카운터 리셋
+		if (ClimbUpDetectionCounter > 0)
+		{
+			ClimbUpDetectionCounter = FMath::Max(0, ClimbUpDetectionCounter - 2); // 빠르게 감소
+		}
+		bReadyToClimbUp = false;
 	}
 }
 
@@ -601,29 +619,11 @@ bool UUSClimbingComponent::HitCheck(FVector StartPoint, FVector EndPoint, FHitRe
 	{
 		if (bHit)
 		{
-			DrawDebugLine(
-				GetWorld(),
-				StartPoint,
-				EndPoint,
-				FColor::Blue,
-				false,  // 지속적으로 그릴 것인지 여부
-				DrawLineTime,   // 지속 시간
-				0,      // DepthPriority
-				1.0f    // 선의 두께
-			);
+			//DrawDebugLine(GetWorld(),StartPoint,EndPoint,FColor::Blue,false,DrawLineTime,0,1.0f);
 		}
 		else
 		{
-			DrawDebugLine(
-				GetWorld(),
-				StartPoint,
-				EndPoint,
-				FColor::Red,
-				false,  // 지속적으로 그릴 것인지 여부
-				DrawLineTime,   // 지속 시간
-				0,      // DepthPriority
-				1.0f    // 선의 두께
-			);
+			//DrawDebugLine(GetWorld(),StartPoint,EndPoint,FColor::Red,false, DrawLineTime, 0,  1.0f  );
 		}
 	}
 
@@ -657,11 +657,190 @@ bool UUSClimbingComponent::CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleR
 		QueryParams
 	);
 
-	//FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-	//FColor DrawColor = bHit == true ? FColor::Green : FColor::Red;
+	FColor DrawColor = bHit == true ? FColor::Green : FColor::Red;
 
-	//DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(GetOwner()->GetActorUpVector()).ToQuat(), DrawColor, false);
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, CapsuleRadius, FRotationMatrix::MakeFromZ(GetOwner()->GetActorUpVector()).ToQuat(), DrawColor, false);
 
 	return bHit;
 }
 
+bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallNormal)
+{
+	ACharacter* owner = Cast<ACharacter>(GetOwner());
+	if (owner == nullptr)
+		return false;
+
+	FVector OwnerLocation = owner->GetActorLocation();
+	FVector ForwardVector = owner->GetActorForwardVector();
+	float CapsuleHalfHeight = owner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(owner);
+	QueryParams.bTraceComplex = true;
+
+	// ★ 현재 벽 상단 높이를 먼저 구하기
+	// 캐릭터 전방 벽에서 위로 트레이스하여 상단 찾기
+	FVector WallCheckStart = OwnerLocation + ForwardVector * 50.0f;
+	FVector WallCheckEnd = WallCheckStart + FVector::UpVector * ClimbUpDetectionDistance;
+
+	// 벽을 따라 위로 올라가면서 뚫리는 지점 찾기
+	FHitResult WallTopHit;
+	bool bFoundWallTop = false;
+	FVector OpenPoint = FVector::ZeroVector;
+
+	// ★ 세밀한 높이 스텝으로 체크 (벽 상단 찾기)
+	float StepSize = 10.0f;
+	int32 StepCount = (int32)(ClimbUpDetectionDistance / StepSize);
+
+	for (int32 Step = 0; Step <= StepCount; Step++)
+	{
+		float CurrentHeight = Step * StepSize;
+		FVector StepOrigin = OwnerLocation + FVector::UpVector * CurrentHeight;
+
+		// 이 높이에서 전방으로 짧게 트레이스
+		FVector StepForwardEnd = StepOrigin + ForwardVector * 80.0f;
+
+		FHitResult StepHit;
+		bool bBlocked = GetWorld()->LineTraceSingleByChannel(
+			StepHit,
+			StepOrigin,
+			StepForwardEnd,
+			ECC_Visibility,
+			QueryParams
+		);
+
+		DrawDebugLine(GetWorld(), StepOrigin, StepForwardEnd, bBlocked ? FColor::Red : FColor::Green, false, 0.1f, 0, 1.0f);
+
+		if (!bBlocked)
+		{
+			// ★ 막히지 않는 첫번째 높이 = 벽 상단
+			OpenPoint = StepForwardEnd;
+			bFoundWallTop = true;
+
+			// 최소 높이 체크
+			float HeightDiff = CurrentHeight;
+			if (HeightDiff < MinClimbUpHeight)
+			{
+				// 너무 낮으면 계속 탐색
+				bFoundWallTop = false;
+				continue;
+			}
+			break;
+		}
+	}
+
+	if (!bFoundWallTop)
+		return false;
+
+	// ★ 뚫린 지점에서 아래로 트레이스하여 실제 착지 지점 찾기
+	FVector DownTraceStart = OpenPoint + FVector::UpVector * 30.0f;
+	FVector DownTraceEnd = DownTraceStart - FVector::UpVector * 200.0f;
+
+	FHitResult DownHit;
+	bool bFoundSurface = GetWorld()->LineTraceSingleByChannel(
+		DownHit,
+		DownTraceStart,
+		DownTraceEnd,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	//DrawDebugLine(GetWorld(), DownTraceStart, DownTraceEnd,	bFoundSurface ? FColor::Cyan : FColor::Orange, false, 0.1f, 0, 2.0f);
+
+	if (!bFoundSurface)
+		return false;
+
+	// ★ 천장 체크 (착지 지점 위에 공간이 있는지)
+	float CapsuleSpaceNeeded = CapsuleHalfHeight * 2.0f + 10.0f;
+	FVector CeilingCheckStart = DownHit.ImpactPoint + FVector::UpVector * 10.0f;
+	FVector CeilingCheckEnd = CeilingCheckStart + FVector::UpVector * CapsuleSpaceNeeded;
+
+	FHitResult CeilingHit;
+	bool bCeilingBlocked = GetWorld()->LineTraceSingleByChannel(
+		CeilingHit,
+		CeilingCheckStart,
+		CeilingCheckEnd,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	if (bCeilingBlocked)
+	{
+		//DrawDebugSphere(GetWorld(), CeilingHit.ImpactPoint, 20.0f, 8, FColor::Red, false, 0.1f);
+		return false; // 천장 있음 → 일어설 공간 없음
+	}
+
+	OutHit = DownHit;
+	OutWallNormal = -ForwardVector; // 벽에서 멀어지는 방향
+
+	//DrawDebugSphere(GetWorld(), DownHit.ImpactPoint, 25.0f, 8, FColor::Green, false, 0.1f);
+	//DrawDebugDirectionalArrow(GetWorld(), DownHit.ImpactPoint, DownHit.ImpactPoint + OutWallNormal * 60.0f, 25.0f, FColor::Cyan, false, 0.1f, 0, 3.0f);
+
+	return true;
+}
+
+void UUSClimbingComponent::ExecuteClimbUp(const FVector& TargetPoint)
+{
+	ACharacter* owner = Cast<ACharacter>(GetOwner());
+	if (owner == nullptr)
+		return;
+
+	AUSCharacterBase* CharacterBase = Cast<AUSCharacterBase>(owner);
+	UMotionWarpingComponent* MotionWarping = CharacterBase->GetMotionWarping();
+
+	if (MotionWarping)
+	{
+		// ★ 캡슐 반경만큼 뒤로 조정 (벽 노말 방향으로)
+		float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
+		float CapsuleHalfHeight = owner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+		// 벽에서 멀어지는 방향 (캐릭터 후방 = 벽 노말)
+		FVector WallNormal = -owner->GetActorForwardVector();
+
+		// ★ 착지 지점 보정
+		// ImpactPoint는 벽 표면 위이므로 캡슐 중심 위치로 변환
+		FVector AdjustedTarget = TargetPoint
+			+ WallNormal * CapsuleRadius
+			+ FVector::UpVector * CapsuleHalfHeight
+			+ owner->GetActorForwardVector() * ClimbUpWarpOffset.X  // 앞뒤
+			+ FVector::UpVector * ClimbUpWarpOffset.Z;              // 높이
+
+		MotionWarping->AddOrUpdateWarpTargetFromLocation(TEXT("Warp1"), AdjustedTarget);
+
+		// 디버그 비교
+		DrawDebugSphere(GetWorld(), TargetPoint, 20.f, 16, FColor::Purple, false, 5.f);    // 원래 지점
+		DrawDebugSphere(GetWorld(), AdjustedTarget, 20.f, 16, FColor::Green, false, 5.f);  // 보정된 지점
+		DrawDebugLine(GetWorld(), TargetPoint, AdjustedTarget, FColor::Yellow, false, 5.f, 0, 2.f);
+	}
+
+	UAnimInstance* AnimInstance = owner->GetMesh()->GetAnimInstance();
+	if (AnimInstance && ClimbingTopMontage && bIsClimbingMontage == false)
+	{
+		bIsClimbing = false;
+		bIsClimbingMontage = true;
+
+		FRotator CurrentRotation = owner->GetActorRotation();
+		owner->SetActorRotation(FRotator(0.0f, CurrentRotation.Yaw, 0.0f));
+
+		AController* Controller = owner->GetController();
+		if (Controller)
+		{
+			FRotator ControlRotation = Controller->GetControlRotation();
+			Controller->SetControlRotation(FRotator(0.0f, ControlRotation.Yaw, 0.0f));
+		}
+
+		AnimInstance->Montage_Play(ClimbingTopMontage, 1.0);
+
+		float MontageLength = ClimbingTopMontage->GetPlayLength();
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle,
+			FTimerDelegate::CreateLambda([this]()
+				{
+					ClimbingClear();
+				}),
+			MontageLength, false);
+
+		ClimbUpDetectionCounter = 0;
+		bReadyToClimbUp = false;
+	}
+}

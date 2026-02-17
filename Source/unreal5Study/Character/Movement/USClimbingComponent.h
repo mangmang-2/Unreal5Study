@@ -121,4 +121,33 @@ public:
 	bool HitCheck(FVector StartPoint, FVector EndPoint, FHitResult& HitResult, bool DrawLine, float DrawLineTime, bool DebugMessage);
 	bool CapsuleHitCheck(FVector CapsuleOrigin, float CapsuleRadius, float CapsuleHalfHeight, FHitResult& HitResult);
 
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Climbing")
+	FVector ClimbUpWarpOffset = FVector(0.0f, 0.0f, -100.0f); // 블루프린트에서 직접 조정
+
+    // 올라가기 감지 거리 (머리 위)
+    UPROPERTY(EditAnywhere, Category = "Climbing")
+    float ClimbUpDetectionDistance = 50.0f;
+
+    // 올라가기 최소 높이 (너무 낮으면 무시)
+    UPROPERTY(EditAnywhere, Category = "Climbing")
+    float MinClimbUpHeight = 20.0f;
+
+    // 연속 감지 카운터 (프레임 안정화)
+    int32 ClimbUpDetectionCounter = 0;
+
+    // 연속 감지 필요 프레임 수
+    UPROPERTY(EditAnywhere, Category = "Climbing")
+    int32 RequiredDetectionFrames = 3;
+
+    // 마지막 감지된 올라가기 지점
+    FVector LastClimbUpPoint = FVector::ZeroVector;
+
+    // 올라가기 준비 상태
+    bool bReadyToClimbUp = false;
+
+    // GetHeadPoint 개선 버전
+    bool GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallNormal);
+	void ExecuteClimbUp(const FVector& TargetPoint);
 };
