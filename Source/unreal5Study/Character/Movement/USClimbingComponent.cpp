@@ -313,9 +313,7 @@ bool UUSClimbingComponent::TraceForWall(FHitResult& OutHit, FVector& OutWallNorm
 	OutHit = CenterHit;
 	OutWallNormal = AverageNormal;
 
-	// 디버그 그리기
 #if WITH_EDITOR
-	// 샘플링 포인트들 표시
 	for (const FHitResult& Hit : AllHits)
 	{
 		//DrawDebugPoint(GetWorld(), Hit.ImpactPoint, 5.0f, FColor::Yellow, false, -1, 0);
@@ -411,10 +409,9 @@ void UUSClimbingComponent::ClimbingUp()
 	FHitResult HitResult;
 	FVector WallNormal;
 
-	// ★ 개선된 올라가기 지점 감지
+	// 개선된 올라가기 지점 감지
 	if (GetClimbUpPoint(HitResult, WallNormal))
 	{
-		// ★ 연속 감지 카운터 증가
 		ClimbUpDetectionCounter++;
 		LastClimbUpPoint = HitResult.ImpactPoint;
 
@@ -423,40 +420,34 @@ void UUSClimbingComponent::ClimbingUp()
 		{
 			bReadyToClimbUp = true;
 
-			// 디버그: 준비 중 표시
 			//DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 30.0f, 8, FColor::Yellow, false, 0.1f);
 			return;
 		}
 
-		// ★ 캡슐 공간 체크
 		float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
 		float CapsuleHalfHeight = owner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
 		// 벽 노말 방향으로 약간 앞으로 오프셋 (벽에서 떨어지도록)
 		FVector CapsuleOrigin = HitResult.ImpactPoint
 			+ FVector::UpVector * (CapsuleHalfHeight + 1)
-			+ WallNormal * (CapsuleRadius + 10.0f); // 벽에서 10cm 떨어진 위치
+			+ WallNormal * (CapsuleRadius + 10.0f); // 벽에서 떨어진 위치
 
 		FHitResult CapsuleRadiusHitResult;
 		if (CapsuleHitCheck(CapsuleOrigin, CapsuleRadius, CapsuleHalfHeight, CapsuleRadiusHitResult) == false)
 		{
 			DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 40.f, 16, FColor::Purple, false, 5.f);
-			// ★ 공간 확보됨 - 올라가기 실행
 			ExecuteClimbUp(HitResult.ImpactPoint);
 		}
 		else
 		{
-			// 공간이 없으면 카운터 리셋
 			ClimbUpDetectionCounter = 0;
 			bReadyToClimbUp = false;
 
-			// 디버그: 공간 부족
 			//DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, CapsuleRadius,FQuat::Identity, FColor::Red, false, 0.1f, 0, 2.0f);
 		}
 	}
 	else
 	{
-		// ★ 감지 안되면 카운터 리셋
 		if (ClimbUpDetectionCounter > 0)
 		{
 			ClimbUpDetectionCounter = FMath::Max(0, ClimbUpDetectionCounter - 2); // 빠르게 감소
@@ -678,7 +669,7 @@ bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallN
 	QueryParams.AddIgnoredActor(owner);
 	QueryParams.bTraceComplex = true;
 
-	// ★ 현재 벽 상단 높이를 먼저 구하기
+	// 현재 벽 상단 높이를 먼저 구하기
 	// 캐릭터 전방 벽에서 위로 트레이스하여 상단 찾기
 	FVector WallCheckStart = OwnerLocation + ForwardVector * 50.0f;
 	FVector WallCheckEnd = WallCheckStart + FVector::UpVector * ClimbUpDetectionDistance;
@@ -688,7 +679,6 @@ bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallN
 	bool bFoundWallTop = false;
 	FVector OpenPoint = FVector::ZeroVector;
 
-	// ★ 세밀한 높이 스텝으로 체크 (벽 상단 찾기)
 	float StepSize = 10.0f;
 	int32 StepCount = (int32)(ClimbUpDetectionDistance / StepSize);
 
@@ -713,7 +703,6 @@ bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallN
 
 		if (!bBlocked)
 		{
-			// ★ 막히지 않는 첫번째 높이 = 벽 상단
 			OpenPoint = StepForwardEnd;
 			bFoundWallTop = true;
 
@@ -732,7 +721,7 @@ bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallN
 	if (!bFoundWallTop)
 		return false;
 
-	// ★ 뚫린 지점에서 아래로 트레이스하여 실제 착지 지점 찾기
+	// 뚫린 지점에서 아래로 트레이스하여 실제 착지 지점 찾기
 	FVector DownTraceStart = OpenPoint + FVector::UpVector * 30.0f;
 	FVector DownTraceEnd = DownTraceStart - FVector::UpVector * 200.0f;
 
@@ -750,7 +739,7 @@ bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallN
 	if (!bFoundSurface)
 		return false;
 
-	// ★ 천장 체크 (착지 지점 위에 공간이 있는지)
+	// 천장 체크 (착지 지점 위에 공간이 있는지)
 	float CapsuleSpaceNeeded = CapsuleHalfHeight * 2.0f + 10.0f;
 	FVector CeilingCheckStart = DownHit.ImpactPoint + FVector::UpVector * 10.0f;
 	FVector CeilingCheckEnd = CeilingCheckStart + FVector::UpVector * CapsuleSpaceNeeded;
@@ -790,14 +779,14 @@ void UUSClimbingComponent::ExecuteClimbUp(const FVector& TargetPoint)
 
 	if (MotionWarping)
 	{
-		// ★ 캡슐 반경만큼 뒤로 조정 (벽 노말 방향으로)
+		// 캡슐 반경만큼 뒤로 조정 (벽 노말 방향으로)
 		float CapsuleRadius = owner->GetCapsuleComponent()->GetScaledCapsuleRadius();
 		float CapsuleHalfHeight = owner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
 		// 벽에서 멀어지는 방향 (캐릭터 후방 = 벽 노말)
 		FVector WallNormal = -owner->GetActorForwardVector();
 
-		// ★ 착지 지점 보정
+		// 착지 지점 보정
 		// ImpactPoint는 벽 표면 위이므로 캡슐 중심 위치로 변환
 		FVector AdjustedTarget = TargetPoint
 			+ WallNormal * CapsuleRadius
