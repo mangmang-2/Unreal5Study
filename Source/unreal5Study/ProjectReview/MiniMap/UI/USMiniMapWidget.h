@@ -64,4 +64,22 @@ public:
 	void HandleMarkerClicked(class UUSMiniMapMarkerComponent* Marker);
 
 	void SpawnWorldPing(FVector WorldPos);
+
+	void MoveToPlayer(UUSMiniMapMarkerComponent* Marker);
+	void DrawMoveLine(UUSMiniMapMarkerComponent* Marker);
+	void UpdateMoveLine();
+	void ClearMoveLine();
+	int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
+		int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const;
+
+	void UpdateCharacterRotation();
+private:
+    UPROPERTY()
+    TArray<FVector2D> MoveLinePoints;
+
+    FTimerHandle MoveLineUpdateTimer;
+
+    TWeakObjectPtr<UUSMiniMapMarkerComponent> TargetMarker;
+
 };

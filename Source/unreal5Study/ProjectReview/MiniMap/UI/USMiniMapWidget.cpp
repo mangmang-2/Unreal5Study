@@ -13,6 +13,14 @@
 #include "Components/CanvasPanel.h"
 #include "USMiniMapMarkerWidget.h"
 #include "../Actor/WorldPingActor.h"
+#include "AIController.h"
+#include "NavigationSystem.h"
+#include "DrawDebugHelpers.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "NavigationPath.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 void UUSMiniMapWidget::NativeConstruct()
 {
@@ -238,6 +246,8 @@ void UUSMiniMapWidget::HandleMarkerClicked(UUSMiniMapMarkerComponent* Marker)
 		return;
 
 	SpawnWorldPing(Marker->GetWorldLocation());
+	MoveToPlayer(Marker);
+	DrawMoveLine(Marker);
 }
 
 void UUSMiniMapWidget::SpawnWorldPing(FVector WorldPos)
@@ -248,4 +258,191 @@ void UUSMiniMapWidget::SpawnWorldPing(FVector WorldPos)
 	GetWorld()->SpawnActor<AWorldPingActor>(PingActorClass,
 			WorldPos + FVector(0, 0, 0),
 			FRotator::ZeroRotator);
+}
+
+void UUSMiniMapWidget::MoveToPlayer(UUSMiniMapMarkerComponent* Marker)
+{
+	if (Marker == nullptr)
+		return;
+
+	APlayerController* PC = GetOwningPlayer();
+	if (PC == nullptr)
+		return;
+
+	APawn* Pawn = PC->GetPawn();
+	if (Pawn == nullptr)
+		return;
+
+	// AI Move To 사용
+	AAIController* AIC = Cast<AAIController>(Pawn->GetController());
+	if (AIC)
+	{
+		AIC->MoveToLocation(Marker->GetWorldLocation(), 50.f, true, true, false, true);
+		return;
+	}
+
+	// AIController가 없으면 직접 이동 (단순 SetActorLocation or Navigate)
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (NavSys == nullptr)
+		return;
+
+	FNavLocation NavLocation;
+	bool bFound = NavSys->ProjectPointToNavigation(
+		Marker->GetWorldLocation(),
+		NavLocation,
+		FVector(200.f, 200.f, 200.f)
+	);
+
+	if (ACharacter* Character = Cast<ACharacter>(Pawn))
+	{
+		UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement();
+		if (MoveComp)
+		{
+			// 이동 방향으로 자동 회전
+			MoveComp->bOrientRotationToMovement = true;
+			MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f);
+		}
+
+		// 컨트롤러 회전 사용 끄기 (이게 켜져 있으면 OrientRotation이 무시됨)
+		Character->bUseControllerRotationYaw = false;
+
+		if (bFound)
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(PC, NavLocation.Location);
+		}
+	}
+}
+
+void UUSMiniMapWidget::DrawMoveLine(UUSMiniMapMarkerComponent* Marker)
+{
+	if (Marker == nullptr)
+		return;
+
+	// 기존 경로 초기화
+	MoveLinePoints.Empty();
+	TargetMarker = Marker;
+
+	GetWorld()->GetTimerManager().SetTimer(
+		MoveLineUpdateTimer,
+		this,
+		&UUSMiniMapWidget::UpdateMoveLine,
+		0.1f,
+		true
+	);
+}
+
+void UUSMiniMapWidget::UpdateMoveLine()
+{
+	// 목적지 마커 유효성 체크
+	if (!TargetMarker.IsValid())
+	{
+		ClearMoveLine();
+		return;
+	}
+
+	APawn* Pawn = GetOwningPlayerPawn();
+	if (Pawn == nullptr)
+		return;
+
+	MoveLinePoints.Empty();
+
+	FVector PlayerWorld = Pawn->GetActorLocation();
+	FVector2D PlayerUV = ConvertWorldToMiniMap(PlayerWorld);
+	MoveLinePoints.Add(PlayerUV);
+
+	UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+		GetWorld(),
+		PlayerWorld,
+		TargetMarker->GetWorldLocation(),
+		Pawn
+	);
+
+	if (NavPath && NavPath->IsValid())
+	{
+		for (const FVector& PathPoint : NavPath->PathPoints)
+		{
+			MoveLinePoints.Add(ConvertWorldToMiniMap(PathPoint));
+		}
+
+		// 목적지 근처에 도달하면 경로 제거
+		float DistToTarget = FVector::Dist(PlayerWorld, TargetMarker->GetWorldLocation());
+		if (DistToTarget < 100.f)
+		{
+			ClearMoveLine();
+			return;
+		}
+	}
+	else
+	{
+		// NavMesh 없으면 직선으로
+		MoveLinePoints.Add(ConvertWorldToMiniMap(TargetMarker->GetWorldLocation()));
+	}
+
+	if (IconLayer)
+	{
+		IconLayer->InvalidateLayoutAndVolatility();
+	}
+}
+
+void UUSMiniMapWidget::ClearMoveLine()
+{
+	MoveLinePoints.Empty();
+	TargetMarker.Reset();
+	GetWorld()->GetTimerManager().ClearTimer(MoveLineUpdateTimer);
+}
+
+int32 UUSMiniMapWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+	const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
+	int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	int32 Layer = Super::NativePaint(Args, AllottedGeometry, MyCullingRect,
+		OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+
+	if (MoveLinePoints.Num() >= 2)
+	{
+		FLinearColor LineColor = FLinearColor(0.f, 1.f, 0.4f, 0.85f);  // 초록
+		float LineThickness = 5.f;
+
+		for (int32 i = 0; i < MoveLinePoints.Num() - 1; ++i)
+		{
+			FVector2D Start = MoveLinePoints[i];
+			FVector2D End = MoveLinePoints[i + 1];
+
+			FSlateDrawElement::MakeLines(
+				OutDrawElements,
+				Layer + 1,
+				AllottedGeometry.ToPaintGeometry(),
+				{ Start, End },
+				ESlateDrawEffect::None,
+				LineColor,
+				true,
+				LineThickness
+			);
+		}
+	}
+
+	return Layer;
+}
+
+void UUSMiniMapWidget::UpdateCharacterRotation()
+{
+	APawn* Pawn = GetOwningPlayerPawn();
+	if (Pawn == nullptr)
+	{
+		return;
+	}
+
+	FVector Velocity = Pawn->GetVelocity();
+	if (Velocity.SizeSquared() < 1.f)
+		return;
+
+	// 이동 방향으로 회전
+	FRotator TargetRot = Velocity.Rotation();
+	TargetRot.Pitch = 0.f;
+	TargetRot.Roll = 0.f;
+
+	FRotator CurrentRot = Pawn->GetActorRotation();
+	FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetRot, 0.05f, 10.f);
+
+	Pawn->SetActorRotation(NewRot);
 }
