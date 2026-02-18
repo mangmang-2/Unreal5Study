@@ -16,5 +16,6 @@ class UNREAL5STUDY_API AUSPlayerController : public APlayerController
 
 public:
 	AUSPlayerController();
-	//AUSPlayerController();
+	
+	virtual void BeginPlay() override;
 };
