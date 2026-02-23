@@ -299,12 +299,12 @@ void UUSMiniMapWidget::MoveToPlayer(UUSMiniMapMarkerComponent* Marker)
 		if (MoveComp)
 		{
 			// 이동 방향으로 자동 회전
-			MoveComp->bOrientRotationToMovement = true;
+			//MoveComp->bOrientRotationToMovement = true;
 			MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f);
 		}
 
 		// 컨트롤러 회전 사용 끄기 (이게 켜져 있으면 OrientRotation이 무시됨)
-		Character->bUseControllerRotationYaw = false;
+		//Character->bUseControllerRotationYaw = false;
 
 		if (bFound)
 		{

@@ -699,7 +699,7 @@ bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallN
 			QueryParams
 		);
 
-		DrawDebugLine(GetWorld(), StepOrigin, StepForwardEnd, bBlocked ? FColor::Red : FColor::Green, false, 0.1f, 0, 1.0f);
+		//DrawDebugLine(GetWorld(), StepOrigin, StepForwardEnd, bBlocked ? FColor::Red : FColor::Green, false, 0.1f, 0, 1.0f);
 
 		if (!bBlocked)
 		{
@@ -738,6 +738,18 @@ bool UUSClimbingComponent::GetClimbUpPoint(FHitResult& OutHit, FVector& OutWallN
 
 	if (!bFoundSurface)
 		return false;
+
+	// 착지 지점이 캐릭터 발 기준으로 충분히 높은지 체크
+	float CharacterFeetZ = OwnerLocation.Z - CapsuleHalfHeight;
+	float CharacterWaistZ = OwnerLocation.Z; // 허리 = 캡슐 중심
+
+	float SurfaceHeightDiff = DownHit.ImpactPoint.Z - CharacterFeetZ;
+
+	if (DownHit.ImpactPoint.Z < CharacterWaistZ)
+	{
+		// 허리 아래는 바닥으로 판정
+		return false;
+	}
 
 	// 천장 체크 (착지 지점 위에 공간이 있는지)
 	float CapsuleSpaceNeeded = CapsuleHalfHeight * 2.0f + 10.0f;
